@@ -1,0 +1,482 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dsio:replenishment-model:v1",
+  "description": "JSON weights only. DTO additionally validates finite/ranged decimal coefficients, std >= 1e-6, content hash, scope, policy profile and temporal availability.",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_id",
+        "contract_version",
+        "model_id",
+        "version",
+        "content_hash",
+        "feature_contract_id",
+        "scope",
+        "training_data_hash",
+        "trained_through_date",
+        "training_run_id",
+        "training_profile_hash",
+        "runtime_version",
+        "normalizer",
+        "policy_contract",
+        "strategy_type",
+        "algorithm",
+        "weights"
+      ],
+      "properties": {
+        "contract_id": {
+          "const": "io-replenishment-model-v1"
+        },
+        "contract_version": {
+          "const": "1.0.0"
+        },
+        "model_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "content_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "feature_contract_id": {
+          "const": "io-learned-observation-v1"
+        },
+        "scope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "company_cd",
+            "subs_cd",
+            "site_cd",
+            "configuration_revision",
+            "plan_type"
+          ],
+          "properties": {
+            "company_cd": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "subs_cd": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "site_cd": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "configuration_revision": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "plan_type": {
+              "enum": [
+                "POSM",
+                "TGSM"
+              ]
+            }
+          }
+        },
+        "training_data_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "trained_through_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "training_run_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "training_profile_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "runtime_version": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "normalizer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mean",
+            "std"
+          ],
+          "properties": {
+            "mean": {
+              "type": "array",
+              "minItems": 14,
+              "maxItems": 14,
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"
+              }
+            },
+            "std": {
+              "type": "array",
+              "minItems": 14,
+              "maxItems": 14,
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"
+              }
+            }
+          }
+        },
+        "policy_contract": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "lookback_weeks",
+            "stddev_ddof",
+            "replenishment_cycle_weeks"
+          ],
+          "properties": {
+            "lookback_weeks": {
+              "enum": [
+                13,
+                26
+              ]
+            },
+            "stddev_ddof": {
+              "const": 1
+            },
+            "replenishment_cycle_weeks": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 52
+            }
+          }
+        },
+        "strategy_type": {
+          "const": "PREDICTIVE_ML"
+        },
+        "algorithm": {
+          "const": "positive-error-quantile-linear-v1"
+        },
+        "weights": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "linear.weight",
+            "linear.bias"
+          ],
+          "properties": {
+            "linear.weight": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 1,
+              "items": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": {
+                  "type": "string",
+                  "maxLength": 64,
+                  "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"
+                }
+              }
+            },
+            "linear.bias": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 1,
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_id",
+        "contract_version",
+        "model_id",
+        "version",
+        "content_hash",
+        "feature_contract_id",
+        "scope",
+        "training_data_hash",
+        "trained_through_date",
+        "training_run_id",
+        "training_profile_hash",
+        "runtime_version",
+        "normalizer",
+        "policy_contract",
+        "strategy_type",
+        "algorithm",
+        "weights"
+      ],
+      "properties": {
+        "contract_id": {
+          "const": "io-replenishment-model-v1"
+        },
+        "contract_version": {
+          "const": "1.0.0"
+        },
+        "model_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "content_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "feature_contract_id": {
+          "const": "io-learned-observation-v1"
+        },
+        "scope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "company_cd",
+            "subs_cd",
+            "site_cd",
+            "configuration_revision",
+            "plan_type"
+          ],
+          "properties": {
+            "company_cd": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "subs_cd": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "site_cd": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "configuration_revision": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "plan_type": {
+              "enum": [
+                "POSM",
+                "TGSM"
+              ]
+            }
+          }
+        },
+        "training_data_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "trained_through_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "training_run_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "training_profile_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "runtime_version": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "normalizer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mean",
+            "std"
+          ],
+          "properties": {
+            "mean": {
+              "type": "array",
+              "minItems": 14,
+              "maxItems": 14,
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"
+              }
+            },
+            "std": {
+              "type": "array",
+              "minItems": 14,
+              "maxItems": 14,
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"
+              }
+            }
+          }
+        },
+        "policy_contract": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "lookback_weeks",
+            "stddev_ddof",
+            "replenishment_cycle_weeks"
+          ],
+          "properties": {
+            "lookback_weeks": {
+              "enum": [
+                13,
+                26
+              ]
+            },
+            "stddev_ddof": {
+              "const": 1
+            },
+            "replenishment_cycle_weeks": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 52
+            }
+          }
+        },
+        "strategy_type": {
+          "const": "DEEP_RL"
+        },
+        "algorithm": {
+          "const": "ppo-clip-target-mlp-v1"
+        },
+        "weights": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "fc1.weight",
+            "fc1.bias",
+            "fc2.weight",
+            "fc2.bias",
+            "actor.weight",
+            "actor.bias",
+            "critic.weight",
+            "critic.bias"
+          ],
+          "properties": {
+            "fc1.weight": {
+              "type": "array",
+              "minItems": 16,
+              "maxItems": 16,
+              "items": {
+                "type": "array",
+                "minItems": 14,
+                "maxItems": 14,
+                "items": {
+                  "type": "string",
+                  "maxLength": 64,
+                  "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"
+                }
+              }
+            },
+            "fc1.bias": {
+              "type": "array",
+              "minItems": 16,
+              "maxItems": 16,
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"
+              }
+            },
+            "fc2.weight": {
+              "type": "array",
+              "minItems": 16,
+              "maxItems": 16,
+              "items": {
+                "type": "array",
+                "minItems": 16,
+                "maxItems": 16,
+                "items": {
+                  "type": "string",
+                  "maxLength": 64,
+                  "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"
+                }
+              }
+            },
+            "fc2.bias": {
+              "type": "array",
+              "minItems": 16,
+              "maxItems": 16,
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"
+              }
+            },
+            "actor.weight": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": {
+                "type": "array",
+                "minItems": 16,
+                "maxItems": 16,
+                "items": {
+                  "type": "string",
+                  "maxLength": 64,
+                  "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"
+                }
+              }
+            },
+            "actor.bias": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"
+              }
+            },
+            "critic.weight": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 1,
+              "items": {
+                "type": "array",
+                "minItems": 16,
+                "maxItems": 16,
+                "items": {
+                  "type": "string",
+                  "maxLength": 64,
+                  "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"
+                }
+              }
+            },
+            "critic.bias": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 1,
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "pattern": "^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?$"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

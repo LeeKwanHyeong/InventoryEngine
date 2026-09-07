@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dsio:learning-stability:v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_id",
+    "contract_version",
+    "study_id",
+    "generator_version",
+    "selection_rule",
+    "development_data_seed",
+    "training_seeds",
+    "holdout_data_seeds",
+    "candidates"
+  ],
+  "properties": {
+    "contract_id": {
+      "const": "io-learning-stability-v1"
+    },
+    "contract_version": {
+      "const": "1.0.0"
+    },
+    "study_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9_.:-]+$"
+    },
+    "generator_version": {
+      "const": "nonrepeating-hash-demand-v1"
+    },
+    "selection_rule": {
+      "const": "cost-service-guardrails-v1"
+    },
+    "development_data_seed": {
+      "$ref": "#/$defs/seed"
+    },
+    "training_seeds": {
+      "$ref": "#/$defs/seeds"
+    },
+    "holdout_data_seeds": {
+      "$ref": "#/$defs/seeds"
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "candidate_id",
+          "ml_epochs",
+          "ppo_iterations",
+          "ppo_epochs"
+        ],
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9_.:-]+$"
+          },
+          "ml_epochs": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 600
+          },
+          "ppo_iterations": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 24
+          },
+          "ppo_epochs": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "seed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647
+    },
+    "seeds": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 5,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/seed"
+      }
+    }
+  }
+}

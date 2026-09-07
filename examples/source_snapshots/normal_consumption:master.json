@@ -1,0 +1,30 @@
+{
+  "contract_id": "io-source-snapshot-v1",
+  "snapshot_type": "master",
+  "snapshot_id": "normal_consumption:master",
+  "content_hash": "0df3404e409727f6488543e0724272683d13e8f9748c103b5871613e882f579e",
+  "adapter": "DSDM_MASTER_V1",
+  "origin_type": "DEVELOPMENT_FIXTURE",
+  "source_reference": "TEST-ONLY",
+  "source_as_of_date": "2026-09-28",
+  "status": "SEALED",
+  "row_count": 1,
+  "metadata": {
+    "company_cd": "DSE",
+    "subs_cd": "C100",
+    "site_cd": "V101",
+    "master_snapshot_revision": "MASTER-R1"
+  },
+  "semantics": {},
+  "rows": [
+    {
+      "company_cd": "DSE",
+      "subs_cd": "C100",
+      "site_cd": "V101",
+      "oper_part_no": "A",
+      "unit": "EA",
+      "use_flag": "Y",
+      "stock_flag": "Y"
+    }
+  ]
+}

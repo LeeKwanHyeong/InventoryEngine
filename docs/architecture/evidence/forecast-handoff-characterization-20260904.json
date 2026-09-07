@@ -1,0 +1,34 @@
+{
+  "date": "2026-09-04",
+  "status": "CURRENT_CONTRACT_CHARACTERIZED_NOT_IMPLEMENTED",
+  "inventory_package_version": "0.9.1",
+  "demand_branch": "demand_engine_v3",
+  "studio_branch": "dsdm_engine_studio_dev",
+  "statistics": {
+    "POINT": "yhat",
+    "P10": "yhat_q10",
+    "P50": "yhat_q50",
+    "P90": "yhat_q90"
+  },
+  "current_fractional_ea_rejection": "UOM_QUANTITY_PRECISION",
+  "calendar_boundary": {
+    "yyyyww": "202627",
+    "demand_monday_month": "202606",
+    "legacy_wednesday_month": "202607"
+  },
+  "illustrative_rounding_not_operational_data": {
+    "weeks": 13,
+    "weekly_forecast": "0.4",
+    "raw_total": "5.2",
+    "weekly_half_up_total": "0",
+    "weekly_ceiling_total": "13"
+  },
+  "illustrative_26_week_rows": 111020,
+  "current_dataset_row_limit": 100000,
+  "current_json_byte_limit": 8000000,
+  "actual_database_access": false,
+  "production_code_modified": false,
+  "snapshot_sealed": false,
+  "proposed_contract_approved": false,
+  "runtime_deployed": false
+}

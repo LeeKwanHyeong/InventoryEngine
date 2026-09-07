@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dsio:learned-training:v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_id",
+    "contract_version",
+    "training_run_id",
+    "model_version",
+    "seed",
+    "ml_epochs",
+    "ppo_iterations",
+    "ppo_epochs",
+    "training_request"
+  ],
+  "properties": {
+    "contract_id": {
+      "const": "io-learned-training-v1"
+    },
+    "contract_version": {
+      "const": "1.0.0"
+    },
+    "training_run_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "model_version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483647
+    },
+    "ml_epochs": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2000
+    },
+    "ppo_iterations": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 64
+    },
+    "ppo_epochs": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "training_request": {
+      "$ref": "urn:dsio:training-foundation:v1"
+    }
+  }
+}

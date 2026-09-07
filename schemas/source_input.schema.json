@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Pinned IO Source input v1",
+  "description": "Read request only. Source envelopes require trusted upstream attestations; no seal or authorization is created here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_id",
+    "contract_version",
+    "context",
+    "quantity_rules",
+    "source_bindings"
+  ],
+  "properties": {
+    "contract_id": {
+      "const": "io-source-input-v1"
+    },
+    "contract_version": {
+      "const": "1.0.0"
+    },
+    "context": {
+      "$ref": "canonical_input.schema.json#/properties/context"
+    },
+    "quantity_rules": {
+      "$ref": "canonical_input.schema.json#/properties/quantity_rules"
+    },
+    "source_bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "calendar",
+        "master",
+        "forecast",
+        "customer_orders",
+        "inventory",
+        "prior_inventory",
+        "receipts",
+        "policies"
+      ],
+      "properties": {
+        "calendar": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "snapshot_id",
+            "content_hash"
+          ],
+          "properties": {
+            "snapshot_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "content_hash": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "master": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "snapshot_id",
+            "content_hash"
+          ],
+          "properties": {
+            "snapshot_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "content_hash": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "forecast": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "snapshot_id",
+            "content_hash"
+          ],
+          "properties": {
+            "snapshot_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "content_hash": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "customer_orders": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "snapshot_id",
+            "content_hash"
+          ],
+          "properties": {
+            "snapshot_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "content_hash": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "inventory": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "snapshot_id",
+            "content_hash"
+          ],
+          "properties": {
+            "snapshot_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "content_hash": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "prior_inventory": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "snapshot_id",
+            "content_hash"
+          ],
+          "properties": {
+            "snapshot_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "content_hash": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "receipts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "snapshot_id",
+            "content_hash"
+          ],
+          "properties": {
+            "snapshot_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "content_hash": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "policies": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "snapshot_id",
+            "content_hash"
+          ],
+          "properties": {
+            "snapshot_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "content_hash": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        }
+      }
+    }
+  }
+}

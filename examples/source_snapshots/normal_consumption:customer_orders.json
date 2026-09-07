@@ -1,0 +1,30 @@
+{
+  "contract_id": "io-source-snapshot-v1",
+  "snapshot_type": "customer_orders",
+  "snapshot_id": "normal_consumption:customer_orders",
+  "content_hash": "b5d306d68ecd5d7504e19a47ff508396cc8734cb7f580b87bef43045906aec4d",
+  "adapter": "CANONICAL_V1",
+  "origin_type": "DEVELOPMENT_FIXTURE",
+  "source_reference": "TEST-ONLY",
+  "source_as_of_date": "2026-09-28",
+  "status": "SEALED",
+  "row_count": 1,
+  "metadata": {
+    "company_cd": "DSE",
+    "subs_cd": "C100",
+    "site_cd": "V101",
+    "coverage": "COMPLETE"
+  },
+  "semantics": {},
+  "rows": [
+    {
+      "company_cd": "DSE",
+      "subs_cd": "C100",
+      "site_cd": "V101",
+      "item_id": "A",
+      "uom": "EA",
+      "yyyyww": "202640",
+      "confirmed_customer_order_qty": "80"
+    }
+  ]
+}

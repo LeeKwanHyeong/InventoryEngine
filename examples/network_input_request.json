@@ -1,0 +1,21 @@
+{
+  "contract_id": "io-network-input-request-v1",
+  "contract_version": "1.0.0",
+  "context": {
+    "engine_run_id": "example-io-run-v101",
+    "planning_cycle_id": "example-planning-cycle",
+    "planning_cycle_revision_id": "example-cycle-revision-1",
+    "cycle_site_execution_id": "example-cycle-site-v101",
+    "company_cd": "DSE",
+    "subs_cd": "C100",
+    "site_cd": "V101",
+    "plan_type": "POSM",
+    "master_snapshot_revision": "example-master-revision",
+    "master_as_of_date": "2026-09-03"
+  },
+  "network": {
+    "network_revision_id": "527755eb-ea3d-56b4-a288-7404bc9a2806",
+    "network_content_hash": "46f520b888c619050812ba21c4e66f052ada71d4cf581ab021dfc8b6d809938a",
+    "contract_version": "1.0.0"
+  }
+}

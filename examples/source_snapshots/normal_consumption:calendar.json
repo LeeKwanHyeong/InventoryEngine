@@ -1,0 +1,41 @@
+{
+  "contract_id": "io-source-snapshot-v1",
+  "snapshot_type": "calendar",
+  "snapshot_id": "normal_consumption:calendar",
+  "content_hash": "c9f3a3534ea47cb412536b6d289fe4b5b3859f62a54c19376f03fc12522411fe",
+  "adapter": "CANONICAL_V1",
+  "origin_type": "DEVELOPMENT_FIXTURE",
+  "source_reference": "TEST-ONLY",
+  "source_as_of_date": "2026-09-28",
+  "status": "SEALED",
+  "row_count": 3,
+  "metadata": {
+    "company_cd": "DSE",
+    "subs_cd": "C100",
+    "site_cd": "V101"
+  },
+  "semantics": {},
+  "rows": [
+    {
+      "yyyyww": "202640",
+      "seq": 0,
+      "start_date": "2026-09-28",
+      "end_date": "2026-10-04",
+      "base_month": "202609"
+    },
+    {
+      "yyyyww": "202641",
+      "seq": 1,
+      "start_date": "2026-10-05",
+      "end_date": "2026-10-11",
+      "base_month": "202610"
+    },
+    {
+      "yyyyww": "202642",
+      "seq": 2,
+      "start_date": "2026-10-12",
+      "end_date": "2026-10-18",
+      "base_month": "202610"
+    }
+  ]
+}

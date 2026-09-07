@@ -1,0 +1,25 @@
+{
+  "provenance": "Hand-calculated reference cases; no production PSI/policy used to create expectations",
+  "constant_warmup": {
+    "first": {"boh_qty": "30", "receipt_qty": "0", "demand_qty": "10", "eoh_qty": "20", "backorder_close_qty": "0", "order_qty": "10"},
+    "last": {"boh_qty": "10", "receipt_qty": "10", "demand_qty": "10", "eoh_qty": "10", "backorder_close_qty": "0", "order_qty": "10"},
+    "boh": "10", "open_quantities": ["10", "10"], "due_indices": [78, 79],
+    "safety_stock_qty": "0", "rop_qty": "20", "target_inventory_qty": "30"
+  },
+  "surge_last_week": {"eoh_qty": "0", "backorder_close_qty": "30", "order_qty": "50"},
+  "delay_1w": {"boh": "0", "backorder": "0", "open_quantity": "30"},
+  "delay_2w": {"boh": "0", "backorder": "10", "open_quantity": "40"},
+  "hold_test": {
+    "eoh_qty": ["10", "10", "0", "0"],
+    "receipt_qty": ["10", "10", "0", "0"],
+    "backorder_close_qty": ["0", "0", "0", "10"],
+    "total_cost": "170", "fill_rate": "0.75", "demand_qty": "40", "on_time_fulfilled_qty": "30"
+  },
+  "joint_constraints": [
+    {"raw": "8", "moq": "25", "lot": "1", "capacity": null, "occupied": "0", "expected": "25"},
+    {"raw": "18", "moq": "10", "lot": "10", "capacity": null, "occupied": "0", "expected": "20"},
+    {"raw": "137", "moq": "100", "lot": "50", "capacity": "220", "occupied": "100", "expected": "100"},
+    {"raw": "137", "moq": "100", "lot": "50", "capacity": "190", "occupied": "100", "expected": "0"},
+    {"raw": "0", "moq": "100", "lot": "50", "capacity": null, "occupied": "0", "expected": "0"}
+  ]
+}

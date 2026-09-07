@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dsio:production-evaluation:v1",
+  "title": "Development-only production mathematical strategy evaluation",
+  "description": "Structure only. Resolve URNs using the adjacent schemas. Runtime additionally verifies hashes, Cut-off and cross-input bindings.",
+  "type": "object", "additionalProperties": false,
+  "required": ["contract_id", "contract_version", "evaluation_id", "split", "scenario_id", "delay_scope", "forecast_mode", "training_request", "mathematical_request"],
+  "properties": {
+    "contract_id": {"const": "io-production-evaluation-v1"},
+    "contract_version": {"const": "1.0.0"},
+    "evaluation_id": {"$ref": "#/$defs/id"},
+    "split": {"enum": ["TRAIN", "VALIDATION", "TEST"]},
+    "scenario_id": {"$ref": "#/$defs/id"},
+    "delay_scope": {"const": "EPISODE_RECEIPTS_ONLY"},
+    "forecast_mode": {"const": "SYNTHETIC_FROZEN_MEAN"},
+    "training_request": {"$ref": "urn:dsio:training-foundation:v1"},
+    "mathematical_request": {
+      "type": "object", "additionalProperties": false,
+      "required": ["recommendation", "policy_input"],
+      "properties": {
+        "policy_input": {"$ref": "urn:dsio:mathematical-policy-input:v1"},
+        "recommendation": {
+          "type": "object", "additionalProperties": false,
+          "required": ["canonical_input", "execution"],
+          "properties": {
+            "canonical_input": {"$ref": "urn:dsio:canonical-input:v1"},
+            "execution": {"allOf": [
+              {"$ref": "urn:dsio:replenishment:v1#/$defs/executionV1_1"},
+              {"properties": {"strategy": {"const": {"strategy_type": "MATHEMATICAL", "implementation_id": "historical-normal-r-s", "version": "1.0.0", "model": null}}}}
+            ]}
+          }
+        }
+      }
+    }
+  },
+  "$defs": {"id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"}}
+}

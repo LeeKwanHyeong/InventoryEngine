@@ -1,0 +1,35 @@
+{
+  "contract_id": "io-source-snapshot-v1",
+  "snapshot_type": "receipts",
+  "snapshot_id": "normal_consumption:receipts",
+  "content_hash": "36623ff5e0ee84d0102a368c43496c020a48c4939df49e2debcc3d9b317c49cb",
+  "adapter": "CANONICAL_V1",
+  "origin_type": "DEVELOPMENT_FIXTURE",
+  "source_reference": "TEST-ONLY",
+  "source_as_of_date": "2026-09-28",
+  "status": "SEALED",
+  "row_count": 1,
+  "metadata": {
+    "company_cd": "DSE",
+    "subs_cd": "C100",
+    "site_cd": "V101",
+    "coverage": "COMPLETE",
+    "simulation_run_id": null,
+    "generator_version": null
+  },
+  "semantics": {},
+  "rows": [
+    {
+      "company_cd": "DSE",
+      "subs_cd": "C100",
+      "site_cd": "V101",
+      "item_id": "A",
+      "uom": "EA",
+      "receipt_id": "A:RECEIPT:0",
+      "due_date": "2026-09-28",
+      "due_qty": "40",
+      "status": "CONFIRMED",
+      "supply_type": "PURCHASE_ORDER"
+    }
+  ]
+}

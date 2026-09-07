@@ -1,0 +1,42 @@
+{
+  "contract_id": "inventory-run-lifecycle-contract-verification-v1",
+  "verified_at": "2026-09-07",
+  "environment": "local no-write",
+  "platform_contract": {
+    "claim_contract_id": "inventory-engine-run-claim-v1",
+    "claim_contract_version": "1.0.0",
+    "plan_source_key": "inventory.planning_cycle",
+    "plan_source_contract_version": "1.0.0",
+    "migration": "074_inventory_planning_cycle_run_lifecycle.sql",
+    "migration_status": "draft_not_applied",
+    "focused_tests": 7
+  },
+  "inventory_runtime": {
+    "classification_stage_events": [
+      "running",
+      "succeeded",
+      "failed"
+    ],
+    "standalone_receipt_run_claimed": false,
+    "claimed_stage_receipt_run_claimed": true,
+    "whole_run_terminalized_by_classification": false,
+    "raw_item_values_in_event": false,
+    "unit_tests": 249,
+    "contract_tests": 20,
+    "integration_tests": 41,
+    "integration_tests_skipped": 15
+  },
+  "database_writes": false,
+  "runtime_deployed": false,
+  "package": {
+    "version": "0.11.0",
+    "file": "dist/dsio_inventory_engine-0.11.0-py3-none-any.whl",
+    "sha256": "74d73f86bc4541f120ac41b098630b53500794217abef7f18313902dcdb65eca"
+  },
+  "scm": {
+    "git_repository_initialized": false,
+    "remote_status": "unresolved",
+    "reason": "No existing InventoryEngine project was found at the known GitLab namespace candidates."
+  },
+  "remaining_boundary": "Confirm the exact Git remote and development branch, review and approve Migration 074, then enable real Claim and Scheduler wiring."
+}

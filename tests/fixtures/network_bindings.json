@@ -1,0 +1,272 @@
+[
+  {
+    "network_revision_id": "527755eb-ea3d-56b4-a288-7404bc9a2806",
+    "network_content_hash": "46f520b888c619050812ba21c4e66f052ada71d4cf581ab021dfc8b6d809938a",
+    "subs_cd": "C100",
+    "sites": [
+      {
+        "site_cd": "V100",
+        "node_role": "HUB_WITH_LOCAL_DEMAND"
+      },
+      {
+        "site_cd": "V101",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V102",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V103",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V104",
+        "node_role": "SPOKE"
+      }
+    ]
+  },
+  {
+    "network_revision_id": "7d921798-3546-5676-80fa-7d1edc2d333d",
+    "network_content_hash": "2dab6ef9112591fd83e90aa6ebd1bbf5fa8efd6eabd10a58d135f23066d7fd10",
+    "subs_cd": "C110",
+    "sites": [
+      {
+        "site_cd": "V110",
+        "node_role": "HUB_WITH_LOCAL_DEMAND"
+      },
+      {
+        "site_cd": "V111",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V112",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V113",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V114",
+        "node_role": "SPOKE"
+      }
+    ]
+  },
+  {
+    "network_revision_id": "7d7cb250-9aff-5ae4-afc8-881ddacae506",
+    "network_content_hash": "d1eec4fe3159bfea179b458e72415542ad102016ba0b62b89d7c3dc68844123b",
+    "subs_cd": "C120",
+    "sites": [
+      {
+        "site_cd": "V120",
+        "node_role": "HUB_WITH_LOCAL_DEMAND"
+      },
+      {
+        "site_cd": "V121",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V122",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V123",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V124",
+        "node_role": "SPOKE"
+      }
+    ]
+  },
+  {
+    "network_revision_id": "57384e6c-7f0e-55ab-86be-7895e3220fd4",
+    "network_content_hash": "440198244ad989d333e443628062c571ff7bb40d74ca9118bf219d64f6958492",
+    "subs_cd": "C130",
+    "sites": [
+      {
+        "site_cd": "V130",
+        "node_role": "HUB_WITH_LOCAL_DEMAND"
+      },
+      {
+        "site_cd": "V131",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V132",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V133",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V134",
+        "node_role": "SPOKE"
+      }
+    ]
+  },
+  {
+    "network_revision_id": "a6d05760-1c27-5cf0-a4d7-856d98a16809",
+    "network_content_hash": "651e4af89cd8d9ef36eae3323cea939b1fb7d4d93f5fc36a748684b655543997",
+    "subs_cd": "C140",
+    "sites": [
+      {
+        "site_cd": "V140",
+        "node_role": "HUB_WITH_LOCAL_DEMAND"
+      },
+      {
+        "site_cd": "V141",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V142",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V143",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V144",
+        "node_role": "SPOKE"
+      }
+    ]
+  },
+  {
+    "network_revision_id": "8a67debe-41a0-52f6-9563-b9553636bd22",
+    "network_content_hash": "12c7cd9fe88b7e884a059478aa373941231eee8847dec9559d3c3a1b61040da5",
+    "subs_cd": "C150",
+    "sites": [
+      {
+        "site_cd": "V150",
+        "node_role": "HUB_WITH_LOCAL_DEMAND"
+      },
+      {
+        "site_cd": "V151",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V152",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V153",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V154",
+        "node_role": "SPOKE"
+      }
+    ]
+  },
+  {
+    "network_revision_id": "a99df2e2-2ba6-5039-ab17-156f28d4b6b7",
+    "network_content_hash": "b6bdb9d60ab0442f8dae2308c3af05f0a8f8f60420931c55557200bc87200893",
+    "subs_cd": "C160",
+    "sites": [
+      {
+        "site_cd": "V160",
+        "node_role": "HUB_WITH_LOCAL_DEMAND"
+      },
+      {
+        "site_cd": "V161",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V162",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V163",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V164",
+        "node_role": "SPOKE"
+      }
+    ]
+  },
+  {
+    "network_revision_id": "cf403d1a-7e3f-5855-a44a-047024f0b42c",
+    "network_content_hash": "dcf05787707802e5bb1b3d3b7de47b8d2c43d348297f1816c8059dbde681b081",
+    "subs_cd": "C170",
+    "sites": [
+      {
+        "site_cd": "V170",
+        "node_role": "HUB_WITH_LOCAL_DEMAND"
+      },
+      {
+        "site_cd": "V171",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V172",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V173",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V174",
+        "node_role": "SPOKE"
+      }
+    ]
+  },
+  {
+    "network_revision_id": "c4153c0d-8024-5c4d-808c-81ac60edd113",
+    "network_content_hash": "9d28bf2c527211a6b3369d906604950f22f4adc32fe2e3262b41483b382344f0",
+    "subs_cd": "C180",
+    "sites": [
+      {
+        "site_cd": "V180",
+        "node_role": "HUB_WITH_LOCAL_DEMAND"
+      },
+      {
+        "site_cd": "V181",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V182",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V183",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V184",
+        "node_role": "SPOKE"
+      }
+    ]
+  },
+  {
+    "network_revision_id": "7afe576e-2b6c-5441-a8d5-c44b523a6af0",
+    "network_content_hash": "4c9405724382ee27e2b447cb0e1a878f8b9f0b0a53d0ed824109e642ac6755d0",
+    "subs_cd": "C190",
+    "sites": [
+      {
+        "site_cd": "V190",
+        "node_role": "HUB_WITH_LOCAL_DEMAND"
+      },
+      {
+        "site_cd": "V191",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V192",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V193",
+        "node_role": "SPOKE"
+      },
+      {
+        "site_cd": "V194",
+        "node_role": "SPOKE"
+      }
+    ]
+  }
+]

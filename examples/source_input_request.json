@@ -1,0 +1,66 @@
+{
+  "contract_id": "io-source-input-v1",
+  "contract_version": "1.0.0",
+  "context": {
+    "company_cd": "DSE",
+    "subs_cd": "C100",
+    "site_cd": "V101",
+    "engine_run_id": "IO-GOLDEN-normal_consumption",
+    "planning_cycle_id": "PC-GOLDEN",
+    "planning_cycle_revision_id": "PC-GOLDEN-R1",
+    "cycle_site_execution_id": "PC-GOLDEN-R1:V101",
+    "plan_type": "POSM",
+    "plan_yyyyww": "202640",
+    "plan_start_date": "2026-09-28",
+    "plan_end_date": "2026-10-18",
+    "master_as_of_date": "2026-09-28",
+    "master_snapshot_revision": "MASTER-R1",
+    "demand_run_id": "91930a93-8601-4b71-9736-1d404f44c6ff",
+    "configuration_revision": "CONFIG-GOLDEN-R1",
+    "business_timezone": "Asia/Seoul",
+    "inventory_cutoff_at": "2026-09-27T14:59:59Z",
+    "inventory_source_watermark": "WATERMARK-normal_consumption"
+  },
+  "quantity_rules": [
+    {
+      "uom": "EA",
+      "scale": 0,
+      "tolerance_qty": "0",
+      "approval_reference": "GOLDEN-UOM-R1"
+    }
+  ],
+  "source_bindings": {
+    "calendar": {
+      "snapshot_id": "normal_consumption:calendar",
+      "content_hash": "c9f3a3534ea47cb412536b6d289fe4b5b3859f62a54c19376f03fc12522411fe"
+    },
+    "master": {
+      "snapshot_id": "normal_consumption:master",
+      "content_hash": "0df3404e409727f6488543e0724272683d13e8f9748c103b5871613e882f579e"
+    },
+    "prior_inventory": {
+      "snapshot_id": "normal_consumption:prior_inventory",
+      "content_hash": "3d60228e4b6b2f9bc08465c11637df90aa318fd79352805098ed952a8a473464"
+    },
+    "forecast": {
+      "snapshot_id": "normal_consumption:forecast",
+      "content_hash": "11cbb45ef5f6a32d1cdfc701e328e4ba6f3b2fbb50a5fdc7a030e4e19626ddd7"
+    },
+    "customer_orders": {
+      "snapshot_id": "normal_consumption:customer_orders",
+      "content_hash": "b5d306d68ecd5d7504e19a47ff508396cc8734cb7f580b87bef43045906aec4d"
+    },
+    "receipts": {
+      "snapshot_id": "normal_consumption:receipts",
+      "content_hash": "36623ff5e0ee84d0102a368c43496c020a48c4939df49e2debcc3d9b317c49cb"
+    },
+    "policies": {
+      "snapshot_id": "normal_consumption:policies",
+      "content_hash": "7aa2c468bce1cb753935871ca5f8b86ceee63e2e622e495cfee978de23231cf7"
+    },
+    "inventory": {
+      "snapshot_id": "normal_consumption:inventory",
+      "content_hash": "48dea0e6b990789be341575fab0d44a7ce61ac44ad04e1c89a92a012cc472075"
+    }
+  }
+}

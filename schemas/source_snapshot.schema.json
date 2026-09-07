@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IO Source Snapshot interchange v1",
+  "description": "Outer structure only. Python validates mappings, source hashes, relationships and all Canonical admission rules. This is not a currently deployed Demand export format.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_id",
+    "snapshot_type",
+    "snapshot_id",
+    "content_hash",
+    "adapter",
+    "origin_type",
+    "source_reference",
+    "source_as_of_date",
+    "status",
+    "row_count",
+    "metadata",
+    "semantics",
+    "rows"
+  ],
+  "properties": {
+    "contract_id": {
+      "const": "io-source-snapshot-v1"
+    },
+    "snapshot_type": {
+      "enum": [
+        "calendar",
+        "master",
+        "forecast",
+        "customer_orders",
+        "inventory",
+        "prior_inventory",
+        "receipts",
+        "policies"
+      ]
+    },
+    "snapshot_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "content_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "adapter": {
+      "enum": [
+        "CANONICAL_V1",
+        "DSDM_MASTER_V1",
+        "DSDM_FORECAST_V1",
+        "ERP_POSITION_V1",
+        "UNVERIFIED_DUE_IN_V1",
+        "SOURCE_POLICY_V1"
+      ]
+    },
+    "origin_type": {
+      "enum": [
+        "ACTUAL_SOURCE",
+        "SYNTHETIC_SOURCE",
+        "UNKNOWN_SOURCE",
+        "DEVELOPMENT_FIXTURE"
+      ]
+    },
+    "source_reference": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "source_as_of_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "enum": [
+        "COLLECTING",
+        "SEALED",
+        "REJECTED",
+        "SUPERSEDED"
+      ]
+    },
+    "row_count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100000
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "semantics": {
+      "type": "object"
+    },
+    "rows": {
+      "type": "array",
+      "maxItems": 100000,
+      "items": {
+        "type": "object"
+      }
+    }
+  }
+}

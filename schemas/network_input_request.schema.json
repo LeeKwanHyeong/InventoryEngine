@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dsio:inventory:network-input-request:1",
+  "title": "IO Network Input Request v1 — input fragment, not execution API",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_id",
+    "contract_version",
+    "context",
+    "network"
+  ],
+  "properties": {
+    "contract_id": {
+      "const": "io-network-input-request-v1"
+    },
+    "contract_version": {
+      "const": "1.0.0"
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "engine_run_id",
+        "planning_cycle_id",
+        "planning_cycle_revision_id",
+        "cycle_site_execution_id",
+        "company_cd",
+        "subs_cd",
+        "site_cd",
+        "plan_type",
+        "master_snapshot_revision",
+        "master_as_of_date"
+      ],
+      "properties": {
+        "engine_run_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "planning_cycle_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "planning_cycle_revision_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "cycle_site_execution_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "company_cd": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "subs_cd": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "site_cd": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "plan_type": {
+          "enum": [
+            "POSM",
+            "TGSM"
+          ]
+        },
+        "master_snapshot_revision": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "master_as_of_date": {
+          "type": "string",
+          "format": "date",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        }
+      }
+    },
+    "network": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "network_revision_id",
+        "network_content_hash",
+        "contract_version"
+      ],
+      "properties": {
+        "network_revision_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "network_content_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "contract_version": {
+          "const": "1.0.0"
+        }
+      }
+    }
+  }
+}

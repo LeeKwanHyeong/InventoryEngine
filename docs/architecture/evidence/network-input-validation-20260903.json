@@ -1,0 +1,53 @@
+{
+  "record_type": "VERIFICATION_SUMMARY",
+  "date": "2026-09-03",
+  "project": "InventoryEngine",
+  "python": "3.12.10",
+  "scope": "Approved Network input preparation only",
+  "tests": {
+    "unit": {"run": 27, "failed": 0, "errors": 0, "skipped": 0},
+    "producer_contract": {"run": 1, "failed": 0, "network_seed_hashes_compared": 10},
+    "development_integration": {
+      "run": 5,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "host": "192.168.0.46",
+      "port": 5432,
+      "database": "dsai",
+      "schema": "dsim",
+      "default_transaction_read_only": "on",
+      "snapshot_transaction": "REPEATABLE READ READ ONLY",
+      "networks": 10,
+      "sites": 50,
+      "cases": [
+        "Pinned ten approved DEVELOPMENT revisions: all fifty sites",
+        "Wrong content hash: reject without latest fallback",
+        "Missing revision ID: reject",
+        "PRODUCTION consumer: reject DEVELOPMENT network",
+        "CLI preparation: no Run Claim or PSI"
+      ]
+    },
+    "ruff_check": "PASSED",
+    "ruff_format_check": "PASSED",
+    "wheel_build_and_offline_cli": "PASSED",
+    "request_json_schema_example": "PASSED"
+  },
+  "effects": {
+    "database_writes": false,
+    "migrations_applied": false,
+    "neo4j_access": false,
+    "run_claimed": false,
+    "psi_computed": false,
+    "artifact_sealed": false,
+    "shared_runtime_deployed": false
+  },
+  "limitations": [
+    "Development synthetic data does not validate operational logistics accuracy",
+    "Example Cycle/Run/Master IDs are references only; no database rows were created or validated",
+    "Snapshot and Manifest remain PREPARED_IN_MEMORY; persistent Evidence/Receipt is not implemented",
+    "DSIM Agent and Read API are not implemented",
+    "This human-readable verification summary is not an IO Run Manifest or sealed test artifact"
+  ],
+  "reproduction": "See README.md test commands and tests/fixtures/network_bindings.json; credentials must be provided separately"
+}

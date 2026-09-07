@@ -1,0 +1,48 @@
+{
+  "contract_id": "io-source-snapshot-v1",
+  "snapshot_type": "inventory",
+  "snapshot_id": "normal_consumption:inventory",
+  "content_hash": "48dea0e6b990789be341575fab0d44a7ce61ac44ad04e1c89a92a012cc472075",
+  "adapter": "ERP_POSITION_V1",
+  "origin_type": "DEVELOPMENT_FIXTURE",
+  "source_reference": "TEST-ONLY",
+  "source_as_of_date": "2026-09-28",
+  "status": "SEALED",
+  "row_count": 1,
+  "metadata": {
+    "company_cd": "DSE",
+    "subs_cd": "C100",
+    "site_cd": "V101",
+    "position_source_type": "ACTUAL_BOH",
+    "business_timezone": "Asia/Seoul",
+    "cutoff_at": "2026-09-27T14:59:59Z",
+    "source_watermark": "WATERMARK-normal_consumption",
+    "complete_through": "2026-09-27T17:00:00Z",
+    "extracted_at": "2026-09-27T18:00:00Z",
+    "sealed_at": "2026-09-27T19:00:00Z",
+    "prior_snapshot_id": "normal_consumption:prior_inventory",
+    "prior_content_hash": "3d60228e4b6b2f9bc08465c11637df90aa318fd79352805098ed952a8a473464",
+    "reserved_treatment": "UNAVAILABLE_EXCLUDED",
+    "simulation_run_id": null,
+    "generator_version": null,
+    "adjustments": [],
+    "source_events": []
+  },
+  "semantics": {
+    "boh_qty_basis": "ON_HAND",
+    "approval_reference": "TEST-ERP-SEMANTICS"
+  },
+  "rows": [
+    {
+      "company_cd": "DSE",
+      "subs_cd": "C100",
+      "site_cd": "V101",
+      "position_date": "2026-09-28",
+      "reserved_qty": "0",
+      "available_qty": "100",
+      "backorder_qty": "0",
+      "oper_part_no": "A",
+      "boh_qty": "100"
+    }
+  ]
+}

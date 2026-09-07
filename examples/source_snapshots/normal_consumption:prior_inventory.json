@@ -1,0 +1,32 @@
+{
+  "contract_id": "io-source-snapshot-v1",
+  "snapshot_type": "prior_inventory",
+  "snapshot_id": "normal_consumption:prior_inventory",
+  "content_hash": "3d60228e4b6b2f9bc08465c11637df90aa318fd79352805098ed952a8a473464",
+  "adapter": "CANONICAL_V1",
+  "origin_type": "DEVELOPMENT_FIXTURE",
+  "source_reference": "TEST-ONLY",
+  "source_as_of_date": "2026-09-27",
+  "status": "SEALED",
+  "row_count": 1,
+  "metadata": {
+    "company_cd": "DSE",
+    "subs_cd": "C100",
+    "site_cd": "V101",
+    "as_of_date": "2026-09-27",
+    "position_source_type": "ACTUAL_BOH",
+    "simulation_run_id": null,
+    "generator_version": null
+  },
+  "semantics": {},
+  "rows": [
+    {
+      "company_cd": "DSE",
+      "subs_cd": "C100",
+      "site_cd": "V101",
+      "item_id": "A",
+      "uom": "EA",
+      "eoh_qty": "100"
+    }
+  ]
+}

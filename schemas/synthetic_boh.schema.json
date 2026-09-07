@@ -1,0 +1,254 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Synthetic BOH and pending supply handoff, no operational seal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "positions",
+    "open_orders"
+  ],
+  "properties": {
+    "positions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/position"
+      }
+    },
+    "open_orders": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/order"
+      }
+    }
+  },
+  "$defs": {
+    "position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "company_cd",
+        "subs_cd",
+        "site_cd",
+        "planning_cycle_id",
+        "planning_cycle_revision_id",
+        "cycle_site_execution_id",
+        "configuration_revision",
+        "plan_type",
+        "simulation_run_id",
+        "scenario_id",
+        "generator_version",
+        "item_id",
+        "uom",
+        "position_date",
+        "position_source_type",
+        "on_hand_qty",
+        "reserved_qty",
+        "available_qty",
+        "backorder_qty",
+        "prior_eoh_qty",
+        "synthetic_target_inventory_qty",
+        "prior_position_date",
+        "demand_snapshot_id",
+        "policy_snapshot_id",
+        "legacy_target_inventory_qty",
+        "content_hash"
+      ],
+      "properties": {
+        "company_cd": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "subs_cd": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "site_cd": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "planning_cycle_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "planning_cycle_revision_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "cycle_site_execution_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "configuration_revision": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "plan_type": {
+          "enum": [
+            "POSM",
+            "TGSM"
+          ]
+        },
+        "simulation_run_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "scenario_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "generator_version": {
+          "const": "1.0.0"
+        },
+        "item_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "uom": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "position_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "position_source_type": {
+          "const": "SYNTHETIC_BOH"
+        },
+        "on_hand_qty": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+        },
+        "reserved_qty": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+        },
+        "available_qty": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+        },
+        "backorder_qty": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+        },
+        "prior_eoh_qty": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+        },
+        "synthetic_target_inventory_qty": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+        },
+        "prior_position_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "demand_snapshot_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "policy_snapshot_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "legacy_target_inventory_qty": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "content_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "order": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "order_id",
+        "item_id",
+        "uom",
+        "site_cd",
+        "order_index",
+        "order_timing",
+        "quantity",
+        "planned_due_index",
+        "actual_due_index",
+        "due_date",
+        "actual_due_date",
+        "delay_weeks",
+        "delay_scenario_code",
+        "supply_type"
+      ],
+      "properties": {
+        "order_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "item_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "uom": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "site_cd": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "order_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "order_timing": {
+          "enum": [
+            "BUCKET_END",
+            "BUCKET_START_BEFORE_RECEIPTS"
+          ]
+        },
+        "quantity": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+        },
+        "planned_due_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "actual_due_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "due_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "actual_due_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "delay_weeks": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "delay_scenario_code": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "supply_type": {
+          "const": "SYNTHETIC_PURCHASE_ORDER"
+        }
+      }
+    }
+  }
+}

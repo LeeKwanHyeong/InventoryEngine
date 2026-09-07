@@ -1,0 +1,26 @@
+{
+  "description": "Hand-written expectations; never regenerated from the policy implementation",
+  "histories": {
+    "constant": ["10", "10", "10", "10", "10", "10", "10", "10", "10", "10", "10", "10", "10"],
+    "variable": ["8", "12", "8", "12", "8", "12", "8", "12", "8", "12", "8", "12", "10"],
+    "zero": ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
+    "fractional": ["0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1", "0.1"],
+    "intermittent": ["0", "0", "0", "0", "0", "0", "13", "0", "0", "0", "0", "0", "0"]
+  },
+  "cases": [
+    {"id": "constant", "history": "constant", "expected_policy": ["0", "10", "20"], "expected_orders": ["10", "10"], "expected_eoh": ["0", "0", "0"]},
+    {"id": "variable", "history": "variable", "expected_policy": ["4", "14", "24"], "expected_orders": ["14", "10"], "expected_eoh": ["0", "4", "4"]},
+    {"id": "mapped_one_day", "history": "variable", "policy": {"lead_time_days": 1}, "expected_policy": ["4", "14", "24"], "expected_orders": ["14", "10"], "expected_eoh": ["0", "4", "4"]},
+    {"id": "two_week_lead", "history": "variable", "policy": {"lead_time_days": 8}, "expected_policy": ["5", "25", "35"], "expected_orders": ["25"], "expected_eoh": ["0", "0", "15"]},
+    {"id": "four_week_policy", "history": "variable", "policy": {"lead_time_days": 28}, "expected_policy": ["7", "47", "57"], "expected_orders": [], "expected_eoh": ["0", "0", "0"]},
+    {"id": "review_two", "history": "variable", "profile": {"replenishment_cycle_weeks": 2}, "expected_policy": ["4", "14", "34"], "expected_orders": ["24"], "expected_eoh": ["0", "14", "4"]},
+    {"id": "zero_lead", "history": "variable", "boh": "0", "policy": {"lead_time_days": 0}, "expected_policy": ["0", "0", "10"], "expected_orders": ["10", "10", "10"], "expected_eoh": ["0", "0", "0"]},
+    {"id": "zero_demand", "history": "zero", "boh": "0", "forecast": ["0", "0", "0"], "expected_policy": ["0", "0", "0"], "expected_orders": [], "expected_eoh": ["0", "0", "0"]},
+    {"id": "fractional_uom", "history": "fractional", "boh": "0.1", "uom": "KG", "forecast": ["0.1", "0.1", "0.1"], "policy": {"order_multiple": "0.1"}, "expected_policy": ["0", "0.1", "0.2"], "expected_orders": ["0.1", "0.1"], "expected_eoh": ["0", "0", "0"]},
+    {"id": "moq_and_multiple", "history": "variable", "policy": {"moq": "20", "order_multiple": "10"}, "expected_policy": ["4", "14", "24"], "expected_orders": ["20"], "expected_eoh": ["0", "10", "0"]},
+    {"id": "capacity_below_moq", "history": "variable", "policy": {"moq": "20", "order_multiple": "10", "physical_max_capacity": "15"}, "expected_policy": ["4", "14", "24"], "expected_orders": [], "expected_eoh": ["0", "0", "0"]},
+    {"id": "tgsm_same_math", "history": "variable", "plan_type": "TGSM", "source_type": "SYNTHETIC_BOH", "expected_policy": ["4", "14", "24"], "expected_orders": ["14", "10"], "expected_eoh": ["0", "4", "4"]},
+    {"id": "rop_equality", "history": "variable", "boh": "14", "forecast": ["0", "0", "0"], "expected_policy": ["4", "14", "24"], "expected_orders": ["10"], "expected_eoh": ["14", "24", "24"]},
+    {"id": "above_rop", "history": "variable", "boh": "15", "forecast": ["0", "0", "0"], "expected_policy": ["4", "14", "24"], "expected_orders": [], "expected_eoh": ["15", "15", "15"]}
+  ]
+}

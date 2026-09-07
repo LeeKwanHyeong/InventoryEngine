@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dsio-inventory-engine"
+version = "0.11.0"
+description = "Inventory PSI, mathematical/ML/PPO strategies and closed-loop independent evaluation"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.optional-dependencies]
+handoff = ["polars>=1.41,<2"]
+learning = ["torch>=2.12,<2.13"]
+postgres = ["asyncpg>=0.29,<1"]
+dev = ["jsonschema>=4,<5", "ruff>=0.15,<1", "coverage>=7,<8", "mypy>=2,<3", "bandit>=1.9,<2", "build>=1,<2"]
+
+[project.scripts]
+inventory-engine = "dsio_inventory_engine.entrypoints.cli:main"
+inventory-classification = "dsio_inventory_engine.entrypoints.classification_snapshot:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100

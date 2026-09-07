@@ -1,0 +1,532 @@
+{
+  "recommendation": {
+    "canonical_input": {
+      "context": {
+        "business_timezone": "Asia/Seoul",
+        "company_cd": "DSE",
+        "configuration_revision": "CONFIG-GOLDEN-R1",
+        "cycle_site_execution_id": "PC-GOLDEN-R1:V101",
+        "demand_run_id": "DEMAND-GOLDEN",
+        "engine_run_id": "IO-GOLDEN-math-variable",
+        "inventory_cutoff_at": "2026-09-27T14:59:59Z",
+        "inventory_source_watermark": "WATERMARK-math-variable",
+        "master_as_of_date": "2026-09-28",
+        "master_snapshot_revision": "MASTER-R1",
+        "plan_end_date": "2026-10-18",
+        "plan_start_date": "2026-09-28",
+        "plan_type": "POSM",
+        "plan_yyyyww": "202640",
+        "planning_cycle_id": "PC-GOLDEN",
+        "planning_cycle_revision_id": "PC-GOLDEN-R1",
+        "site_cd": "V101",
+        "subs_cd": "C100"
+      },
+      "contract_id": "io-canonical-input-v1",
+      "contract_version": "1.0.0",
+      "input_bindings": {
+        "calendar": {
+          "content_hash": "10ca09d111766e2d806037c846e80864bc70c4dcc62e8d127bf7069479245360",
+          "snapshot_id": "math-variable:calendar"
+        },
+        "customer_orders": {
+          "content_hash": "fcd6ff89fa596522825833ecd683ee88ac1840c0eb05983a9994f737a7b16a2f",
+          "snapshot_id": "math-variable:customer_orders"
+        },
+        "forecast": {
+          "content_hash": "157d115ab64788a73c7e08e6d934277a9acd9a9c7985abd20517a122f059aa5b",
+          "snapshot_id": "math-variable:forecast"
+        },
+        "inventory": {
+          "content_hash": "341078aa142d3d18cea1413a5526702ad6df84d88b58b9fb10ce87c7b4284b56",
+          "snapshot_id": "math-variable:inventory"
+        },
+        "master": {
+          "content_hash": "6b842825495b02b08c3be0660a901b43062f355bef68a5892dda707c812c0d41",
+          "snapshot_id": "math-variable:master"
+        },
+        "policies": {
+          "content_hash": "e56be82fdc9f876301a1c8d39fe03d720c08b7a7223a1085fbeebc62778298c9",
+          "snapshot_id": "math-variable:policies"
+        },
+        "prior_inventory": {
+          "content_hash": "25c96c6c4be5edd743de7fc6872c516f2dac1589301adc85c4f9e2ff77cbdcfb",
+          "snapshot_id": "math-variable:prior_inventory"
+        },
+        "receipts": {
+          "content_hash": "638d40b209fe2a3dd643801f2e9a26faa8b4f2f31464c197a42af8f929036689",
+          "snapshot_id": "math-variable:receipts"
+        }
+      },
+      "quantity_rules": [
+        {
+          "approval_reference": "GOLDEN-UOM-R1",
+          "scale": 0,
+          "tolerance_qty": "0",
+          "uom": "EA"
+        }
+      ],
+      "snapshots": {
+        "calendar": {
+          "content_hash": "10ca09d111766e2d806037c846e80864bc70c4dcc62e8d127bf7069479245360",
+          "metadata": {
+            "company_cd": "DSE",
+            "site_cd": "V101",
+            "subs_cd": "C100"
+          },
+          "row_count": 3,
+          "rows": [
+            {
+              "base_month": "202609",
+              "end_date": "2026-10-04",
+              "seq": 0,
+              "start_date": "2026-09-28",
+              "yyyyww": "202640"
+            },
+            {
+              "base_month": "202610",
+              "end_date": "2026-10-11",
+              "seq": 1,
+              "start_date": "2026-10-05",
+              "yyyyww": "202641"
+            },
+            {
+              "base_month": "202610",
+              "end_date": "2026-10-18",
+              "seq": 2,
+              "start_date": "2026-10-12",
+              "yyyyww": "202642"
+            }
+          ],
+          "snapshot_id": "math-variable:calendar",
+          "status": "SEALED"
+        },
+        "customer_orders": {
+          "content_hash": "fcd6ff89fa596522825833ecd683ee88ac1840c0eb05983a9994f737a7b16a2f",
+          "metadata": {
+            "company_cd": "DSE",
+            "coverage": "COMPLETE",
+            "site_cd": "V101",
+            "subs_cd": "C100"
+          },
+          "row_count": 0,
+          "rows": [],
+          "snapshot_id": "math-variable:customer_orders",
+          "status": "SEALED"
+        },
+        "forecast": {
+          "content_hash": "157d115ab64788a73c7e08e6d934277a9acd9a9c7985abd20517a122f059aa5b",
+          "metadata": {
+            "calendar_content_hash": "10ca09d111766e2d806037c846e80864bc70c4dcc62e8d127bf7069479245360",
+            "calendar_snapshot_id": "math-variable:calendar",
+            "company_cd": "DSE",
+            "demand_run_id": "DEMAND-GOLDEN",
+            "demand_run_status": "SUCCEEDED",
+            "evidence_status": "VERIFIED",
+            "master_content_hash": "6b842825495b02b08c3be0660a901b43062f355bef68a5892dda707c812c0d41",
+            "master_snapshot_revision": "MASTER-R1",
+            "site_cd": "V101",
+            "subs_cd": "C100"
+          },
+          "row_count": 3,
+          "rows": [
+            {
+              "company_cd": "DSE",
+              "forecast_netting_mode": "SAME_BUCKET_CONSUMPTION",
+              "forecast_qty": "10",
+              "item_id": "ITEM-A",
+              "site_cd": "V101",
+              "subs_cd": "C100",
+              "uom": "EA",
+              "upstream_consumed_qty": null,
+              "upstream_gross_forecast_qty": null,
+              "yyyyww": "202640"
+            },
+            {
+              "company_cd": "DSE",
+              "forecast_netting_mode": "SAME_BUCKET_CONSUMPTION",
+              "forecast_qty": "10",
+              "item_id": "ITEM-A",
+              "site_cd": "V101",
+              "subs_cd": "C100",
+              "uom": "EA",
+              "upstream_consumed_qty": null,
+              "upstream_gross_forecast_qty": null,
+              "yyyyww": "202641"
+            },
+            {
+              "company_cd": "DSE",
+              "forecast_netting_mode": "SAME_BUCKET_CONSUMPTION",
+              "forecast_qty": "10",
+              "item_id": "ITEM-A",
+              "site_cd": "V101",
+              "subs_cd": "C100",
+              "uom": "EA",
+              "upstream_consumed_qty": null,
+              "upstream_gross_forecast_qty": null,
+              "yyyyww": "202642"
+            }
+          ],
+          "snapshot_id": "math-variable:forecast",
+          "status": "SEALED"
+        },
+        "inventory": {
+          "content_hash": "341078aa142d3d18cea1413a5526702ad6df84d88b58b9fb10ce87c7b4284b56",
+          "metadata": {
+            "adjustments": [],
+            "business_timezone": "Asia/Seoul",
+            "company_cd": "DSE",
+            "complete_through": "2026-09-27T17:00:00Z",
+            "cutoff_at": "2026-09-27T14:59:59Z",
+            "extracted_at": "2026-09-27T18:00:00Z",
+            "generator_version": null,
+            "position_source_type": "ACTUAL_BOH",
+            "prior_content_hash": "25c96c6c4be5edd743de7fc6872c516f2dac1589301adc85c4f9e2ff77cbdcfb",
+            "prior_snapshot_id": "math-variable:prior_inventory",
+            "reserved_treatment": "UNAVAILABLE_EXCLUDED",
+            "sealed_at": "2026-09-27T19:00:00Z",
+            "simulation_run_id": null,
+            "site_cd": "V101",
+            "source_events": [],
+            "source_watermark": "WATERMARK-math-variable",
+            "subs_cd": "C100"
+          },
+          "row_count": 1,
+          "rows": [
+            {
+              "available_qty": "10",
+              "backorder_qty": "0",
+              "company_cd": "DSE",
+              "item_id": "ITEM-A",
+              "on_hand_qty": "10",
+              "position_date": "2026-09-28",
+              "reserved_qty": "0",
+              "site_cd": "V101",
+              "subs_cd": "C100",
+              "uom": "EA"
+            }
+          ],
+          "snapshot_id": "math-variable:inventory",
+          "status": "SEALED"
+        },
+        "master": {
+          "content_hash": "6b842825495b02b08c3be0660a901b43062f355bef68a5892dda707c812c0d41",
+          "metadata": {
+            "company_cd": "DSE",
+            "master_snapshot_revision": "MASTER-R1",
+            "site_cd": "V101",
+            "subs_cd": "C100"
+          },
+          "row_count": 1,
+          "rows": [
+            {
+              "active": true,
+              "company_cd": "DSE",
+              "item_id": "ITEM-A",
+              "site_cd": "V101",
+              "stock_managed": true,
+              "subs_cd": "C100",
+              "uom": "EA"
+            }
+          ],
+          "snapshot_id": "math-variable:master",
+          "status": "SEALED"
+        },
+        "policies": {
+          "content_hash": "e56be82fdc9f876301a1c8d39fe03d720c08b7a7223a1085fbeebc62778298c9",
+          "metadata": {
+            "company_cd": "DSE",
+            "site_cd": "V101",
+            "subs_cd": "C100"
+          },
+          "row_count": 1,
+          "rows": [
+            {
+              "approved_service_level": "0.95",
+              "company_cd": "DSE",
+              "effective_from": "2026-09-28",
+              "effective_to": "2026-10-19",
+              "item_id": "ITEM-A",
+              "lead_time_days": 7,
+              "moq": "0",
+              "order_multiple": "1",
+              "physical_max_capacity": null,
+              "policy_id": "POLICY-ITEM-A",
+              "policy_source_type": "SOURCE_MASTER",
+              "site_cd": "V101",
+              "source_rop_qty": "20",
+              "source_semantics_cd": "SOURCE_TARGET_FOR_COMPARISON",
+              "source_target_inventory_qty": "100",
+              "subs_cd": "C100",
+              "uom": "EA"
+            }
+          ],
+          "snapshot_id": "math-variable:policies",
+          "status": "SEALED"
+        },
+        "prior_inventory": {
+          "content_hash": "25c96c6c4be5edd743de7fc6872c516f2dac1589301adc85c4f9e2ff77cbdcfb",
+          "metadata": {
+            "as_of_date": "2026-09-27",
+            "company_cd": "DSE",
+            "generator_version": null,
+            "position_source_type": "ACTUAL_BOH",
+            "simulation_run_id": null,
+            "site_cd": "V101",
+            "subs_cd": "C100"
+          },
+          "row_count": 1,
+          "rows": [
+            {
+              "company_cd": "DSE",
+              "eoh_qty": "10",
+              "item_id": "ITEM-A",
+              "site_cd": "V101",
+              "subs_cd": "C100",
+              "uom": "EA"
+            }
+          ],
+          "snapshot_id": "math-variable:prior_inventory",
+          "status": "SEALED"
+        },
+        "receipts": {
+          "content_hash": "638d40b209fe2a3dd643801f2e9a26faa8b4f2f31464c197a42af8f929036689",
+          "metadata": {
+            "company_cd": "DSE",
+            "coverage": "COMPLETE",
+            "generator_version": null,
+            "simulation_run_id": null,
+            "site_cd": "V101",
+            "subs_cd": "C100"
+          },
+          "row_count": 0,
+          "rows": [],
+          "snapshot_id": "math-variable:receipts",
+          "status": "SEALED"
+        }
+      }
+    },
+    "execution": {
+      "allowed_action_types": [
+        "HOLD",
+        "ORDER_QTY",
+        "ORDER_UP_TO"
+      ],
+      "approval_reference": "TEST-FIXTURE-NOT-OPERATIONAL-APPROVAL",
+      "canonical_input_hash": "72d1e013d1f37d802d7dc9137e7e55389e4a652187609b7d077b40968e55b12a",
+      "capacity_mode": "CONSERVATIVE_NO_DEMAND_CREDIT",
+      "configuration_revision": "CONFIG-GOLDEN-R1",
+      "contract_id": "io-replenishment-v1",
+      "contract_version": "1.1.0",
+      "decision_timing": "BUCKET_START_BEFORE_RECEIPTS",
+      "execution_mode": "LOCAL_SHADOW",
+      "item_controls": [
+        {
+          "item_id": "ITEM-A",
+          "max_order_qty": "1000",
+          "max_target_qty": "1000",
+          "min_target_qty": "0",
+          "order_dates": [
+            "2026-09-28",
+            "2026-10-05",
+            "2026-10-12"
+          ],
+          "uom": "EA"
+        }
+      ],
+      "psi_scenario_type": "RECOMMENDED",
+      "receipt_mapping": "NEXT_BUCKET_START_ON_OR_AFTER_DUE_DATE",
+      "strategy": {
+        "strategy_type": "MATHEMATICAL",
+        "implementation_id": "historical-normal-r-s",
+        "version": "1.0.0",
+        "model": null
+      },
+      "strategy_input_binding": {
+        "contract_id": "io-mathematical-policy-input-v1",
+        "contract_version": "1.0.0",
+        "snapshot_id": "MATH-INPUT-variable",
+        "content_hash": "d7d41646379d52d37b526a88c83ec6a5da36f79e48574050e46a435e020ac501"
+      }
+    }
+  },
+  "policy_input": {
+    "contract_id": "io-mathematical-policy-input-v1",
+    "contract_version": "1.0.0",
+    "snapshot_id": "MATH-INPUT-variable",
+    "content_hash": "d7d41646379d52d37b526a88c83ec6a5da36f79e48574050e46a435e020ac501",
+    "status": "SEALED",
+    "history_row_count": 13,
+    "context": {
+      "company_cd": "DSE",
+      "subs_cd": "C100",
+      "site_cd": "V101",
+      "configuration_revision": "CONFIG-GOLDEN-R1",
+      "canonical_input_hash": "72d1e013d1f37d802d7dc9137e7e55389e4a652187609b7d077b40968e55b12a",
+      "as_of_date": "2026-09-27",
+      "available_at": "2026-09-27T14:59:59Z",
+      "history_source_type": "SYNTHETIC_DEMAND",
+      "quantity_semantics": "UNCENSORED_DEMAND"
+    },
+    "profile": {
+      "profile_id": "GOLDEN-NORMAL",
+      "revision": "1",
+      "formula": "HISTORICAL_NORMAL_R_S_V1",
+      "history_mode": "FROZEN_PRE_W0",
+      "lookback_weeks": 13,
+      "stddev_ddof": 1,
+      "replenishment_cycle_weeks": 1,
+      "service_level_metric": "CYCLE_SERVICE_LEVEL",
+      "lead_time_mapping": "CEIL_CALENDAR_WEEKS",
+      "allow_legacy_fallback": false,
+      "approval_reference": "GOLDEN-NOT-OPERATIONAL-APPROVAL"
+    },
+    "calendar": [
+      {
+        "yyyyww": "202627",
+        "start_date": "2026-06-29",
+        "end_date": "2026-07-05"
+      },
+      {
+        "yyyyww": "202628",
+        "start_date": "2026-07-06",
+        "end_date": "2026-07-12"
+      },
+      {
+        "yyyyww": "202629",
+        "start_date": "2026-07-13",
+        "end_date": "2026-07-19"
+      },
+      {
+        "yyyyww": "202630",
+        "start_date": "2026-07-20",
+        "end_date": "2026-07-26"
+      },
+      {
+        "yyyyww": "202631",
+        "start_date": "2026-07-27",
+        "end_date": "2026-08-02"
+      },
+      {
+        "yyyyww": "202632",
+        "start_date": "2026-08-03",
+        "end_date": "2026-08-09"
+      },
+      {
+        "yyyyww": "202633",
+        "start_date": "2026-08-10",
+        "end_date": "2026-08-16"
+      },
+      {
+        "yyyyww": "202634",
+        "start_date": "2026-08-17",
+        "end_date": "2026-08-23"
+      },
+      {
+        "yyyyww": "202635",
+        "start_date": "2026-08-24",
+        "end_date": "2026-08-30"
+      },
+      {
+        "yyyyww": "202636",
+        "start_date": "2026-08-31",
+        "end_date": "2026-09-06"
+      },
+      {
+        "yyyyww": "202637",
+        "start_date": "2026-09-07",
+        "end_date": "2026-09-13"
+      },
+      {
+        "yyyyww": "202638",
+        "start_date": "2026-09-14",
+        "end_date": "2026-09-20"
+      },
+      {
+        "yyyyww": "202639",
+        "start_date": "2026-09-21",
+        "end_date": "2026-09-27"
+      }
+    ],
+    "history": [
+      {
+        "item_id": "ITEM-A",
+        "uom": "EA",
+        "yyyyww": "202639",
+        "demand_qty": "10"
+      },
+      {
+        "item_id": "ITEM-A",
+        "uom": "EA",
+        "yyyyww": "202628",
+        "demand_qty": "12"
+      },
+      {
+        "item_id": "ITEM-A",
+        "uom": "EA",
+        "yyyyww": "202630",
+        "demand_qty": "12"
+      },
+      {
+        "item_id": "ITEM-A",
+        "uom": "EA",
+        "yyyyww": "202632",
+        "demand_qty": "12"
+      },
+      {
+        "item_id": "ITEM-A",
+        "uom": "EA",
+        "yyyyww": "202634",
+        "demand_qty": "12"
+      },
+      {
+        "item_id": "ITEM-A",
+        "uom": "EA",
+        "yyyyww": "202636",
+        "demand_qty": "12"
+      },
+      {
+        "item_id": "ITEM-A",
+        "uom": "EA",
+        "yyyyww": "202638",
+        "demand_qty": "12"
+      },
+      {
+        "item_id": "ITEM-A",
+        "uom": "EA",
+        "yyyyww": "202627",
+        "demand_qty": "8"
+      },
+      {
+        "item_id": "ITEM-A",
+        "uom": "EA",
+        "yyyyww": "202629",
+        "demand_qty": "8"
+      },
+      {
+        "item_id": "ITEM-A",
+        "uom": "EA",
+        "yyyyww": "202631",
+        "demand_qty": "8"
+      },
+      {
+        "item_id": "ITEM-A",
+        "uom": "EA",
+        "yyyyww": "202633",
+        "demand_qty": "8"
+      },
+      {
+        "item_id": "ITEM-A",
+        "uom": "EA",
+        "yyyyww": "202635",
+        "demand_qty": "8"
+      },
+      {
+        "item_id": "ITEM-A",
+        "uom": "EA",
+        "yyyyww": "202637",
+        "demand_qty": "8"
+      }
+    ],
+    "adjustments": []
+  }
+}

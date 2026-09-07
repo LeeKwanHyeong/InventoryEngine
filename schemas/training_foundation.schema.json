@@ -1,0 +1,461 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Offline synthetic training foundation input v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_id",
+    "contract_version",
+    "dataset_id",
+    "simulation_run_id",
+    "content_hash",
+    "context",
+    "calendar_snapshot_id",
+    "demand_snapshot_id",
+    "policy_snapshot_id",
+    "w0_index",
+    "warmup_weeks",
+    "lookback_weeks",
+    "lookback_reason",
+    "replenishment_cycle_weeks",
+    "missing_history",
+    "train_weeks",
+    "validation_weeks",
+    "test_weeks",
+    "calendar",
+    "items",
+    "demand",
+    "scenarios"
+  ],
+  "properties": {
+    "contract_id": {
+      "enum": [
+        "io-training-foundation-v1"
+      ]
+    },
+    "contract_version": {
+      "enum": [
+        "1.0.0"
+      ]
+    },
+    "dataset_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "simulation_run_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "content_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "context": {
+      "$ref": "#/$defs/context"
+    },
+    "calendar_snapshot_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "demand_snapshot_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "policy_snapshot_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "w0_index": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000000
+    },
+    "warmup_weeks": {
+      "type": "integer",
+      "minimum": 52,
+      "maximum": 260
+    },
+    "lookback_weeks": {
+      "enum": [
+        13,
+        26
+      ]
+    },
+    "lookback_reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "replenishment_cycle_weeks": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 52
+    },
+    "missing_history": {
+      "enum": [
+        "REJECT",
+        "MISSING_ACTIVE_WEEK_IS_ZERO"
+      ]
+    },
+    "train_weeks": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000000
+    },
+    "validation_weeks": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000000
+    },
+    "test_weeks": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1000000
+    },
+    "calendar": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/calendar"
+      },
+      "maxItems": 520
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/item"
+      },
+      "maxItems": 100
+    },
+    "demand": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/demand"
+      },
+      "maxItems": 52000
+    },
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/scenario"
+      },
+      "maxItems": 20
+    }
+  },
+  "$defs": {
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "company_cd",
+        "subs_cd",
+        "site_cd",
+        "planning_cycle_id",
+        "planning_cycle_revision_id",
+        "cycle_site_execution_id",
+        "configuration_revision",
+        "plan_type"
+      ],
+      "properties": {
+        "company_cd": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "subs_cd": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "site_cd": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "planning_cycle_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "planning_cycle_revision_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "cycle_site_execution_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "configuration_revision": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "plan_type": {
+          "enum": [
+            "POSM",
+            "TGSM"
+          ]
+        }
+      }
+    },
+    "calendar": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "yyyyww",
+        "start_date",
+        "end_date"
+      ],
+      "properties": {
+        "yyyyww": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{3}(0[1-9]|[1-4][0-9]|5[0-3])$"
+        },
+        "start_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "end_date": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "item_id",
+        "uom",
+        "quantity_step",
+        "active_from_index",
+        "lead_time_weeks",
+        "policy_source",
+        "policy_reference",
+        "service_level_code",
+        "moq",
+        "lot_multiple",
+        "physical_capacity_qty",
+        "legacy_target_inventory_qty"
+      ],
+      "properties": {
+        "item_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "uom": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "quantity_step": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+          "maxLength": 40
+        },
+        "active_from_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "lead_time_weeks": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 52
+        },
+        "policy_source": {
+          "enum": [
+            "SOURCE_MASTER",
+            "SYNTHETIC_PROFILE"
+          ]
+        },
+        "policy_reference": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "service_level_code": {
+          "enum": [
+            "SL_90",
+            "SL_95",
+            "SL_975",
+            "SL_98",
+            "SL_99"
+          ]
+        },
+        "moq": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+          "maxLength": 40
+        },
+        "lot_multiple": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+          "maxLength": 40
+        },
+        "physical_capacity_qty": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+              "maxLength": 40
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "legacy_target_inventory_qty": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+              "maxLength": 40
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "demand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "item_id",
+        "uom",
+        "yyyyww",
+        "demand_qty"
+      ],
+      "properties": {
+        "item_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "uom": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "yyyyww": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{3}(0[1-9]|[1-4][0-9]|5[0-3])$"
+        },
+        "demand_qty": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+          "maxLength": 40
+        }
+      }
+    },
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "currency",
+        "holding_per_unit_week",
+        "backlog_per_unit_week",
+        "fixed_per_order",
+        "purchase_per_unit",
+        "terminal_backlog_per_unit"
+      ],
+      "properties": {
+        "currency": {
+          "enum": [
+            "USD",
+            "KRW",
+            "EUR"
+          ]
+        },
+        "holding_per_unit_week": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+          "maxLength": 40
+        },
+        "backlog_per_unit_week": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+          "maxLength": 40
+        },
+        "fixed_per_order": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+          "maxLength": 40
+        },
+        "purchase_per_unit": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+          "maxLength": 40
+        },
+        "terminal_backlog_per_unit": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$",
+          "maxLength": 40
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenario_id",
+        "delay_kind",
+        "delay_weeks",
+        "selected_order_ids",
+        "disruption_from_index",
+        "disruption_to_index",
+        "service_level_code",
+        "cost"
+      ],
+      "properties": {
+        "scenario_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "delay_kind": {
+          "enum": [
+            "NO_DELAY",
+            "FIXED_DELAY",
+            "SELECTED_ORDER_DELAY",
+            "DISRUPTION_WINDOW"
+          ]
+        },
+        "delay_weeks": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 52
+        },
+        "selected_order_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+          },
+          "uniqueItems": true,
+          "maxItems": 1000
+        },
+        "disruption_from_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "disruption_to_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "service_level_code": {
+          "anyOf": [
+            {
+              "enum": [
+                "SL_90",
+                "SL_95",
+                "SL_975",
+                "SL_98",
+                "SL_99"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cost": {
+          "$ref": "#/$defs/cost"
+        }
+      }
+    }
+  }
+}

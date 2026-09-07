@@ -1,0 +1,340 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dsio:mathematical-policy-input:v1",
+  "title": "Sealed mathematical policy/history input; the request wrapper also contains a RecommendationRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_id",
+    "contract_version",
+    "snapshot_id",
+    "content_hash",
+    "status",
+    "history_row_count",
+    "context",
+    "profile",
+    "calendar",
+    "history",
+    "adjustments"
+  ],
+  "properties": {
+    "contract_id": {
+      "const": "io-mathematical-policy-input-v1"
+    },
+    "contract_version": {
+      "const": "1.0.0"
+    },
+    "snapshot_id": {
+      "$ref": "#/$defs/id"
+    },
+    "content_hash": {
+      "$ref": "#/$defs/hash"
+    },
+    "status": {
+      "enum": [
+        "SEALED",
+        "COLLECTING",
+        "REJECTED"
+      ]
+    },
+    "history_row_count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100000
+    },
+    "context": {
+      "$ref": "#/$defs/context"
+    },
+    "profile": {
+      "$ref": "#/$defs/profile"
+    },
+    "calendar": {
+      "type": "array",
+      "maxItems": 26,
+      "items": {
+        "$ref": "#/$defs/calendar"
+      }
+    },
+    "history": {
+      "type": "array",
+      "maxItems": 100000,
+      "items": {
+        "$ref": "#/$defs/history"
+      }
+    },
+    "adjustments": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/$defs/adjustment"
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "qty": {
+      "type": "string",
+      "maxLength": 40,
+      "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "week": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]{3}(0[1-9]|[1-4][0-9]|5[0-3])$"
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_id",
+        "revision",
+        "formula",
+        "history_mode",
+        "lookback_weeks",
+        "stddev_ddof",
+        "replenishment_cycle_weeks",
+        "service_level_metric",
+        "lead_time_mapping",
+        "allow_legacy_fallback",
+        "approval_reference"
+      ],
+      "properties": {
+        "profile_id": {
+          "$ref": "#/$defs/id"
+        },
+        "revision": {
+          "$ref": "#/$defs/id"
+        },
+        "formula": {
+          "const": "HISTORICAL_NORMAL_R_S_V1"
+        },
+        "history_mode": {
+          "const": "FROZEN_PRE_W0"
+        },
+        "lookback_weeks": {
+          "enum": [
+            13,
+            26
+          ]
+        },
+        "stddev_ddof": {
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "replenishment_cycle_weeks": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 52
+        },
+        "service_level_metric": {
+          "const": "CYCLE_SERVICE_LEVEL"
+        },
+        "lead_time_mapping": {
+          "const": "CEIL_CALENDAR_WEEKS"
+        },
+        "allow_legacy_fallback": {
+          "type": "boolean"
+        },
+        "approval_reference": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "company_cd",
+        "subs_cd",
+        "site_cd",
+        "canonical_input_hash",
+        "configuration_revision",
+        "as_of_date",
+        "available_at",
+        "history_source_type",
+        "quantity_semantics"
+      ],
+      "properties": {
+        "company_cd": {
+          "$ref": "#/$defs/id"
+        },
+        "subs_cd": {
+          "$ref": "#/$defs/id"
+        },
+        "site_cd": {
+          "$ref": "#/$defs/id"
+        },
+        "canonical_input_hash": {
+          "$ref": "#/$defs/hash"
+        },
+        "configuration_revision": {
+          "$ref": "#/$defs/id"
+        },
+        "as_of_date": {
+          "$ref": "#/$defs/date"
+        },
+        "available_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "history_source_type": {
+          "enum": [
+            "OBSERVED_DEMAND",
+            "SYNTHETIC_DEMAND"
+          ]
+        },
+        "quantity_semantics": {
+          "enum": [
+            "UNCENSORED_DEMAND",
+            "FULFILLED_SALES"
+          ]
+        }
+      }
+    },
+    "calendar": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "yyyyww",
+        "start_date",
+        "end_date"
+      ],
+      "properties": {
+        "yyyyww": {
+          "$ref": "#/$defs/week"
+        },
+        "start_date": {
+          "$ref": "#/$defs/date"
+        },
+        "end_date": {
+          "$ref": "#/$defs/date"
+        }
+      }
+    },
+    "history": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "item_id",
+        "uom",
+        "yyyyww",
+        "demand_qty"
+      ],
+      "properties": {
+        "item_id": {
+          "$ref": "#/$defs/id"
+        },
+        "uom": {
+          "$ref": "#/$defs/id"
+        },
+        "yyyyww": {
+          "$ref": "#/$defs/week"
+        },
+        "demand_qty": {
+          "$ref": "#/$defs/qty"
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "safety_stock_qty",
+        "rop_qty",
+        "target_inventory_qty"
+      ],
+      "properties": {
+        "safety_stock_qty": {
+          "$ref": "#/$defs/qty"
+        },
+        "rop_qty": {
+          "$ref": "#/$defs/qty"
+        },
+        "target_inventory_qty": {
+          "$ref": "#/$defs/qty"
+        }
+      }
+    },
+    "adjustment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adjustment_id",
+        "item_id",
+        "uom",
+        "kind",
+        "effective_from",
+        "effective_to",
+        "values",
+        "reason",
+        "approved_by",
+        "approved_at",
+        "approval_reference",
+        "source_document_id"
+      ],
+      "properties": {
+        "adjustment_id": {
+          "$ref": "#/$defs/id"
+        },
+        "item_id": {
+          "$ref": "#/$defs/id"
+        },
+        "uom": {
+          "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "enum": [
+            "APPROVED_OVERRIDE",
+            "SOURCE_FALLBACK",
+            "LEGACY_FALLBACK"
+          ]
+        },
+        "effective_from": {
+          "$ref": "#/$defs/date"
+        },
+        "effective_to": {
+          "$ref": "#/$defs/date"
+        },
+        "values": {
+          "$ref": "#/$defs/policy"
+        },
+        "reason": {
+          "$ref": "#/$defs/text"
+        },
+        "approved_by": {
+          "$ref": "#/$defs/id"
+        },
+        "approved_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "approval_reference": {
+          "$ref": "#/$defs/id"
+        },
+        "source_document_id": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    }
+  }
+}

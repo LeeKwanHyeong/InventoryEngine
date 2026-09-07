@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dsio:learned-inference:v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "mathematical_request",
+    "model",
+    "model_reference"
+  ],
+  "properties": {
+    "mathematical_request": {
+      "$ref": "urn:dsio:production-evaluation:v1#/properties/mathematical_request"
+    },
+    "model": {
+      "$ref": "urn:dsio:replenishment-model:v1"
+    },
+    "model_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_id",
+        "version",
+        "content_hash"
+      ],
+      "properties": {
+        "model_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "content_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    }
+  }
+}

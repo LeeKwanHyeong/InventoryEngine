@@ -1,0 +1,693 @@
+{
+  "project_name": "InventoryEngine",
+  "baseline_date": "2026-09-04",
+  "latest_contract_review_date": "2026-09-07",
+  "description": "0.11.0은 승인된 Inventory Configuration과 Actual Close를 소비하는 ABC-XYZ 분류·append-only Snapshot 게시 lifecycle을 추가했다. 기본 no-write와 exact replay를 보장하며 Claim된 Run에는 분류 단계 Event와 Snapshot 집계 증적을 연결한다. 공통 DB Run Migration 적용·실제 Claim, Scheduler와 공용 Runtime 배포는 아직 미완료다.",
+  "tech_stack": {
+    "frontend": "이번 범위 없음; 후속 EngineStudio",
+    "backend": "Python >=3.12, src layout, 순수 계산 UseCase, asyncpg 읽기 Adapter",
+    "mobile": "없음",
+    "database": "PostgreSQL의 dsai/dsdm/dsim; Neo4j는 Network 조회 Projection이며 IO 입력 Source 아님",
+    "infrastructure": "개발 로컬; 공용 Runtime 배포 미수행"
+  },
+  "architecture_decisions": [
+    {
+      "decision": "IO는 플랫폼 Python 내부 모듈을 import하지 않고 Versioned Network DTO/Hash 계약을 소비한다.",
+      "rationale": "독립 배포와 동일 입력 재현을 보장한다.",
+      "alternatives_considered": [
+        "플랫폼 Repository 직접 import",
+        "Neo4j를 IO 계산 Source로 사용"
+      ]
+    },
+    {
+      "decision": "POSM/TGSM·단일 Company·한 Run 한 Site에서 공통 PSI와 MATHEMATICAL/PREDICTIVE_ML/DEEP_RL 보충 전략을 분리한다.",
+      "rationale": "재고 보존식과 Source 제약을 유지하며 의사결정만 교체한다. 수학적/ML/PPO의 로컬 구현·평가 완료와 운영 모델 승인은 구분한다.",
+      "alternatives_considered": [
+        "전략별 PSI 계산기 중복 구현",
+        "수식 전용 범위 유지",
+        "초기부터 Multi-Echelon Solver"
+      ]
+    }
+  ],
+  "current_baseline": {
+    "forecast_handoff_proposal": "2026-09-04 사용자 구현 승인 반영. IO 0.10.0/Demand opt-in Export·공유 Guard·Parquet Reader와 111020행 전달/입력 검증 완료. 실제 Artifact Mapping/Receipt Port·Studio 활성화·DB Publication은 미완료. IO_FORECAST_HANDOFF_CONTRACT.md 참조",
+    "network_input": "완료: 요청 ID/Hash·승인·Scope·Plan 기준일 검증과 메모리 Snapshot/Manifest",
+    "validation": {
+      "unit": 236,
+      "contract": 19,
+      "offline_cli_integration": 31,
+      "forecast_handoff_large_rows": 111020,
+      "source_readonly_integration": 2,
+      "source_readonly_verified_version": "0.9.0",
+      "source_preflight_version": "0.9.1",
+      "source_preflight_unit_added": 6,
+      "source_readonly_forecast_rows": 12810,
+      "golden_scenarios": 14,
+      "golden_psi_rows": 45,
+      "previous_network_readonly_integration": 5,
+      "mathematical_golden_scenarios": 14,
+      "mathematical_golden_psi_rows": 42,
+      "training_unit_added": 29,
+      "training_reference_profiles": 6,
+      "production_evaluation_unit_added": 19,
+      "production_evaluation_split_scenarios": 18,
+      "production_evaluation_golden_cases": 3,
+      "learned_unit_added": 25,
+      "learned_preflight_cases": 32,
+      "learned_heldout_split_scenarios": 12,
+      "learned_test_strategy_item_weeks": 1560,
+      "stability_training_runs": 6,
+      "stability_models": 12,
+      "stability_validation_model_evaluations": 48,
+      "stability_holdout_cases": 16,
+      "stability_holdout_item_weeks": 62400
+    },
+    "canonical_cutoff_baseline_psi": "로컬 구현 완료; 원천 수집/실제 봉인 저장 제외",
+    "source_read_adapter": "0.9.1 완료: Source DTO/Schema/매핑/파일 Reader/지정 Run PostgreSQL 대조. 전체 로컬 검증 후에만 DB 연결, 검증된 메모리 Snapshot 재사용. Canonical Hash 결정론성·미확인 Due-in 제외·기존 14 Golden/52주 합성 입력 호환. 운영 Source Admission 완료는 아님",
+    "run_lifecycle_evidence_persistence": "부분 구현: ABC-XYZ 분류 Snapshot 계산·append-only 게시·Receipt와 Claim된 Run의 분류 단계 Event Adapter 완료. Platform Claim DTO/Migration 074는 초안이며 실제 DB Claim과 전체 실행 Evidence는 미구현",
+    "classification_snapshot_lifecycle": "완료: 정확한 Site Config/Actual Close, 결정적 REVENUE·DEMAND_CV2 분류, 기본 no-write, hash-bound append-only 게시와 exact replay. 공용 Runtime/Scheduler 활성화는 미수행",
+    "learning_stability": "검증 기능/실행 완료: TRAIN52/VALIDATION52, 학습Seed3개×후보2개, 선정Hash 고정 후 새TEST Seed3개×104주. ML/PPO 모두 연구Gate 미달. 수학적 기준 유지; 운영 승인/통계적 우월성 주장 없음",
+    "dsim_agent_and_read_api": "미구현; 현재 개발 선행 조건 아님",
+    "inventory_git": "미초기화; Branch/Remote 없음",
+    "platform_branch": "dsai-platform: dsdm_engine_studio_dev",
+    "strategy_shared_psi": "완료: 불변 계약·주차 전이·행동 검증·대기열·로컬 Recommended PSI. v1.1은 추가 전략 입력 Snapshot Binding을 지원; v1.0 유지",
+    "mathematical_policy": "완료: FROZEN_PRE_W0 13/26주 이력·정규근사 SS/ROP/목표재고·승인 Override/정책 Fallback·독립 Golden. 실제 Source 적합성, 인증/Run/영속화 제외",
+    "training_foundation": "완료: 52주 독립 BOH, 시간순 Feature/Label, 비용/서비스/지연 Reference World. 실제 Forecast Vintage, 운영 저장은 후속",
+    "production_evaluation_adapter": "완료: 생산 수학적 정책/공통 Guard 호출, 실제 상태 피드백, 기간형 정책/Override/Fallback/용량/납기 검증. SYNTHETIC_FROZEN_MEAN과 EPISODE_RECEIPTS_ONLY의 로컬 실험이며 운영 성능 합격 아님",
+    "learned_strategies": "완료: 공통14 Feature/모델Version·Hash·Scope·정책Profile 계약, CPU ML300회/PPO12 Episode·1560 Item-week, JSON 추론·공통Guard, 6시나리오 VALIDATION/TEST 비교. 소규모 합성 검증이며 수렴/운영 우월성·승인/봉인 아님"
+  },
+  "tasks": [
+    {
+      "id": "io-inputs",
+      "agent": "backend",
+      "status": "완료",
+      "title": "IO Canonical 입력과 Golden 기대값 고정",
+      "description": "계산에 들어갈 Forecast·BOH·입고예정·정책·Calendar 의미와 오류를 먼저 맞춘다.",
+      "priority": 1,
+      "dependencies": [],
+      "estimated_complexity": "medium",
+      "acceptance_criteria": [
+        "POSM/TGSM 필드·UOM·주차·Scope 계약 테스트 통과",
+        "정상/품절/BO/미확약공급/고아의 독립 수작업 기대값 작성",
+        "운영 DB Write 없음"
+      ],
+      "artifacts_expected": [
+        "Canonical DTO",
+        "JSON Schema",
+        "Golden Fixture"
+      ],
+      "scope": [
+        "InventoryEngine/inventory_contracts",
+        "InventoryEngine/tests"
+      ]
+    },
+    {
+      "id": "io-cutoff",
+      "agent": "backend",
+      "status": "완료",
+      "title": "Cut-off 검증과 Site 입력 준비",
+      "description": "전달된 Canonical Snapshot의 BOH·봉인·Watermark를 PSI 전에 검증하고 제외 이유를 반환한다. 실제 Source 수집/봉인은 io-source 후속 작업이다.",
+      "priority": 1,
+      "dependencies": [
+        "io-inputs"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "EOH–BOH/Watermark/Scope 오류는 Fail Closed",
+        "정상 입력의 결정론적 Hash와 대사 DTO 보존",
+        "Adapter 테스트에서 실제 데이터 변경 없음"
+      ],
+      "artifacts_expected": [
+        "Canonical Cut-off 검증 UseCase",
+        "Reconciliation Evidence DTO"
+      ],
+      "scope": [
+        "InventoryEngine/prepare_inventory"
+      ]
+    },
+    {
+      "id": "io-psi",
+      "agent": "backend",
+      "status": "완료",
+      "title": "단일 Site Baseline PSI 계산",
+      "description": "DB 없이 재고 보존식과 고객 주문·Forecast 차감을 검증한다.",
+      "priority": 1,
+      "dependencies": [
+        "io-inputs"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "모든 Bucket의 BOH=전기 EOH와 보존식 성립",
+        "실제 Backorder/Forecast Shortage 분리",
+        "미확약 Due-in은 Baseline에서 제외",
+        "Golden 기대값과 일치; Source 접근 없는 순수 계산"
+      ],
+      "artifacts_expected": [
+        "PSI UseCase",
+        "Bucket Evidence",
+        "보존식 테스트"
+      ],
+      "scope": [
+        "InventoryEngine/simulate_inventory"
+      ]
+    },
+    {
+      "id": "io-strategy-contract",
+      "agent": "backend",
+      "status": "완료",
+      "title": "세 전략 공통 계약 고정",
+      "description": "전략과 시나리오를 분리하고 같은 관측/제안 계약과 시간·정책 의미로 실행한다.",
+      "priority": 1,
+      "dependencies": [
+        "io-inputs"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "세 가족 Adapter가 같은 Protocol을 통과",
+        "Binding/Hash/제약 설정 불일치는 Fail Closed",
+        "실제 학습 모델이 아닌 Probe임을 명시"
+      ],
+      "artifacts_expected": [
+        "Replenishment DTO/Protocol",
+        "실행 설정·제안 JSON Schema",
+        "공통 계약 문서"
+      ],
+      "scope": [
+        "InventoryEngine/inventory_contracts",
+        "InventoryEngine/docs/architecture"
+      ]
+    },
+    {
+      "id": "io-psi-actions",
+      "agent": "backend",
+      "status": "완료",
+      "title": "공통 주차 PSI와 행동 검증·공급 대기열",
+      "description": "Source 제약을 모든 전략에 적용하고 신규 권고의 생성/도착/재고 이월을 검증한다.",
+      "priority": 1,
+      "dependencies": [
+        "io-psi",
+        "io-strategy-contract"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "14개 기존 Golden의 Baseline/HOLD 결과 유지",
+        "MOQ/배수/보수적 용량·발주일·행동 허용 범위 검증",
+        "대기 중 권고를 Position에 포함하고 입고는 한 번만 반영",
+        "관측/제안/조정/주문/PSI를 반환하되 DB/Artifact 저장 완료로 주장하지 않음"
+      ],
+      "artifacts_expected": [
+        "advance_bucket",
+        "RunRecommendedPsiUseCase",
+        "행동 검증기",
+        "단위/계약/오프라인 통합 테스트"
+      ],
+      "scope": [
+        "InventoryEngine/simulate_inventory",
+        "InventoryEngine/recommend_replenishment"
+      ]
+    },
+    {
+      "id": "io-policy",
+      "agent": "backend",
+      "status": "완료",
+      "title": "수학적 정책 산출기와 권고 Golden",
+      "description": "HISTORICAL_NORMAL_R_S_V1 계산, UOM 순차 올림, 승인 정책 선택과 Source/Python/Effective 계보를 공통 PSI에 연결했다.",
+      "priority": 1,
+      "dependencies": [
+        "io-psi-actions"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "13/26주 Lookback/ddof/Service Level/보충주기·추가 입력 Hash 계약",
+        "Override→Python→승인 Source/명시 Legacy Fallback→제외 구현",
+        "공통 MOQ/배수/용량/발주일 검증 우회 불가",
+        "독립 정책 Golden 14개/42 PSI Row, 실제 오프라인 CLI와 기존 Baseline 회귀 통과"
+      ],
+      "artifacts_expected": [
+        "수학적 전략 Adapter/UseCase",
+        "Versioned 정책 Profile·추가 Binding·Schema",
+        "수학적 정책/권고 Golden",
+        "입력·Source/Python/Effective Evidence JSON"
+      ],
+      "scope": [
+        "InventoryEngine/recommend_replenishment",
+        "InventoryEngine/tests/reference"
+      ]
+    },
+    {
+      "id": "io-training-data",
+      "agent": "backend",
+      "status": "완료",
+      "title": "학습 이력·독립 합성 환경·공통 평가 기준",
+      "description": "0.5.0 합성 자료의 52주 BOH·Feature/Label·비용/서비스/지연 기반 로컬 구현 완료. 실제 Forecast/공급 Source 연결은 io-observed-training-data로 분리한다.",
+      "priority": 1,
+      "dependencies": [
+        "io-strategy-contract",
+        "io-policy"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "합성 As-of Forecast Feature와 미래 Label·학습/검증/평가 시간 구간 분리",
+        "독립 52주 BOH·미도착 공급·수작업 기대값 및 기존 Canonical 호환 검증",
+        "비용/서비스/지연 Profile과 결정론적 Hash; 운영 증거/모델 학습과 구분"
+      ],
+      "artifacts_expected": [
+        "학습/평가 데이터 계약",
+        "독립 Synthetic BOH Reference",
+        "평가 시나리오"
+      ],
+      "scope": [
+        "InventoryEngine/training",
+        "InventoryEngine/inventory_contracts",
+        "InventoryEngine/tests"
+      ]
+    },
+    {
+      "id": "io-evaluation-adapter",
+      "agent": "backend",
+      "status": "완료",
+      "title": "생산 전략과 독립 평가 World 연결",
+      "description": "0.6.0 생산 수학적 전략/공통 Guard를 독립 World에 연결하고 실제 상태 피드백·미래 정보 차단·기간형 정책/승인 제약을 검증했다. Reference Benchmark와 출력/실험 조건을 분리한다.",
+      "priority": 1,
+      "dependencies": [
+        "io-training-data",
+        "io-policy"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "생산 수학적 전략을 미래 실제값 노출 없이 평가",
+        "동일 Scenario/초기재고·비용 기준에서 동일 입력 재현"
+      ],
+      "artifacts_expected": [
+        "공통 평가 Adapter",
+        "생산 수학적 전략 평가 Golden"
+      ],
+      "scope": [
+        "InventoryEngine 평가 Adapter",
+        "InventoryEngine 추천 전략 계약"
+      ]
+    },
+    {
+      "id": "io-ml",
+      "agent": "backend",
+      "status": "완료",
+      "title": "예측형 ML 보충 Adapter",
+      "description": "0.7.0 보호기간 양의 Forecast 오차 분위수 ML의 실제 학습·JSON 추론·정책 적용 및 승인 우선순위 검증 완료. 실제 Forecast 발행 이력과 운영 성능 승인은 후속.",
+      "priority": 2,
+      "dependencies": [
+        "io-policy",
+        "io-training-data",
+        "io-evaluation-adapter"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "공통 계약/제약 통과",
+        "정확한 모델 Artifact와 학습 데이터 Revision 기록",
+        "별도 평가 구간에서 수학적 기준과 비교"
+      ],
+      "artifacts_expected": [
+        "ML Adapter",
+        "학습/추론 분리",
+        "ML 평가 기록"
+      ],
+      "scope": [
+        "InventoryEngine ML 전략 모듈"
+      ]
+    },
+    {
+      "id": "io-drl",
+      "agent": "backend",
+      "status": "완료",
+      "title": "PPO 기반 심층 강화학습 Adapter",
+      "description": "0.7.0 제한된 목표재고 행동 PPO-Clip의 CPU 소규모 학습·JSON 추론·공통Guard/World 연결 완료. 학습 전13/26주와52/104주 TRAIN 반복 종료 점검. 수렴/운영 강건성 합격 아님.",
+      "priority": 2,
+      "dependencies": [
+        "io-policy",
+        "io-training-data",
+        "io-evaluation-adapter"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "관측/행동/보상/종료 계약 고정",
+        "학습은 Planning Cycle 밖에서 실행",
+        "공통 제약과 모델 Artifact 검증; 실제 모델 평가"
+      ],
+      "artifacts_expected": [
+        "PPO 환경/Adapter",
+        "학습/추론 분리",
+        "DRL 평가 기록"
+      ],
+      "scope": [
+        "InventoryEngine DRL 전략 모듈"
+      ]
+    },
+    {
+      "id": "io-comparison",
+      "agent": "backend",
+      "status": "완료",
+      "title": "무신규공급 대조군과 세 권고 전략 비교",
+      "description": "0.7.0 같은 초기재고·Forecast·지연·기간·종료 비용의 VALIDATION/TEST×6시나리오 비교 완료. 실제 상세 결과 반환/요약 파일 보존이며 서비스 Evidence 영속 저장은 후속.",
+      "priority": 2,
+      "dependencies": [
+        "io-policy",
+        "io-ml",
+        "io-drl"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "동일 World의 무신규공급 대조군과 수학적/ML/PPO 결과·Hash·지표를 분리",
+        "학습하지 않은 평가 구간·동일 정보로 비교",
+        "최고 점수의 자동 운영 게시 금지"
+      ],
+      "artifacts_expected": [
+        "전략 비교 실행기",
+        "평가 보고서"
+      ],
+      "scope": [
+        "InventoryEngine 비교/평가 모듈"
+      ]
+    },
+    {
+      "id": "io-learning-robustness",
+      "agent": "backend",
+      "status": "완료",
+      "title": "학습 안정성과 후보 선정 기준 검증",
+      "description": "0.8.0 실제6회 학습/12모델, VALIDATION 후보 선정 후 Hash를 별도 고정하고 새104주 TEST3개/종료 민감도를 평가했다. 기능·실험 완료와 모델 성능 미달을 구분한다. 증적은 로컬 요약이며 DB 이중 기록 아님.",
+      "priority": 1,
+      "dependencies": [
+        "io-ml",
+        "io-drl",
+        "io-comparison"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "다중 Seed·기간별 비용/서비스/제약 근거",
+        "후보 승인/거부 기준과 새 홀드아웃 구분",
+        "운영 전환/장기 본학습을 소규모 검증과 구분"
+      ],
+      "artifacts_expected": [
+        "학습 안정성 평가",
+        "후보 선택 기록"
+      ],
+      "scope": [
+        "InventoryEngine/stability",
+        "InventoryEngine/inventory_contracts/stability.py"
+      ]
+    },
+    {
+      "id": "io-model-improvement",
+      "agent": "backend",
+      "status": "다음 작업",
+      "title": "성능 미달 ML/PPO 원인 분리와 개선 실험",
+      "description": "TRAIN/VALIDATION에서 정규화·무수요·행동/보상·학습량을 분리 검증한다. 기존 TEST는 튜닝에 재사용하지 않고 새 Revision/홀드아웃으로 검증한다.",
+      "priority": 2,
+      "dependencies": ["io-learning-robustness"],
+      "estimated_complexity": "high",
+      "acceptance_criteria": ["비용·서비스·Seed 편차를 동시 평가", "운영 자동 승격 금지", "개선 사유와 신규 홀드아웃 고정"],
+      "artifacts_expected": ["TRAIN/VALIDATION Ablation 기록", "새 모델/실험 Revision"],
+      "scope": ["InventoryEngine/fit_replenishment", "InventoryEngine/learned", "InventoryEngine/stability"]
+    },
+    {
+      "id": "io-source-read",
+      "agent": "backend",
+      "status": "완료",
+      "title": "실제 Source 계약 조사와 읽기/변환 Adapter",
+      "description": "8개 Source Binding/Hash·출처·기준일·원본을 Canonical로 연결했다. 0.9.1에서 전체 로컬 검증 전 DB 연결을 차단했다. 개발 Run 하나/3주/P50 진단은 0.9.0 기록이며 운영 통계량 선택·봉인 완료는 아니다.",
+      "priority": 1,
+      "dependencies": ["io-inputs", "io-cutoff"],
+      "acceptance_criteria": ["동일 입력 Canonical Hash", "기존 Golden/52주 합성 입력 호환", "Source 누락/고아/기준시점/Hash 오류는 DB 연결 전에 차단", "검증 후 파일 재조회나 새 봉인 없이 동일 Snapshot 대조", "실제 DB Write 없음"],
+      "artifacts_expected": ["Source Reader/DTO/매핑", "Schema/예제/테스트", "읽기 전용 준비상태 증적"],
+      "scope": ["InventoryEngine/prepare_inventory", "InventoryEngine/infrastructure"]
+    },
+    {
+      "id": "io-forecast-handoff",
+      "agent": "backend",
+      "status": "완료",
+      "title": "Demand 소유 Forecast Export와 IO v2 오프라인 계약",
+      "description": "POINT·실행 전 공유 Binding·별도 Export·Parquet Part/Manifest Hash·IO 독립 Reader·계획/물리 수량 분리를 구현하고 111020행을 검증했다. 실제 Runtime/DB 게시 완료는 아니다.",
+      "priority": 1,
+      "dependencies": ["io-source-read", "io-strategy-contract"],
+      "acceptance_criteria": ["기존 JSON v1/Golden 유지", "소수 PSI와 정수 물리 EA/Lot 보존", "변조/중복/누락/Hash·Scope 오류 차단", "로컬 봉인과 DB 게시 상태 구분"],
+      "artifacts_expected": ["IO_FORECAST_HANDOFF_CONTRACT.md", "Demand Export/공유 Guard", "IO Parquet Reader/Canonical v2", "교차 검증"],
+      "scope": ["DemandEngine", "InventoryEngine"]
+    },
+    {
+      "id": "io-forecast-studio",
+      "agent": "backend",
+      "status": "다음 작업",
+      "title": "실제 공유 Artifact와 Receipt를 Studio 실행에 연결",
+      "description": "Demand의 실제 사용 Calendar/Master Mapping과 실행 전 Receipt 저장 Port를 연결하고, 성공 후 별도 Export 결과를 Cycle에 고정한다. 기존 성공 Run에 공유 Binding을 사후 생성하지 않는다.",
+      "priority": 1,
+      "dependencies": ["io-forecast-handoff"],
+      "acceptance_criteria": ["실제 사용 파일과 공유 Snapshot 일치", "실행 전 불변 Receipt 저장", "검증되지 않거나 DB 미게시인 Export의 운영 IO 시작 차단", "실제 DB Write·배포는 별도 승인"],
+      "artifacts_expected": ["실제 Artifact Mapping", "Receipt 저장 Adapter", "Studio 호출 연결"],
+      "scope": ["DemandEngine", "dsai-platform Backend"]
+    },
+    {
+      "id": "io-source",
+      "agent": "backend",
+      "status": "외부 작업 대기",
+      "title": "실제 Source Export와 입력 봉인 연결",
+      "description": "Forecast 로컬 계약 구현은 io-forecast-handoff에서 완료, 실제 Studio 연결은 io-forecast-studio로 분리했다. 실제 재고/주문/정책 Source와 Cut-off 의미는 외부 준비 대기이며 미확인 값을 자동으로 채우지 않는다.",
+      "approval_status": "로컬 구현 승인 완료; DB 게시·실제 E2E Write·배포는 별도 승인 필요",
+      "proposal_document": "IO_FORECAST_HANDOFF_PROPOSAL.md",
+      "priority": 1,
+      "dependencies": [
+        "io-inputs",
+        "io-cutoff",
+        "io-source-read"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "동일 Source Binding이 동일 Canonical Hash 생성",
+        "미확인 고객 주문/공급 상태를 임의 확정하지 않음",
+        "Reserved·Source Watermark 의미 검증",
+        "실제 DB Write와 봉인 저장은 대상별 승인"
+      ],
+      "artifacts_expected": [
+        "Demand 출력 Snapshot Export 접점",
+        "ERP Source Collector/Sealer 계약과 검증"
+      ],
+      "scope": [
+        "InventoryEngine/prepare_inventory",
+        "InventoryEngine/infrastructure"
+      ]
+    },
+    {
+      "id": "io-runtime",
+      "agent": "backend",
+      "status": "다음 작업",
+      "title": "공통 Run·Planning Cycle 연결",
+      "description": "기존 Demand 계약을 보존하며 IO Claim·Attempt·Network Binding을 연결한다.",
+      "priority": 2,
+      "dependencies": [
+        "io-strategy-contract"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "같은 입력 Retry는 새 Run ID와 동일 입력 Hash",
+        "Cycle·Run FK/Scope와 CAS 경합 테스트",
+        "입력 변경은 새 Revision",
+        "기존 Demand API 회귀 통과; 실제 Migration은 별도 승인"
+      ],
+      "artifacts_expected": [
+        "호환 Migration 초안",
+        "Repository/UoW 테스트",
+        "Inventory Runner"
+      ],
+      "scope": [
+        "dsai-platform Backend 공통 Runtime",
+        "InventoryEngine/run_inventory",
+        "InventoryEngine/platform_contracts"
+      ]
+    },
+    {
+      "id": "io-evidence",
+      "agent": "backend",
+      "status": "다음 작업",
+      "title": "중간 산출물 물리 계약과 이중 기록",
+      "description": "P0-13을 확정해 입력·대사·PSI·정책을 Artifact와 TB_IO에 연결한다.",
+      "priority": 2,
+      "dependencies": [
+        "io-cutoff",
+        "io-psi-actions",
+        "io-runtime"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "Grain/PK/FK/Numeric/Hash/Receipt 계약 확정",
+        "Network 전체 Snapshot과 Site Context 저장",
+        "영속 Evidence 미검증 Run 성공 처리 금지",
+        "복구·대사 테스트; 실제 DB Write 별도 승인"
+      ],
+      "artifacts_expected": [
+        "TB_IO DDL 초안",
+        "Artifact/Evidence Adapter",
+        "Reconciliation 테스트"
+      ],
+      "scope": [
+        "InventoryEngine/inventory_evidence",
+        "dsai-platform/infra/migrations"
+      ]
+    },
+    {
+      "id": "io-e2e",
+      "agent": "qa",
+      "status": "승인 필요",
+      "title": "Publication 계약과 실제 개발 E2E",
+      "description": "P0-18 재개 후 Demand→IO 실행과 실패 Site 복구를 실제 환경에서 검증한다.",
+      "priority": 2,
+      "dependencies": [
+        "io-evidence",
+        "io-source"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "Publication 대상·멱등 Key·CAS 확정",
+        "Run 결과·Receipt·Effective 포인터 일치",
+        "실제 DB Write/배포 대상별 승인 확인",
+        "실패 Run이 정상 결과로 노출되지 않음"
+      ],
+      "artifacts_expected": [
+        "Publication 구현",
+        "실제 Run 검증 증적"
+      ],
+      "scope": [
+        "InventoryEngine/deliver_inventory",
+        "dsai-platform 공통 Runtime",
+        "승인된 개발 PostgreSQL/Artifact 저장소"
+      ]
+    },
+    {
+      "id": "io-operation",
+      "agent": "qa",
+      "status": "외부 작업 대기",
+      "title": "실제 운영 Source와 전환 Gate 검증",
+      "description": "개발 합성 검증을 운영 정확성으로 오인하지 않도록 운영 승인 경계를 확인한다.",
+      "priority": 3,
+      "dependencies": [
+        "io-e2e"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "실제 재고·공급 확약·물류 Source 검토",
+        "P0-14 보존/복구와 P0-19 정식 회귀 Gate 확정",
+        "Production·전체 기능 활성화는 명시적 승인",
+        "Multi-Echelon/DSIM은 별도 후속 범위"
+      ],
+      "artifacts_expected": [
+        "운영 Source 승인 근거",
+        "회귀 합격·보존/복구 정책"
+      ],
+      "scope": [
+        "운영 Source 소유 부서",
+        "지정 운영 Runtime; 현재 대상 미확정"
+      ]
+    },
+    {
+      "id": "io-observed-training-data",
+      "agent": "backend",
+      "status": "외부 작업 대기",
+      "title": "실제 Forecast 발행 이력과 공급·비용 Source 연결",
+      "description": "DemandEngine의 당시 Forecast/이후 Actual, 관측 입고지연과 실비를 시점/권한/Hash 계약으로 수집한다. 합성 자료는 운영 정확성 증거가 아니다.",
+      "priority": 2,
+      "dependencies": [
+        "io-training-data",
+        "io-source"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "발행/관측 시점과 구간 경계의 정보 누출 검증",
+        "원천 의미와 비용·공급 이력의 업무 검토"
+      ],
+      "artifacts_expected": [
+        "Observed Dataset Adapter",
+        "Source 검토 기록"
+      ],
+      "scope": [
+        "InventoryEngine Source/학습 데이터",
+        "DemandEngine 출력 계약"
+      ]
+    }
+  ],
+  "api_contracts": [],
+  "data_models": [
+    {
+      "entity": "NetworkInputRequest",
+      "fields": {
+        "context": "Cycle/Site/Run/Master 기준일",
+        "network": "명시적 승인 Revision ID/Content Hash/Contract Version"
+      }
+    },
+    {
+      "entity": "PreparedNetworkInput",
+      "fields": {
+        "manifest": "PREPARED_IN_MEMORY; 전체 Run 성공이 아님",
+        "network_snapshot": "전체 Header/Node/Lane",
+        "site_network_context": "선택 Site 후보 Lane; CONTEXT_ONLY"
+      }
+    },
+    {
+      "entity": "RecommendationRequest",
+      "fields": {
+        "canonical_input": "기존 8개 Canonical Snapshot",
+        "execution": "전략/모델·Configuration·승인 Reference·행동 제약·시간 규칙"
+      }
+    },
+    {
+      "entity": "ReplenishmentObservation/Proposal",
+      "fields": {
+        "observation": "재고 상태·미래 수요·미도착 공급·정책/제약·판단 시점",
+        "proposal": "HOLD/ORDER_QTY/ORDER_UP_TO·계산 정책·사유·Binding"
+      }
+    },
+    {
+      "entity": "RecommendedPsiResult",
+      "fields": {
+        "decision_evidence": "관측/Hash·제안·Source 정책·조정/거부 근거",
+        "recommended_orders": "생성→대기→시뮬레이션 입고",
+        "psi_rows": "공통 주간 전이 결과; 영속 저장은 미구현"
+      }
+    },
+    {
+      "entity": "MathematicalPolicyRequest",
+      "fields": {
+        "recommendation": "Canonical v1 + execution 1.1 + 추가 전략 입력 Binding",
+        "policy_input": "W0 이전 이력/Calendar·Profile·승인 Override/Fallback의 봉인 Snapshot",
+        "mathematical_policy_report": "통계·Source/Python/Effective 정책·반올림·제외 근거; 영속 저장은 후속"
+      }
+    },
+    {
+      "entity": "ModelArtifact/LearnedInferenceRequest/LearningRequest",
+      "fields": {
+        "model": "JSON-only weights·Model ID/Version/Hash·TRAIN lineage·Scope·policy profile",
+        "features": "io-learned-observation-v1,14 known-at-decision values; ML uses indices6–9",
+        "learning": "TRAIN-only bounded CPU recipe; finite-horizon GAE/PPO-Clip; no publication"
+      }
+    }
+  ],
+  "non_functional_requirements": {
+    "security": [
+      "단일 Company·Site·개발/운영 Scope Fail Closed",
+      "Secret 출력/기본 Credential 금지",
+      "미승인 DB Write/배포 금지",
+      "현재 DEVELOPMENT + LOCAL_SHADOW만 허용; 승인 Reference/모델 Hash는 실제 인증·Artifact 검증을 대체하지 않음"
+    ],
+    "performance": [
+      "Network 읽기는 제한 시간·행 수 한도 적용",
+      "Core 계산 성능 목표는 대표 데이터 확보 후 설정",
+      "반복 관측 200000과 확장 Evidence 500000행 추산 한도; 스트리밍/실측 성능은 후속"
+    ],
+    "scalability": [
+      "Site 독립 실행",
+      "공통 계약 확정 후 수학적 전략/데이터 준비/Platform Runtime 병렬 가능",
+      "학습 환경 확정 뒤 ML/DRL 병렬; 계약 변경 및 실제 E2E는 직렬"
+    ]
+  },
+  "testing_strategy": {
+    "unit_tests": "111건 통과. 기존 Baseline Golden 14개/45 Row + 수학적 Golden 14개/42 Row. 정책 선택·미래 정보/고아/기간/숫자 경계와 공통 회귀",
+    "integration_tests": "계약 7건·오프라인 프로세스 통합 7건 통과. 실제 수학적 정책 CLI 포함; 이전 개발 Network DB 5건은 이번에 실행하지 않음",
+    "e2e_tests": "IO Run Write 미수행; P0-18과 대상 승인 이후 실행",
+    "performance_tests": "후속 대표 POSM/TGSM 입력으로 실측; 현재 처리량 주장 없음"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "contract_id": "io-source-snapshot-v1",
+  "snapshot_type": "policies",
+  "snapshot_id": "normal_consumption:policies",
+  "content_hash": "7aa2c468bce1cb753935871ca5f8b86ceee63e2e622e495cfee978de23231cf7",
+  "adapter": "SOURCE_POLICY_V1",
+  "origin_type": "DEVELOPMENT_FIXTURE",
+  "source_reference": "TEST-ONLY",
+  "source_as_of_date": "2026-09-28",
+  "status": "SEALED",
+  "row_count": 1,
+  "metadata": {
+    "company_cd": "DSE",
+    "subs_cd": "C100",
+    "site_cd": "V101"
+  },
+  "semantics": {
+    "lead_time_unit": "WEEK",
+    "service_level_unit": "PERCENT",
+    "max_qty_meaning": "LEGACY_TARGET_INVENTORY",
+    "approval_reference": "TEST-POLICY"
+  },
+  "rows": [
+    {
+      "company_cd": "DSE",
+      "subs_cd": "C100",
+      "site_cd": "V101",
+      "policy_id": "POLICY-A",
+      "effective_from": "2026-09-28",
+      "effective_to": "2026-10-19",
+      "physical_max_capacity": null,
+      "oper_part_no": "A",
+      "min_po_qty": "0",
+      "po_lot_qty": "1",
+      "stock_lt": "1",
+      "svc_lv": "95",
+      "max_qty": "100",
+      "rop_qty": "20"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "description": "Hand-calculated constant demand 10, BOH 10, initial two receipts of 10, lead 2 weeks, four-week TEST. Holding 1, backlog 5, fixed 2, purchase 3, terminal backlog 10.",
+  "cases": [
+    {"scenario": "BASE", "delay_weeks": 0, "order_qty": ["0", "10", "0", "0"], "receipt_qty": ["10", "10", "0", "10"], "eoh_qty": ["10", "10", "0", "0"], "backorder_close_qty": ["0", "0", "0", "0"], "total_cost": "52", "on_time_fill_rate": "1", "terminal_open_supply_qty": "0"},
+    {"scenario": "DELAY1", "delay_weeks": 1, "order_qty": ["0", "10", "0", "0"], "receipt_qty": ["0", "10", "10", "0"], "eoh_qty": ["0", "0", "0", "0"], "backorder_close_qty": ["0", "0", "0", "10"], "total_cost": "182", "on_time_fill_rate": "0.75", "terminal_open_supply_qty": "10"},
+    {"scenario": "DELAY2", "delay_weeks": 2, "order_qty": ["0", "10", "0", "0"], "receipt_qty": ["0", "0", "10", "10"], "eoh_qty": ["0", "0", "0", "0"], "backorder_close_qty": ["0", "10", "10", "10"], "total_cost": "282", "on_time_fill_rate": "0.25", "terminal_open_supply_qty": "10"}
+  ]
+}
