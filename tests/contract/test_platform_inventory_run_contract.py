@@ -7,6 +7,8 @@ from pathlib import Path
 
 
 EXPECTED = {
+    "INVENTORY_ENGINE_EXECUTION_REQUEST_CONTRACT_ID": "inventory-engine-execution-request-v1",
+    "INVENTORY_ENGINE_EXECUTION_REQUEST_CONTRACT_VERSION": "1.0.0",
     "INVENTORY_RUN_CLAIM_CONTRACT_ID": "inventory-engine-run-claim-v1",
     "INVENTORY_RUN_CLAIM_CONTRACT_VERSION": "1.0.0",
     "INVENTORY_PLAN_SOURCE_KEY": "inventory.planning_cycle",

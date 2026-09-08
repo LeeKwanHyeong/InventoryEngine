@@ -1,6 +1,6 @@
 # InventoryEngine 개발 기준선과 작업 순서
 
-기준일: 2026-09-07, 로컬 패키지 0.11.0. 이 문서는 **목표 계약 확정**, **코드 구현**, **개발 DB 검증**, **운영 사용**을 구분한다. 목표 아키텍처의 전체 파일 트리가 이미 구현돼 있다고 해석하지 않는다.
+기준일: 2026-09-08, 로컬 패키지 0.12.0. 이 문서는 **목표 계약 확정**, **코드 구현**, **개발 DB 검증**, **운영 사용**을 구분한다. 목표 아키텍처의 전체 파일 트리가 이미 구현돼 있다고 해석하지 않는다.
 
 동일 순서의 [의존관계 계획 JSON](IO_DEVELOPMENT_PLAN.json), [Network 검증 요약](evidence/network-input-validation-20260903.json), [Canonical·PSI 검증 기록](IO_CANONICAL_PSI_VERIFICATION.md)을 함께 관리한다. 계획 파일은 향후 작업 목록이며 자동 실행 지시나 DB 변경 승인이 아니다.
 
@@ -8,7 +8,7 @@
 
 | 대상 | 실제 상태 | 아직 하지 않은 것 |
 |---|---|---|
-| InventoryEngine 프로젝트 | Python 3.12 `pyproject.toml`, `src/dsio_inventory_engine`, CLI·테스트 기반 추가 | 전체 Runner, HTTP/Worker, 배포, Git 초기화 |
+| InventoryEngine 프로젝트 | Python 3.12 패키지, 독립 Git 저장소, Runtime HTTP 접수·Platform Callback·Worker Orchestration과 테스트 기반 | 영속 Queue/Worker, 전체 계산 Handler 조립, 배포 |
 | Network 입력 | 요청 ID/Hash·승인·Scope·Plan 기준일 검증, 불변 Network Snapshot·Manifest와 Site 후보 경로 생성 | Artifact 봉인·TB_IO 저장, Cycle/Run FK·Claim, 운송수단 선택·계산 적용 |
 | Canonical 입력·Golden | 8개 Snapshot 구조·JSON Schema, 요청 Binding·Hash 검증, 독립 Golden 14개/45 PSI Row | 실제 Legacy SQL Adapter, 운영 Source 의미·정확성 검증 |
 | 0.9.1 Source 읽기 호환 | 전체 로컬 검증 후 DB 연결과 기존 JSON v1 DTO·Hash 유지. 실제 DB 2건은 0.9.0 당시 기록 | 실제 재고/주문/정책 Collector와 운영 공유 Snapshot 미준비 |
@@ -26,9 +26,9 @@
 | DemandEngine | 기존 `src/run_demand/full_pipeline.py` 등을 설계 참조로 사용 | 이번에 Demand Runtime 변경·재배포·전체 상태 재검증하지 않음 |
 | DSIM | 미래 Consumer의 Read Contract만 정의 | Agent·조회 API·서비스 미구현. 현재 연동할 DSIM은 없음 |
 
-InventoryEngine 작업 경로는 `/Users/igwanhyeong/PycharmProjects/InventoryEngine`이며 아직 독립 Git 저장소가 아니다. `main.py`와 `sample_jupyter/io_proximal_policy_optimization.ipynb`는 기존 사용자 자료로 보존한다. 연구 Notebook은 재고정책·Solver 구현 기준선으로 자동 채택하지 않는다.
+InventoryEngine 작업 경로는 `/Users/igwanhyeong/PycharmProjects/InventoryEngine`이며 독립 Git 저장소와 `origin`이 구성돼 있다. `main.py`와 `sample_jupyter/io_proximal_policy_optimization.ipynb`는 기존 사용자 자료로 보존한다. 연구 Notebook은 재고정책·Solver 구현 기준선으로 자동 채택하지 않는다.
 
-dsai-platform은 `dsdm_engine_studio_dev` 브랜치에서 기존 Demand 업무 구현을 유지한다. `planning_cycle_revisions`, `planning_cycle_site_executions`, `engine_run_input_bindings`와 IO 실행 연결은 이번 Source 확인 범위에서 구현을 찾지 못했다. 계약 확정과 공통 Runtime Migration 구현을 분리해 관리한다.
+dsai-platform은 `dsdm_engine_studio_dev` 브랜치에서 기존 Demand 업무 구현을 유지한다. `planning_cycle_revisions`, `planning_cycle_site_executions`, `engine_run_input_bindings`의 Migration 초안과 Repository/API, Demand Handoff Input Binding, Runtime Dispatch가 구현돼 있다. Migration 074 개발 DB 적용과 실제 Write E2E는 아직 수행하지 않았다.
 
 ## 2. 다시 결정하지 않는 업무 기준선
 
@@ -92,12 +92,14 @@ dsai-platform은 `dsdm_engine_studio_dev` 브랜치에서 기존 Demand 업무 �
 - 이번에 평가한 TEST에 맞춰 후보를 튜닝하지 않는다. 개선 후보는 새 Revision과 새 홀드아웃으로 평가한다.
 - 완료 조건: 비용과 서비스 기준을 함께 충족하는 재현 근거 또는 명확한 거부 이유. 자동 운영 전환·공용 Runtime 배포는 하지 않는다.
 
-### 3. 공통 Run·Configuration·Planning Cycle 연결 — 다음 작업
+### 3. 공통 Run·Configuration·Planning Cycle 연결 — 진행 중
 
 대상: dsai-platform Backend와 InventoryEngine `platform_contracts`, `run_inventory`, Bootstrap.
 
-- 이미 확정한 공통 Run 소유권과 최소 Cycle Table 원칙을 실제 호환 Migration·API 계약으로 구현한다. Demand 기존 API/Run을 깨지 않는다.
-- Plan Claim, Run ID, Attempt, 부분 성공, 같은 입력 Retry/새 Revision 구분을 구현한다.
+- 공통 Run 소유권과 최소 Cycle Table 원칙의 호환 Migration 초안·API·Repository,
+  Demand Handoff Binding과 Platform -> Runtime HTTP Dispatch는 구현했다. Demand 기존 API/Run을 유지한다.
+- Runtime의 닫힌 접수 계약, 단계 Event·최종 Publish Callback과 Offline 통합 테스트를 구현했다.
+- 다음은 Runtime 영속 Queue/Worker와 실제 계산 Handler를 조립한다.
 - Network UseCase에는 Claim 이후 Run Context와 Cycle에 고정된 Network ID/Hash를 전달한다. 이 단계에서 Cycle/Run Row 존재와 전체 입력 Binding을 검증한다.
 - 완료 조건: 같은 입력의 기술적 Retry는 새 Run만 만들고 입력 Hash를 유지한다. 변경된 입력은 새 Cycle Revision으로 분리된다.
 
@@ -135,7 +137,7 @@ dsai-platform은 `dsdm_engine_studio_dev` 브랜치에서 기존 Demand 업무 �
 
 기존 아키텍처·PM 기준선에 이번 Backend·QA 검증을 반영했다. 보호된 `.agents/` 대신 이 `docs/architecture`에서 기준선과 계획을 관리한다.
 
-InventoryEngine은 Git 미초기화이므로 Commit/Push/MR의 대상 Branch와 Remote는 아직 없다. 버전관리 착수 시 이를 먼저 확정한다. dsai-platform의 후속 변경은 `dsdm_engine_studio_dev`를 기준으로 독립 검토하며, 이번에 Commit/Push/배포하지 않았다.
+InventoryEngine은 `inventory_engine_dev` Branch와 GitHub `origin`을 사용한다. dsai-platform의 후속 변경은 `dsdm_engine_studio_dev`를 기준으로 독립 검토한다. 실제 Migration, DB Write와 Runtime 배포는 별도 승인 전 수행하지 않는다.
 
 ## 6. 의사결정과 검증을 분리한 목록
 

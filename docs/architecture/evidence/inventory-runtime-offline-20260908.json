@@ -1,0 +1,50 @@
+{
+  "evidence_type": "inventory-runtime-offline-integration",
+  "recorded_at": "2026-09-08",
+  "scope": {
+    "platform_repository": "dsai-platform",
+    "platform_branch": "dsdm_engine_studio_dev",
+    "runtime_repository": "InventoryEngine",
+    "runtime_branch": "inventory_engine_dev",
+    "database_write": false,
+    "migration_applied": false,
+    "runtime_deployed": false
+  },
+  "contracts": {
+    "execution_request": "inventory-engine-execution-request-v1/1.0.0",
+    "execution_receipt": "inventory-engine-execution-receipt-v1",
+    "stage_event": "inventory-engine-run-stage-event-v1",
+    "publication": "inventory-engine-run-publish-v1"
+  },
+  "verification": {
+    "platform_targeted_tests": {
+      "result": "PASSED",
+      "count": 25
+    },
+    "runtime_and_cross_repository_tests": {
+      "result": "PASSED",
+      "count": 9
+    },
+    "inventory_engine_full_regression": {
+      "result": "PASSED",
+      "tests_passed": 302,
+      "tests_skipped": 15,
+      "subtests_passed": 360
+    },
+    "ruff": "PASSED"
+  },
+  "verified_behaviors": [
+    "Platform persists a claimed run before dispatching the immutable runtime request",
+    "Runtime rejects unknown fields, invalid bindings, duplicate JSON keys and unauthorized requests",
+    "Platform and Runtime calculate the same canonical execution request hash",
+    "Runtime sends running stage events, one terminal succeeded event and final publication",
+    "Publication uses the latest site row version returned by the Platform event API",
+    "Tokens and callback URLs are not included in the execution request payload"
+  ],
+  "remaining_boundaries": [
+    "durable runtime submission queue and worker adapter",
+    "actual inventory pipeline handler composition",
+    "development Migration 074 and database-write E2E",
+    "service principal provisioning and runtime deployment"
+  ]
+}

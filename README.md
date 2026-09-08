@@ -1,6 +1,6 @@
 # InventoryEngine
 
-Python 3.12 기반 Inventory Optimization 프로젝트다. **0.11.0은 승인된 Site Configuration과 Actual Close를 이용한 ABC-XYZ 분류 및 append-only Snapshot 게시 lifecycle을 제공한다.** 0.10.0의 Demand POINT Export 독립 Parquet Reader와 Canonical v2 정밀도 계약, 기존 JSON v1·Golden/Hash 계약을 유지한다. [분류 Snapshot Lifecycle](docs/architecture/IO_CLASSIFICATION_SNAPSHOT_LIFECYCLE.md)은 기본 no-write이고 exact replay를 보장한다. Claim된 Inventory Run에 분류 시작·성공·실패 Event와 Snapshot 집계 증적을 연결하는 Adapter까지 구현했으며, 공통 Run 테이블 Migration 적용·Scheduler·공용 Runtime 배포는 아직 수행하지 않았다.
+Python 3.12 기반 Inventory Optimization 프로젝트다. **0.12.0은 Platform이 Claim한 단일 Site Attempt를 닫힌 계약으로 접수하고, 단계 Event와 최종 Publication을 Platform API로 반환하는 Runtime 경계를 제공한다.** 0.11.0의 ABC-XYZ 분류 Snapshot Lifecycle과 기존 Canonical·PSI·전략 계약을 유지한다. HTTP 양방향 계약과 Mock/Offline 통합은 검증했지만 영속 Queue/Worker, 실제 계산 Handler 조립, Migration 074 적용과 Runtime 배포는 아직 수행하지 않았다.
 
 ## Source 읽기·변환 예제
 
@@ -13,6 +13,7 @@ IO_COMPANY_CD=DSE IO_ENVIRONMENT=DEVELOPMENT \
 예제는 `DEVELOPMENT_FIXTURE`이며 실제 Demand Export가 아니다. `--read-postgres`와 `IO_POSTGRES_DSN`은 실제 상위 봉인 Snapshot이 준비된 경우에만 지정한다. 현재 DB의 재고/정책 미준비·소수 EA·출력 봉인 연결 조건은 [Source 계약](docs/architecture/IO_SOURCE_READ_CONTRACT.md), 검증 결과는 [Source 검증 기록](docs/architecture/IO_SOURCE_READ_VERIFICATION.md)을 따른다. 출력 JSON은 원본·매핑·제외 사유를 포함하지만 DB/Artifact를 저장하거나 봉인하지 않는다.
 
 - [개발 기준선과 작업 순서](docs/architecture/IO_DEVELOPMENT_BASELINE.md)
+- [Runtime Lifecycle 계약](docs/architecture/IO_RUNTIME_LIFECYCLE_CONTRACT.md)
 - [ABC-XYZ 분류 Snapshot Lifecycle](docs/architecture/IO_CLASSIFICATION_SNAPSHOT_LIFECYCLE.md)
 - [Network 입력 계약](docs/architecture/IO_NETWORK_INPUT_CONTRACT.md)
 - [Canonical 입력·Cut-off·Baseline PSI 계약](docs/architecture/IO_CANONICAL_PSI_CONTRACT.md)

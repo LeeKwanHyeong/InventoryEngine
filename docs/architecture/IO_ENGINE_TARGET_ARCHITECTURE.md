@@ -365,7 +365,11 @@ REQUESTED
 
 모든 실행 단계는 `FAILED`로 전환될 수 있으며 실패 단계, 오류 코드, 오류 메시지, 재시작 가능 여부를 기록한다.
 
-Demand Engine과 동일하게 IO Engine의 HTTP Runtime이 실행 요청을 검증한 뒤 `engine_run_id`를 생성한다. Plan Claim, `dsai.engine_runtime_runs` 생성, 첫 append-only Run Event는 가능한 경우 하나의 PostgreSQL Unit of Work에서 처리한다. Platform은 Run을 미리 생성하지 않고 Claim 성공 또는 동일 Idempotency 요청의 Replay 결과로 반환된 Run ID를 조회와 추적에 사용한다.
+Platform이 실행 권한과 Project Scope를 검증한 뒤 Plan Claim, `engine_run_id` 생성,
+`dsai.engine_runtime_runs`와 첫 append-only Event 기록을 하나의 PostgreSQL Unit of Work로
+처리한다. Commit된 Claim은 `inventory-engine-execution-request-v1`로 IO Runtime에 전달한다.
+Runtime은 전달받은 ID와 봉인 Binding을 변경하지 않고 계산 Event와 Publication을 Platform에
+반환한다.
 
 Planning Cycle은 Demand Engine을 먼저 실행하고 성공·검증된 Forecast Snapshot을 확정한 뒤 Site별 IO 실행을 요청한다. IO Engine은 요청에 포함된 `demand_run_id`, Forecast Snapshot ID와 Hash만 사용하며 최신 Forecast를 자체 검색하지 않는다.
 
@@ -923,7 +927,15 @@ outputs:
 }
 ```
 
-장시간 Batch 실행을 고려하여 요청과 최종 결과를 동기 HTTP 응답 하나로 묶지 않는다. IO Engine Runtime은 Plan Claim 성공 또는 동일 Idempotency 요청의 Replay를 확인한 뒤 `engine_run_id`와 접수 상태를 반환하고, 이후 진행 상황은 Event 또는 상태 조회로 전달한다. 요청의 `site_cd`는 필수이며 한 Run에서 하나만 허용한다. `plan_id`, `plan_type`, `plan_yyyyww`, `version_id`는 Plan 선택자이며, 실행 전에 Planning Cycle, Demand Run, Forecast Snapshot, Calendar, Horizon, Master 기준일과 Inventory Cut-off·Watermark를 불변 계약으로 고정한다. 첫 Attempt의 Inventory Snapshot은 `prepare_inventory`가 이 고정값으로 생성·봉인하고, Retry는 Site Execution에 이미 고정된 Snapshot ID와 Hash만 재사용한다. IO Engine은 Forecast 등 외부 Snapshot의 누락 ID를 최신값 조회로 보완하지 않는다.
+장시간 Batch 실행을 고려하여 요청과 최종 결과를 동기 HTTP 응답 하나로 묶지 않는다.
+Platform은 Claim 성공 또는 동일 Idempotency 요청의 Replay로 확정한 `engine_run_id`를 Runtime에
+전달하고, Runtime은 접수 상태를 즉시 반환한 뒤 진행 상황을 Event/Publish Callback으로 보낸다.
+요청의 `site_cd`는 필수이며 한 Run에서 하나만 허용한다. `plan_id`, `plan_type`, `plan_yyyyww`,
+`version_id`는 Plan 선택자이며, 실행 전에 Planning Cycle, Demand Run, Forecast Snapshot,
+Calendar, Horizon, Master 기준일과 Inventory Cut-off·Watermark를 불변 계약으로 고정한다.
+첫 Attempt의 Inventory Snapshot은 `prepare_inventory`가 이 고정값으로 생성·봉인하고,
+Retry는 Site Execution에 이미 고정된 Snapshot ID와 Hash만 재사용한다. IO Engine은 Forecast 등
+외부 Snapshot의 누락 ID를 최신값 조회로 보완하지 않는다.
 
 ### 10.5 Planning Cycle 집계와 Site Retry 계약
 
@@ -1084,7 +1096,7 @@ DRAFT -> VALIDATED -> PUBLISHED -> DEPRECATED -> RETIRED
 
 ### 12.1 Idempotency
 
-- IO Engine Runtime이 Claim 전에 생성한 `engine_run_id`를 Engine 전체의 Canonical Run ID로 사용
+- Platform Claim UoW가 생성한 `engine_run_id`를 Engine 전체의 Canonical Run ID로 사용
 - `idempotency_key_hash`에 대한 중복 요청은 동일 Run 반환
 - 동일 Plan에 대한 동시 실행 허용 여부를 Configuration이 아닌 실행 정책으로 관리
 - Publication은 `run_id`와 업무 Key를 기준으로 중복 반영 방지
@@ -1192,7 +1204,8 @@ Ending Inventory
 - IO Engine과 포괄적 Supply Engine의 범위 구분
 - Demand Engine V3를 참조한 실행 원칙 선정
 - EngineStudio, Configuration, IO Engine의 책임 경계 정의
-- Demand Engine과 동일하게 IO Engine Runtime이 Run ID, Plan Claim, Run Lifecycle과 Event를 소유하는 방향 확정
+- Platform Claim UoW가 Run ID·Attempt·CAS Projection을 소유하고 IO Runtime이 계산과
+  단계 Event·Publication Callback을 담당하는 방향 확정
 - Legacy Inbound가 주 단위 Version, Calendar와 Horizon을 생성하는 구조임을 확인
 - Phase `3.1`부터 `3.18`까지 모든 Inbound 본문의 Source, Target, 주요 Key와 변환 규칙 분석
 - `TGSM/POSM`별 Buffer, Demand, Inventory Source 차이 확인
@@ -1346,23 +1359,22 @@ Golden Scenario의 수작업 기대값과 Domain 단위 Test는 P0-10, P0-15와 
 
 실제 DB 조회와 Legacy 실행이 필요하면 개발 PostgreSQL 대상과 Read/Write 범위를 구분해 별도 승인을 받는다.
 
-### 계약과 Configuration 확정 — 다음 작업
+### 계약과 Configuration 확정 — 진행 중
 
-- Engine Manifest와 JSON Schema 구현
-- Execution Request, Event, Result 계약 구현
-- IO Plan 전체 식별값과 Ready/Claim/Terminal 상태 전이 확정
-- 공통 Engine Configuration과 Config Revision의 PK/FK 및 기존 Demand API 호환 Migration 확정
-- 의미 기반 `plan_source_key`, Source Registry와 Engine별 Typed Plan Binding 계약 확정
-- Forecast 및 Inventory Snapshot Schema 확정
-- Configuration의 허용값, 기본값, Override 범위 확정
+- 완료: Runtime Execution Request/Receipt, Event/Result Callback 계약과 Offline 통합 검증
+- 완료: IO Plan 식별값과 Ready/Claim/Terminal 상태 전이, 의미 기반 Plan Source와 Input Binding 계약
+- 완료: 공통 Engine Configuration·Config Revision과 Demand 호환 Migration 초안
+- 다음 작업: Engine Manifest 전체 조립과 Runtime 영속 Submission/Worker 계약
+- 다음 작업: Migration 074 개발 적용 전 DDL/UoW 대사와 실제 DB E2E 승인
 
 이 단계는 EngineStudio Backend의 공통 실행 계약과 직렬로 맞춰야 한다.
 
 ### 프로젝트 기반 구성 — 진행 중
 
 - 완료: Python 3.12 기반 `pyproject.toml`, `src` Layout, Network CLI·테스트·Ruff와 Wheel 빌드 검증
-- 다음 작업: 전체 Runner, Type Check·구조화 Logging과 배포 환경 구성
-- 다음 작업: Git 저장소와 기본 Branch·Remote 정책 확정
+- 완료: 독립 Git 저장소와 `inventory_engine_dev` Branch·GitHub `origin` 구성
+- 완료: Runtime HTTP 접수·Platform Callback·Worker Orchestration의 Mock/Offline 경계
+- 다음 작업: 실제 계산 Handler, 영속 Queue/Worker, Type Check·구조화 Logging과 배포 환경 구성
 - 다음 작업: 전체 Engine Manifest/Contract Version 구성. 현재 Network Wire Contract Version은 `1.0.0`
 
 완료 조건은 빈 Runner가 동일한 설정과 Run ID로 CLI 및 테스트에서 실행되고 구조 검증을 통과하는 상태다.
@@ -1436,8 +1448,8 @@ Golden Scenario의 수작업 기대값과 Domain 단위 Test는 P0-10, P0-15와 
 
 | 항목 | 결정 |
 |---|---|
-| 실행 권한 | EngineStudio가 권한과 Configuration Revision을 검증해 명령을 전달하고, 이후 실행 권한은 Demand Engine과 동일하게 IO Engine Runtime으로 넘긴다. |
-| Run 소유권 | IO Engine Runtime이 `engine_run_id`를 생성하고 Plan Claim, Run Lifecycle, Event와 Publication을 소유한다. |
+| 실행 권한 | EngineStudio/Platform이 권한과 Configuration Revision을 검증해 Site Attempt를 Claim하고, Runtime에는 변경 불가능한 실행 계약만 전달한다. |
+| Run 소유권 | Platform이 `engine_run_id`, Claim, CAS Projection을 소유하고 IO Runtime은 계산 실행과 단계 Event·Publication Callback을 소유한다. |
 | 실행 저장 | 승인된 `dsai` Configuration, Run, Event Schema와 IO 업무 Schema를 Infrastructure Adapter로 사용한다. |
 | Platform 조회 | EngineStudio는 Run과 결과의 Projection을 조회하며 IO 계산 로직과 Plan 상태 전이를 소유하지 않는다. |
 | 주간 실행 | Legacy `TB_ENG_VERSION.FROZEN_UOM='WEEK'`을 기준으로 초기 IO Engine을 주 단위로 구성한다. |
