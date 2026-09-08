@@ -1,6 +1,6 @@
 # InventoryEngine
 
-Python 3.12 기반 Inventory Optimization 프로젝트다. **0.12.0은 Platform이 Claim한 단일 Site Attempt를 닫힌 계약으로 접수하고, 단계 Event와 최종 Publication을 Platform API로 반환하는 Runtime 경계를 제공한다.** 0.11.0의 ABC-XYZ 분류 Snapshot Lifecycle과 기존 Canonical·PSI·전략 계약을 유지한다. HTTP 양방향 계약과 Mock/Offline 통합은 검증했지만 영속 Queue/Worker, 실제 계산 Handler 조립, Migration 074 적용과 Runtime 배포는 아직 수행하지 않았다.
+Python 3.12 기반 Inventory Optimization 프로젝트다. **0.13.0은 Site·Item별 ABC·XYZ·VED와 결합 Segment, 계산 근거 및 품목별 미분류 사유를 불변 분류 Snapshot으로 생성한다.** 0.12.0의 Platform Runtime 계약과 기존 Canonical·PSI·전략 계약을 유지한다. 품목 결과 저장 Migration 075는 초안이며 실제 DB 적용, Runtime Segmentation Binding과 배포는 아직 수행하지 않았다.
 
 ## Source 읽기·변환 예제
 

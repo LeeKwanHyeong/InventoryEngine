@@ -1,0 +1,39 @@
+{
+  "evidence_type": "inventory-item-segmentation-offline-verification",
+  "recorded_at": "2026-09-08",
+  "package_version": "0.13.0",
+  "scope": {
+    "database_write": false,
+    "migration_applied": false,
+    "runtime_deployed": false
+  },
+  "contract": {
+    "item_result_version": "1.0.0",
+    "grain": ["classification_snapshot_id", "item_id"],
+    "combined_segment_example": "AX-V"
+  },
+  "verified_behaviors": [
+    "deterministic item-level ABC and XYZ classification",
+    "approved scope-bound VED assignment loading and content-hash validation",
+    "default VED class for unassigned eligible items",
+    "orphan and duplicate VED assignments fail closed",
+    "item-level unclassified reason preservation",
+    "aggregate segment and reason counts derive from item results",
+    "classification completion keeps the parent Inventory Run in running state"
+  ],
+  "verification": {
+    "focused_inventory_tests": 18,
+    "platform_migration_structure_tests": 2,
+    "inventory_full_regression": {
+      "tests_passed": 308,
+      "tests_skipped": 15,
+      "subtests_passed": 360
+    },
+    "ruff": "PASSED"
+  },
+  "remaining_boundaries": [
+    "apply draft Migration 075 to the approved development PostgreSQL target",
+    "bind the sealed classification snapshot to Planning Cycle and Runtime input",
+    "apply item policy matrix and VED service-level floor to PSI policy input"
+  ]
+}

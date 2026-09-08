@@ -47,6 +47,8 @@ def receipt() -> dict:
         "classification_snapshot_id": "00000000-0000-0000-0000-000000000011",
         "snapshot_revision": 2,
         "content_hash": "a" * 64,
+        "item_result_contract_version": "1.0.0",
+        "item_result_count": 7000,
         "eligible_sku_count": 7000,
         "classified_sku_count": 6009,
         "unclassified_sku_count": 991,
@@ -57,7 +59,7 @@ def receipt() -> dict:
 
 
 class InventoryClassificationStageTests(unittest.IsolatedAsyncioTestCase):
-    async def test_publication_is_bound_to_running_and_succeeded_events(self):
+    async def test_publication_keeps_run_running_for_following_psi_stages(self):
         lifecycle = FakeLifecycle(receipt=receipt())
         recorder = FakeRecorder()
 
@@ -65,7 +67,7 @@ class InventoryClassificationStageTests(unittest.IsolatedAsyncioTestCase):
             context(), approved_by="admin"
         )
 
-        self.assertEqual([event.status for _, event in recorder.events], ["running", "succeeded"])
+        self.assertEqual([event.status for _, event in recorder.events], ["running", "running"])
         self.assertEqual(lifecycle.calls[0][2], True)
         self.assertTrue(result["run_claimed"] and result["stage_event_persisted"])
         self.assertEqual(result["engine_run_id"], context().engine_run_id)

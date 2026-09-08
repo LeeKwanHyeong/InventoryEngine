@@ -67,12 +67,33 @@ class ItemMetric:
 
 
 @dataclass(frozen=True, slots=True)
+class VedAssignment:
+    item_id: str
+    ved_class: str
+    reason: str | None = None
+
+    def __post_init__(self) -> None:
+        _item_identifier(self.item_id)
+        require(self.ved_class in {"V", "E", "D"}, "CLASSIFICATION_VED_CLASS_INVALID")
+        require(
+            self.reason is None
+            or (
+                isinstance(self.reason, str)
+                and bool(self.reason.strip())
+                and len(self.reason) <= 500
+            ),
+            "CLASSIFICATION_VED_REASON_INVALID",
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class ClassificationResult:
     eligible_sku_count: int
     classified_sku_count: int
     unclassified_sku_count: int
     segments: tuple[dict[str, Any], ...]
     unclassified_reasons: tuple[dict[str, Any], ...]
+    items: tuple[dict[str, Any], ...]
     source_content_hash: str
 
 
@@ -93,6 +114,7 @@ class ClassificationInputs:
     source_relation: str
     source_manifest_sha256: str
     metrics: tuple[ItemMetric, ...]
+    ved_assignments: tuple[VedAssignment, ...] = ()
 
 
 class ClassificationSource(Protocol):
@@ -141,6 +163,9 @@ def classify_items(
     xyz_x_max_cv2: Decimal,
     xyz_y_max_cv2: Decimal,
     lookback_weeks: int,
+    ved_enabled: bool = False,
+    ved_default_class: str = "D",
+    ved_assignments: Sequence[VedAssignment] = (),
 ) -> ClassificationResult:
     """Classify eligible item metrics without inventing missing evidence."""
 
@@ -153,12 +178,15 @@ def classify_items(
         Decimal("0") <= xyz_x_max_cv2 < xyz_y_max_cv2,
         "CLASSIFICATION_XYZ_THRESHOLD_INVALID",
     )
+    require(ved_default_class in {"V", "E", "D"}, "CLASSIFICATION_VED_CLASS_INVALID")
 
     seen: set[str] = set()
     valid: list[tuple[ItemMetric, Decimal]] = []
     reasons: Counter[str] = Counter()
+    reason_by_item: dict[str, str] = {}
     for row in sorted(rows, key=lambda item: item.item_id):
-        require(bool(row.item_id) and row.item_id not in seen, "CLASSIFICATION_SOURCE_ITEM_INVALID")
+        _item_identifier(row.item_id)
+        require(row.item_id not in seen, "CLASSIFICATION_SOURCE_ITEM_INVALID")
         seen.add(row.item_id)
         require(
             min(
@@ -177,16 +205,16 @@ def classify_items(
             "CLASSIFICATION_SOURCE_VALUE_INVALID",
         )
         if row.invalid_row_count > 0:
-            reasons["INVALID_SOURCE_RECORD"] += 1
+            reason_by_item[row.item_id] = "INVALID_SOURCE_RECORD"
             continue
         if row.source_row_count == 0 or row.observed_week_count == 0:
-            reasons["INSUFFICIENT_DEMAND_HISTORY"] += 1
+            reason_by_item[row.item_id] = "INSUFFICIENT_DEMAND_HISTORY"
             continue
         if row.total_demand <= 0:
-            reasons["ZERO_MEAN_DEMAND"] += 1
+            reason_by_item[row.item_id] = "ZERO_MEAN_DEMAND"
             continue
         if row.revenue <= 0:
-            reasons["MISSING_REVENUE"] += 1
+            reason_by_item[row.item_id] = "MISSING_REVENUE"
             continue
 
         mean = row.total_demand / Decimal(lookback_weeks)
@@ -196,11 +224,29 @@ def classify_items(
         )
         valid.append((row, variance / (mean * mean)))
 
+    reasons.update(reason_by_item.values())
+    assignment_by_item: dict[str, VedAssignment] = {}
+    for assignment in ved_assignments:
+        require(
+            assignment.item_id not in assignment_by_item,
+            "CLASSIFICATION_VED_ASSIGNMENT_DUPLICATE",
+        )
+        assignment_by_item[assignment.item_id] = assignment
+    require(
+        set(assignment_by_item) <= seen,
+        "CLASSIFICATION_VED_ORPHAN_ITEM",
+    )
+    require(
+        ved_enabled or not assignment_by_item,
+        "CLASSIFICATION_VED_ASSIGNMENT_UNEXPECTED",
+    )
+
     total_revenue = sum((row.revenue for row, _ in valid), Decimal("0"))
     require(total_revenue > 0, "CLASSIFICATION_REVENUE_EMPTY")
 
     segment_counts = Counter({segment: 0 for segment in SEGMENTS})
     segment_revenue = {segment: Decimal("0") for segment in SEGMENTS}
+    item_results: list[dict[str, Any]] = []
     cumulative_revenue = Decimal("0")
     for row, cv2 in sorted(valid, key=lambda item: (-item[0].revenue, item[0].item_id)):
         share_before_item = cumulative_revenue / total_revenue
@@ -216,6 +262,61 @@ def classify_items(
         segment = f"{abc_class}{xyz_class}"
         segment_counts[segment] += 1
         segment_revenue[segment] += row.revenue
+        ved_class, ved_source, ved_reason = _ved_result(
+            row.item_id,
+            enabled=ved_enabled,
+            default_class=ved_default_class,
+            assignments=assignment_by_item,
+        )
+        item_results.append(
+            {
+                "item_id": row.item_id,
+                "classification_status": "CLASSIFIED",
+                "abc_class": abc_class,
+                "xyz_class": xyz_class,
+                "ved_class": ved_class,
+                "segment_key": segment,
+                "final_segment_key": (
+                    f"{segment}-{ved_class}" if ved_class is not None else segment
+                ),
+                "ved_assignment_source": ved_source,
+                "ved_assignment_reason": ved_reason,
+                "unclassified_reason_code": None,
+                "demand_cv2": _decimal_text(cv2, places=12),
+                "revenue": _decimal_text(row.revenue),
+                "cumulative_revenue_share_before": _decimal_text(
+                    share_before_item,
+                    places=12,
+                ),
+            }
+        )
+
+    metric_by_item = {row.item_id: row for row in rows}
+    for item_id, reason in sorted(reason_by_item.items()):
+        row = metric_by_item[item_id]
+        ved_class, ved_source, ved_reason = _ved_result(
+            item_id,
+            enabled=ved_enabled,
+            default_class=ved_default_class,
+            assignments=assignment_by_item,
+        )
+        item_results.append(
+            {
+                "item_id": item_id,
+                "classification_status": "UNCLASSIFIED",
+                "abc_class": None,
+                "xyz_class": None,
+                "ved_class": ved_class,
+                "segment_key": None,
+                "final_segment_key": None,
+                "ved_assignment_source": ved_source,
+                "ved_assignment_reason": ved_reason,
+                "unclassified_reason_code": reason,
+                "demand_cv2": None,
+                "revenue": _decimal_text(row.revenue),
+                "cumulative_revenue_share_before": None,
+            }
+        )
 
     segments = tuple(
         {
@@ -251,6 +352,7 @@ def classify_items(
         unclassified_sku_count=sum(reasons.values()),
         segments=segments,
         unclassified_reasons=unclassified,
+        items=tuple(sorted(item_results, key=lambda item: item["item_id"])),
         source_content_hash=_snapshot_hash(source_rows),
     )
 
@@ -272,6 +374,7 @@ def build_snapshot(inputs: ClassificationInputs) -> dict[str, Any]:
 
     abc = config["segmentation"]["abc"]
     xyz = config["segmentation"]["xyz"]
+    ved = config["segmentation"]["ved"]
     require(abc["basis"] == "REVENUE", "CLASSIFICATION_ABC_BASIS_UNSUPPORTED")
     lookback_weeks = max(int(abc["lookback_weeks"]), int(xyz["lookback_weeks"]))
     result = classify_items(
@@ -281,6 +384,9 @@ def build_snapshot(inputs: ClassificationInputs) -> dict[str, Any]:
         xyz_x_max_cv2=Decimal(str(xyz["x_max_cv2"])),
         xyz_y_max_cv2=Decimal(str(xyz["y_max_cv2"])),
         lookback_weeks=lookback_weeks,
+        ved_enabled=ved["enabled"],
+        ved_default_class=ved["default_class"],
+        ved_assignments=inputs.ved_assignments,
     )
     start_monday, end_monday = classification_window(as_of_yyyyww, lookback_weeks)
     source_revision = (
@@ -306,11 +412,19 @@ def build_snapshot(inputs: ClassificationInputs) -> dict[str, Any]:
         "xyz_metric": xyz["metric"],
         "xyz_lookback_weeks": int(xyz["lookback_weeks"]),
         "service_level_type": config["policy_matrix"]["service_level_type"],
+        "item_result_contract_version": "1.0.0",
+        "ved_assignment_snapshot_id": (
+            ved["assignment_snapshot_id"] if ved["enabled"] else None
+        ),
+        "ved_assignment_content_hash": (
+            ved["assignment_content_hash"] if ved["enabled"] else None
+        ),
         "eligible_sku_count": result.eligible_sku_count,
         "classified_sku_count": result.classified_sku_count,
         "unclassified_sku_count": result.unclassified_sku_count,
         "segments": result.segments,
         "unclassified_reasons": result.unclassified_reasons,
+        "items": result.items,
     }
     body["content_hash"] = _snapshot_hash(body)
     body["classification_snapshot_id"] = str(uuid.uuid5(SNAPSHOT_NAMESPACE, body["content_hash"]))
@@ -458,6 +572,10 @@ def publication_receipt(
         "source_revision": snapshot["source_revision"],
         "source_content_hash": snapshot["source_content_hash"],
         "content_hash": snapshot["content_hash"],
+        "item_result_contract_version": snapshot["item_result_contract_version"],
+        "item_result_count": len(snapshot["items"]),
+        "ved_assignment_snapshot_id": snapshot["ved_assignment_snapshot_id"],
+        "ved_assignment_content_hash": snapshot["ved_assignment_content_hash"],
         "eligible_sku_count": snapshot["eligible_sku_count"],
         "classified_sku_count": snapshot["classified_sku_count"],
         "unclassified_sku_count": snapshot["unclassified_sku_count"],
@@ -486,3 +604,30 @@ def _snapshot_hash(value: Any) -> str:
 def _decimal_text(value: Decimal, *, places: int | None = None) -> str:
     normalized = value.quantize(Decimal(1).scaleb(-places)) if places is not None else value
     return format(normalized, "f")
+
+
+def _ved_result(
+    item_id: str,
+    *,
+    enabled: bool,
+    default_class: str,
+    assignments: Mapping[str, VedAssignment],
+) -> tuple[str | None, str, str | None]:
+    if not enabled:
+        return None, "DISABLED", None
+    assignment = assignments.get(item_id)
+    if assignment is None:
+        return default_class, "DEFAULT_CLASS", None
+    return assignment.ved_class, "ASSIGNMENT_SNAPSHOT", assignment.reason
+
+
+def _item_identifier(value: Any) -> str:
+    require(
+        isinstance(value, str)
+        and bool(value.strip())
+        and value == value.strip()
+        and len(value) <= 160
+        and "\x00" not in value,
+        "CLASSIFICATION_SOURCE_ITEM_INVALID",
+    )
+    return value

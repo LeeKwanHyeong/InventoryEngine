@@ -116,13 +116,17 @@ class InventoryClassificationStageUseCase:
             InventoryRunEvent(
                 event_type="inventory.classification",
                 stage="classification",
-                status="succeeded",
+                status="running",
                 message_code="INVENTORY_CLASSIFICATION_SNAPSHOT_PUBLISHED",
                 progress_percent=100,
                 payload_redacted={
                     "classification_snapshot_id": receipt["classification_snapshot_id"],
                     "snapshot_revision": receipt["snapshot_revision"],
                     "content_hash": receipt["content_hash"],
+                    "item_result_contract_version": receipt[
+                        "item_result_contract_version"
+                    ],
+                    "item_result_count": receipt["item_result_count"],
                     "eligible_sku_count": receipt["eligible_sku_count"],
                     "classified_sku_count": receipt["classified_sku_count"],
                     "unclassified_sku_count": receipt["unclassified_sku_count"],
@@ -149,6 +153,12 @@ def _validate_publication_receipt(receipt: Mapping[str, Any]) -> None:
         "INVENTORY_SNAPSHOT_REVISION_MISSING",
     )
     hash_value(receipt.get("content_hash"))
+    require(
+        receipt.get("item_result_contract_version") == "1.0.0"
+        and type(receipt.get("item_result_count")) is int
+        and receipt["item_result_count"] == receipt.get("eligible_sku_count"),
+        "INVENTORY_CLASSIFICATION_ITEM_RESULTS_INCOMPLETE",
+    )
     for field in (
         "eligible_sku_count",
         "classified_sku_count",

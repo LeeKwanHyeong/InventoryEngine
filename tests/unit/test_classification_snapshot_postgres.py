@@ -60,6 +60,9 @@ def snapshot() -> dict:
         "xyz_metric": "DEMAND_CV2",
         "xyz_lookback_weeks": 52,
         "service_level_type": "CYCLE_SERVICE_LEVEL",
+        "item_result_contract_version": "1.0.0",
+        "ved_assignment_snapshot_id": None,
+        "ved_assignment_content_hash": None,
         "eligible_sku_count": 1,
         "classified_sku_count": 1,
         "unclassified_sku_count": 0,
@@ -72,6 +75,23 @@ def snapshot() -> dict:
             for key in ("AX", "AY", "AZ", "BX", "BY", "BZ", "CX", "CY", "CZ")
         ),
         "unclassified_reasons": (),
+        "items": (
+            {
+                "item_id": "A",
+                "classification_status": "CLASSIFIED",
+                "abc_class": "A",
+                "xyz_class": "X",
+                "ved_class": None,
+                "segment_key": "AX",
+                "final_segment_key": "AX",
+                "ved_assignment_source": "DISABLED",
+                "ved_assignment_reason": None,
+                "unclassified_reason_code": None,
+                "demand_cv2": "0.000000000000",
+                "revenue": "100",
+                "cumulative_revenue_share_before": "0.000000000000",
+            },
+        ),
     }
 
 
@@ -106,8 +126,10 @@ class PostgresClassificationPublisherTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result["publication_status"], "published")
         self.assertEqual(result["snapshot_revision"], 2)
         self.assertEqual(connection.execute.await_count, 3)
-        connection.executemany.assert_awaited_once()
-        self.assertEqual(len(connection.executemany.call_args.args[1]), 9)
+        self.assertEqual(connection.executemany.await_count, 2)
+        segment_call, item_call = connection.executemany.await_args_list
+        self.assertEqual(len(segment_call.args[1]), 9)
+        self.assertEqual(len(item_call.args[1]), 1)
 
 
 if __name__ == "__main__":

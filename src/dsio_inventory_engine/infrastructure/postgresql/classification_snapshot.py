@@ -10,6 +10,7 @@ from dsio_inventory_engine.classify_inventory.application import (
     ClassificationInputs,
     InventoryScope,
     ItemMetric,
+    VedAssignment,
     classification_window,
 )
 from dsio_inventory_engine.inventory_contracts.values import require
@@ -102,6 +103,25 @@ GROUP BY eligible.item_id
 ORDER BY eligible.item_id
 """
 
+VED_ASSIGNMENT_HEADER_SQL = """
+SELECT assignment_snapshot_id::text, content_hash AS assignment_content_hash, status
+FROM dsai.inventory_ved_assignment_snapshots
+WHERE assignment_snapshot_id = $1::uuid
+  AND tenant_id = $2
+  AND project_id = $3
+  AND company_cd = $4
+  AND subs_cd = $5
+  AND plant_cd = $6
+  AND site_cd = $7
+"""
+
+VED_ASSIGNMENT_ITEMS_SQL = """
+SELECT item_id, ved_class, assignment_reason
+FROM dsai.inventory_ved_assignment_snapshot_items
+WHERE assignment_snapshot_id = $1::uuid
+ORDER BY item_id
+"""
+
 EXISTING_SNAPSHOT_SQL = """
 SELECT classification_snapshot_id::text, snapshot_revision
 FROM dsai.inventory_classification_snapshots
@@ -127,12 +147,15 @@ INSERT INTO dsai.inventory_classification_snapshots (
     source_content_hash, content_hash, as_of_yyyyww,
     segmentation_type, abc_basis, abc_lookback_weeks,
     xyz_metric, xyz_lookback_weeks, service_level_type,
+    item_result_contract_version, ved_assignment_snapshot_id,
+    ved_assignment_content_hash,
     eligible_sku_count, classified_sku_count,
     unclassified_sku_count, approved_by, approved_at
 ) VALUES (
     $1::uuid, $2, $3, $4, $5, $6, $7, $8,
     $9::uuid, $10::uuid, $11, $12, $13, $14, $15,
-    $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, NOW()
+    $16, $17, $18, $19, $20, $21, $22, $23::uuid, $24,
+    $25, $26, $27, $28, NOW()
 )
 """
 
@@ -146,6 +169,18 @@ INSERT_REASON_SQL = """
 INSERT INTO dsai.inventory_classification_snapshot_unclassified_reasons (
     classification_snapshot_id, reason_code, sku_count
 ) VALUES ($1::uuid, $2, $3)
+"""
+
+INSERT_ITEM_SQL = """
+INSERT INTO dsai.inventory_classification_snapshot_items (
+    classification_snapshot_id, item_id, classification_status,
+    abc_class, xyz_class, ved_class, segment_key, final_segment_key,
+    ved_assignment_source, ved_assignment_reason, unclassified_reason_code,
+    demand_cv2, revenue_value, cumulative_revenue_share_before
+) VALUES (
+    $1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
+    $12::numeric, $13::numeric, $14::numeric
+)
 """
 
 
@@ -197,6 +232,48 @@ class PostgresClassificationSource:
                 start.strftime("%Y%m%d"),
                 end_exclusive.strftime("%Y%m%d"),
             )
+            ved_assignments: tuple[VedAssignment, ...] = ()
+            ved = config_values.get("segmentation", {}).get("ved", {})
+            if ved.get("enabled") is True:
+                assignment_snapshot_id = ved.get("assignment_snapshot_id")
+                assignment_content_hash = ved.get("assignment_content_hash")
+                require(
+                    bool(assignment_snapshot_id) and bool(assignment_content_hash),
+                    "CLASSIFICATION_VED_BINDING_MISSING",
+                )
+                header = await self.connection.fetchrow(
+                    VED_ASSIGNMENT_HEADER_SQL,
+                    assignment_snapshot_id,
+                    config["tenant_id"],
+                    scope.project_id,
+                    scope.company_cd,
+                    scope.subs_cd,
+                    scope.plant_cd,
+                    scope.site_cd,
+                )
+                require(header is not None, "CLASSIFICATION_VED_SNAPSHOT_NOT_FOUND")
+                require(
+                    str(header["status"]).lower() == "approved"
+                    and str(header["assignment_content_hash"])
+                    == assignment_content_hash,
+                    "CLASSIFICATION_VED_SNAPSHOT_MISMATCH",
+                )
+                assignment_rows = await self.connection.fetch(
+                    VED_ASSIGNMENT_ITEMS_SQL,
+                    assignment_snapshot_id,
+                )
+                ved_assignments = tuple(
+                    VedAssignment(
+                        item_id=str(row["item_id"]),
+                        ved_class=str(row["ved_class"]),
+                        reason=(
+                            str(row["assignment_reason"])
+                            if row["assignment_reason"] is not None
+                            else None
+                        ),
+                    )
+                    for row in assignment_rows
+                )
 
         metrics = tuple(
             ItemMetric(
@@ -226,6 +303,7 @@ class PostgresClassificationSource:
             source_relation=str(authority["source_relation"]),
             source_manifest_sha256=str(authority["source_manifest_sha256"]),
             metrics=metrics,
+            ved_assignments=ved_assignments,
         )
 
 
@@ -304,6 +382,9 @@ class PostgresClassificationPublisher:
                 snapshot["xyz_metric"],
                 snapshot["xyz_lookback_weeks"],
                 snapshot["service_level_type"],
+                snapshot["item_result_contract_version"],
+                snapshot["ved_assignment_snapshot_id"],
+                snapshot["ved_assignment_content_hash"],
                 snapshot["eligible_sku_count"],
                 snapshot["classified_sku_count"],
                 snapshot["unclassified_sku_count"],
@@ -333,6 +414,28 @@ class PostgresClassificationPublisher:
                         for reason in snapshot["unclassified_reasons"]
                     ],
                 )
+            await self.connection.executemany(
+                INSERT_ITEM_SQL,
+                [
+                    (
+                        snapshot["classification_snapshot_id"],
+                        item["item_id"],
+                        item["classification_status"],
+                        item["abc_class"],
+                        item["xyz_class"],
+                        item["ved_class"],
+                        item["segment_key"],
+                        item["final_segment_key"],
+                        item["ved_assignment_source"],
+                        item["ved_assignment_reason"],
+                        item["unclassified_reason_code"],
+                        item["demand_cv2"],
+                        item["revenue"],
+                        item["cumulative_revenue_share_before"],
+                    )
+                    for item in snapshot["items"]
+                ],
+            )
         return {
             "publication_status": "published",
             "classification_snapshot_id": snapshot["classification_snapshot_id"],

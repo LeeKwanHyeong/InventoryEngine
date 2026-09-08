@@ -13,6 +13,7 @@ from dsio_inventory_engine.classify_inventory.application import (
     InventoryClassificationLifecycleUseCase,
     InventoryScope,
     ItemMetric,
+    VedAssignment,
     classify_items,
     config_hash,
 )
@@ -160,6 +161,42 @@ class ClassificationSnapshotTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(receipt["database_writes"] or receipt["run_claimed"])
         self.assertEqual(len(publisher.calls), 1)
 
+    async def test_snapshot_binds_ved_version_and_publishes_item_results(self):
+        original = inputs()
+        values = copy.deepcopy(original.config_values)
+        values["segmentation"]["ved"] = {
+            "enabled": True,
+            "default_class": "D",
+            "assignment_snapshot_id": "00000000-0000-0000-0000-000000000010",
+            "assignment_content_hash": "e" * 64,
+        }
+        changed = replace(
+            original,
+            config_values=values,
+            config_hash=config_hash(values),
+            ved_assignments=(VedAssignment("A", "V", "critical"),),
+        )
+        publisher = FakePublisher()
+
+        await InventoryClassificationLifecycleUseCase(
+            FakeSource(changed), publisher
+        ).execute(changed.scope, approved_by="admin", publish=True)
+
+        snapshot = publisher.calls[0][0]
+        self.assertEqual(snapshot["item_result_contract_version"], "1.0.0")
+        self.assertEqual(
+            snapshot["ved_assignment_snapshot_id"],
+            "00000000-0000-0000-0000-000000000010",
+        )
+        self.assertEqual(snapshot["ved_assignment_content_hash"], "e" * 64)
+        self.assertEqual(len(snapshot["items"]), snapshot["eligible_sku_count"])
+        self.assertEqual(
+            next(item for item in snapshot["items"] if item["item_id"] == "A")[
+                "final_segment_key"
+            ],
+            "AX-V",
+        )
+
     async def test_config_hash_drift_blocks_before_publish(self):
         original = inputs()
         values = copy.deepcopy(original.config_values)
@@ -208,6 +245,20 @@ class ClassificationSnapshotTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(result.classified_sku_count, 1)
         self.assertEqual(result.unclassified_sku_count, 4)
+        self.assertEqual(len(result.items), 5)
+        self.assertEqual(
+            {
+                row["item_id"]: row["unclassified_reason_code"]
+                for row in result.items
+                if row["classification_status"] == "UNCLASSIFIED"
+            },
+            {
+                "NO_HISTORY": "INSUFFICIENT_DEMAND_HISTORY",
+                "ZERO": "ZERO_MEAN_DEMAND",
+                "NO_REVENUE": "MISSING_REVENUE",
+                "INVALID": "INVALID_SOURCE_RECORD",
+            },
+        )
         self.assertEqual(
             {row["reason_code"] for row in result.unclassified_reasons},
             {
@@ -217,6 +268,50 @@ class ClassificationSnapshotTests(unittest.IsolatedAsyncioTestCase):
                 "ZERO_MEAN_DEMAND",
             },
         )
+
+    def test_ved_assignment_and_default_are_preserved_per_item(self):
+        result = classify_items(
+            [
+                metric("ASSIGNED", "520", "5200", "800"),
+                metric("DEFAULT", "260", "3900", "150"),
+                metric("NO_HISTORY", "0", "0", "0", source_rows=0, observed_weeks=0),
+            ],
+            abc_a_cumulative_share=Decimal("0.8"),
+            abc_b_cumulative_share=Decimal("0.95"),
+            xyz_x_max_cv2=Decimal("0.49"),
+            xyz_y_max_cv2=Decimal("1"),
+            lookback_weeks=52,
+            ved_enabled=True,
+            ved_default_class="D",
+            ved_assignments=(VedAssignment("ASSIGNED", "V", "critical"),),
+        )
+
+        by_item = {row["item_id"]: row for row in result.items}
+        self.assertEqual(by_item["ASSIGNED"]["ved_class"], "V")
+        self.assertEqual(by_item["ASSIGNED"]["ved_assignment_source"], "ASSIGNMENT_SNAPSHOT")
+        self.assertEqual(by_item["ASSIGNED"]["ved_assignment_reason"], "critical")
+        self.assertTrue(by_item["ASSIGNED"]["final_segment_key"].endswith("-V"))
+        self.assertEqual(by_item["DEFAULT"]["ved_class"], "D")
+        self.assertEqual(by_item["DEFAULT"]["ved_assignment_source"], "DEFAULT_CLASS")
+        self.assertIsNone(by_item["DEFAULT"]["ved_assignment_reason"])
+        self.assertIsNone(by_item["NO_HISTORY"]["final_segment_key"])
+        self.assertEqual(
+            by_item["NO_HISTORY"]["unclassified_reason_code"],
+            "INSUFFICIENT_DEMAND_HISTORY",
+        )
+
+    def test_orphan_ved_assignment_fails_closed(self):
+        with self.assertRaisesRegex(InventoryInputError, "CLASSIFICATION_VED_ORPHAN_ITEM"):
+            classify_items(
+                [metric("KNOWN", "520", "5200", "100")],
+                abc_a_cumulative_share=Decimal("0.8"),
+                abc_b_cumulative_share=Decimal("0.95"),
+                xyz_x_max_cv2=Decimal("0.49"),
+                xyz_y_max_cv2=Decimal("1"),
+                lookback_weeks=52,
+                ved_enabled=True,
+                ved_assignments=(VedAssignment("ORPHAN", "V"),),
+            )
 
 
 if __name__ == "__main__":
