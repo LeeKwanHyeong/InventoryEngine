@@ -98,6 +98,22 @@ def fixture(items=1, weeks=3):
         for r in decisions
         for week in week_ids
     )
+    demand_shared = {
+        kind: copy.deepcopy(template["snapshots"][kind]) for kind in ("calendar", "master")
+    }
+    for kind, snapshot in demand_shared.items():
+        snapshot["metadata"]["plant_cd"] = "V101"
+        if kind == "master":
+            for row in snapshot["rows"]:
+                row["plant_cd"] = "V101"
+        snapshot["content_hash"] = digest(
+            {
+                "snapshot_type": kind,
+                "snapshot_id": snapshot["snapshot_id"],
+                "metadata": snapshot["metadata"],
+                "rows": snapshot["rows"],
+            }
+        )
     request = ForecastExportRequest.from_dict(
         {
             "contract_id": "demand-io-forecast-export-v1",
@@ -126,7 +142,7 @@ def fixture(items=1, weeks=3):
                         "master_snapshot_revision",
                     )
                 },
-                **{k: template["snapshots"][k] for k in ("calendar", "master")},
+                **demand_shared,
                 "month_rule": "SOURCE_WEEK_MONDAY_V1",
                 "quantity_rule": "PLANNING_6_PHYSICAL_EA_0_V1",
             },
@@ -190,6 +206,13 @@ class ForecastHandoffIntegrationTests(unittest.TestCase):
         self.assertNotEqual(
             receipt["content_hash"], prepared["handoff_evidence"]["canonical_forecast_hash"]
         )
+        self.assertEqual(prepared["handoff_evidence"]["source_plant_cd"], "V101")
+        self.assertNotEqual(
+            prepared["handoff_evidence"]["shared_source_bindings"]["master"]["content_hash"],
+            prepared["handoff_evidence"]["shared_source_bindings"]["master"][
+                "canonical_content_hash"
+            ],
+        )
         self.assertFalse(prepared["handoff_evidence"]["database_published"])
 
     def test_13_week_demand_is_5_point_2_not_zero_or_13(self):
@@ -235,6 +258,21 @@ class ForecastHandoffIntegrationTests(unittest.TestCase):
                 PrepareForecastHandoffUseCase(DEPLOYMENT, ParquetForecastHandoffReader()).execute(
                     wrong, **reference(receipt)
                 )
+
+    def test_changed_demand_plant_scope_is_rejected(self):
+        _, request, decisions, rows = fixture()
+        data = request.to_dict()
+        data["shared"]["calendar"]["metadata"]["plant_cd"] = "V999"
+        data["shared"]["calendar"]["content_hash"] = digest(
+            {
+                "snapshot_type": "calendar",
+                "snapshot_id": data["shared"]["calendar"]["snapshot_id"],
+                "metadata": data["shared"]["calendar"]["metadata"],
+                "rows": data["shared"]["calendar"]["rows"],
+            }
+        )
+        with self.assertRaisesRegex(ValueError, "SHARED_SCOPE"):
+            ForecastExportRequest.from_dict(data)
 
     def test_missing_or_corrupt_part_is_never_admitted(self):
         _, request, decisions, rows = fixture()

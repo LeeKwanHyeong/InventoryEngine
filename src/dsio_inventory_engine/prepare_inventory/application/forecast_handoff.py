@@ -13,6 +13,19 @@ from dsio_inventory_engine.inventory_contracts.values import canonical_json, dig
 from .inventory_input import PrepareInventoryInputUseCase
 
 
+def _canonical_shared_snapshot(kind: str, snapshot: dict, *, plant_cd: str) -> dict:
+    """Project Demand's plant-aware shared scope into Inventory's site grain."""
+    projected = deepcopy(snapshot)
+    require(projected["metadata"].get("plant_cd") == plant_cd, "HANDOFF_PLANT_SCOPE_MISMATCH")
+    del projected["metadata"]["plant_cd"]
+    if kind == "master":
+        for row in projected["rows"]:
+            require(row.get("plant_cd") == plant_cd, "HANDOFF_PLANT_SCOPE_MISMATCH")
+            del row["plant_cd"]
+    projected["content_hash"] = digest(snapshot_content(kind, projected))
+    return projected
+
+
 class PrepareForecastHandoffUseCase:
     def __init__(self, deployment, reader):
         self.deployment, self.reader = deployment, reader
@@ -51,8 +64,16 @@ class PrepareForecastHandoffUseCase:
         require(
             context["plan_yyyyww"] == request["selector"]["fcst_w0_yyyyww"], "HANDOFF_W0_MISMATCH"
         )
+        plant_cd = request["selector"]["plant_cd"]
+        canonical_shared = {
+            kind: _canonical_shared_snapshot(kind, shared[kind], plant_cd=plant_cd)
+            for kind in ("calendar", "master")
+        }
         for kind in ("calendar", "master"):
-            require(snapshots[kind] == shared[kind], "HANDOFF_SHARED_SNAPSHOT_MISMATCH")
+            require(
+                snapshots[kind] == canonical_shared[kind],
+                "HANDOFF_SHARED_SNAPSHOT_MISMATCH",
+            )
         for rule in value["quantity_rules"]:
             require(rule["planning_scale"] == 6, "HANDOFF_PLANNING_PRECISION")
         for bucket in snapshots["calendar"]["rows"]:
@@ -104,6 +125,15 @@ class PrepareForecastHandoffUseCase:
                 "manifest_hash": manifest_hash,
                 "canonical_forecast_hash": mapped["content_hash"],
                 "mapping_revision": "POINT_TO_SAME_BUCKET_V1",
+                "source_plant_cd": plant_cd,
+                "shared_source_bindings": {
+                    kind: {
+                        "snapshot_id": shared[kind]["snapshot_id"],
+                        "content_hash": shared[kind]["content_hash"],
+                        "canonical_content_hash": canonical_shared[kind]["content_hash"],
+                    }
+                    for kind in ("calendar", "master")
+                },
                 "source_rows": export["rows"],
                 "database_published": False,
                 "approval_authenticated": False,
