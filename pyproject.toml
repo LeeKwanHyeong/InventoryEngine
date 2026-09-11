@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dsio-inventory-engine"
-version = "0.13.0"
-description = "Inventory PSI, mathematical/ML/PPO strategies and closed-loop independent evaluation"
+version = "0.14.0"
+description = "Inventory PSI, deterministic item policy, and mathematical/ML/PPO strategies"
 requires-python = ">=3.12"
 dependencies = []
 

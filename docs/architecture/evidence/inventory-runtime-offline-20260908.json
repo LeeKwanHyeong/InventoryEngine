@@ -3,7 +3,7 @@
   "recorded_at": "2026-09-08",
   "scope": {
     "platform_repository": "dsai-platform",
-    "platform_branch": "dsdm_engine_studio_dev",
+    "platform_branch": "develop",
     "runtime_repository": "InventoryEngine",
     "runtime_branch": "inventory_engine_dev",
     "database_write": false,

@@ -178,12 +178,13 @@ class ClassificationSnapshotTests(unittest.IsolatedAsyncioTestCase):
         )
         publisher = FakePublisher()
 
-        await InventoryClassificationLifecycleUseCase(
-            FakeSource(changed), publisher
-        ).execute(changed.scope, approved_by="admin", publish=True)
+        await InventoryClassificationLifecycleUseCase(FakeSource(changed), publisher).execute(
+            changed.scope, approved_by="admin", publish=True
+        )
 
         snapshot = publisher.calls[0][0]
-        self.assertEqual(snapshot["item_result_contract_version"], "1.0.0")
+        self.assertEqual(snapshot["item_result_contract_version"], "1.1.0")
+        self.assertEqual(snapshot["effective_policy_contract_version"], "1.0.0")
         self.assertEqual(
             snapshot["ved_assignment_snapshot_id"],
             "00000000-0000-0000-0000-000000000010",
@@ -191,11 +192,16 @@ class ClassificationSnapshotTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(snapshot["ved_assignment_content_hash"], "e" * 64)
         self.assertEqual(len(snapshot["items"]), snapshot["eligible_sku_count"])
         self.assertEqual(
-            next(item for item in snapshot["items"] if item["item_id"] == "A")[
-                "final_segment_key"
-            ],
+            next(item for item in snapshot["items"] if item["item_id"] == "A")["final_segment_key"],
             "AX-V",
         )
+        effective = next(item for item in snapshot["items"] if item["item_id"] == "A")
+        self.assertEqual(effective["effective_target_service_level"], "0.99")
+        self.assertEqual(
+            effective["policy_adjustment_reason"],
+            "VED_SERVICE_LEVEL_FLOOR_APPLIED",
+        )
+        self.assertTrue(effective["operational_io_eligible"])
 
     async def test_config_hash_drift_blocks_before_publish(self):
         original = inputs()

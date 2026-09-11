@@ -46,7 +46,7 @@
 ### Impact — 실제로 바뀌는 경계
 
 - DemandEngine `demand_engine_v3`: 기존 Forecast/선정 로직은 유지하고, 선정 결과·근거를 받아 불변 Export를 만드는 UseCase/Port/Adapter 및 테스트 추가가 필요하다.
-- dsai-platform `dsdm_engine_studio_dev`: 성공 Run과 검증된 Export Receipt를 Cycle에 고정하는 연결이 필요하다. 기존 Report의 최신 결과 비교 로직을 IO 입력 선택에 재사용하지 않는다.
+- dsai-platform `develop`: 성공 Run과 검증된 Export Receipt를 Cycle에 고정하는 연결이 필요하다. 기존 Report의 최신 결과 비교 로직을 IO 입력 선택에 재사용하지 않는다.
 - InventoryEngine: 계획 수량과 물리 수량을 구분하는 **버전이 명시된 계약 확장**이 필요하다. 기존 v1 정수 EA 계약과 Golden을 덮어쓰지 않는다.
 - 대형 Snapshot: 논리 Snapshot과 운반 파일을 분리하는 Manifest/Parquet Part 계약 및 Reader가 필요하다. 단순히 파일만 분할하고 전체를 8MB JSON으로 다시 합치는 방식은 해결책이 아니다.
 
@@ -128,7 +128,7 @@ Shared Calendar/Master sealed before Demand
 
 **현재 기준선 — 완료**
 
-- InventoryEngine 0.9.1 Reader는 유지했다. DemandEngine `demand_engine_v3`와 Studio `dsdm_engine_studio_dev`의 관련 코드 및 위 의미 차이를 확인했다.
+- InventoryEngine 0.9.1 Reader는 유지했다. DemandEngine `demand_engine_v3`와 Studio `develop`의 관련 코드 및 위 의미 차이를 확인했다.
 
 **제안 승인 — 승인 필요**
 

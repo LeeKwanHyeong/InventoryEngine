@@ -51,7 +51,7 @@
 |---|---|
 | InventoryEngine | 0.9.0 Source 기반에 0.9.1 사전검증·회귀 테스트·문서 반영. 독립 Git 미초기화, Commit/Push/MR 없음 |
 | DemandEngine `demand_engine_v3` | Producer 코드 읽기만 수행. 수정·재배포 없음 |
-| dsai-platform `dsdm_engine_studio_dev` | 기존 설정 참조만 수행. 기존 변경 파일 보존 |
+| dsai-platform `develop` | 기존 설정 참조만 수행. 기존 변경 파일 보존 |
 | PostgreSQL/Neo4j | 0.9.0 당시 PostgreSQL 읽기 전용 검증. 0.9.1에서는 DB 접속 없음. Migration·DML·Full Load·E2E Write·Neo4j 변경 없음 |
 | 공용 Runtime | 변경·배포 없음 |
 

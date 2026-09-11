@@ -3,7 +3,7 @@
   "status": "CURRENT_CONTRACT_CHARACTERIZED_NOT_IMPLEMENTED",
   "inventory_package_version": "0.9.1",
   "demand_branch": "demand_engine_v3",
-  "studio_branch": "dsdm_engine_studio_dev",
+  "studio_branch": "develop",
   "statistics": {
     "POINT": "yhat",
     "P10": "yhat_q10",

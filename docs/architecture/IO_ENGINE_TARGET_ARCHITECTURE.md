@@ -714,6 +714,23 @@ effective_policy
 
 0.4.0 로컬 수학적 구현은 [수학적 정책 계약](IO_MATHEMATICAL_POLICY_CONTRACT.md)을 따른다. W0 이전 13/26주 이력·Profile·승인 레코드를 추가 Snapshot Hash로 고정하고 SS/ROP/목표재고를 계산한다. 수학적 Golden 통과는 운영 서비스수준 달성이나 실제 Legacy Column 의미 확인의 완료를 뜻하지 않는다.
 
+품목 Segmentation은 전략 실행과 분리된 결정론적 전처리다. 승인된 ABC-XYZ Matrix와 VED
+하한을 분류 Snapshot에 적용해 다음 값을 품목별로 고정한다.
+
+```text
+effective_target_service_level
+    = max(ABC-XYZ Matrix 목표 서비스수준, VED 서비스수준 하한)
+
+effective_review_cycle_weeks / effective_strategy
+    = ABC-XYZ Matrix 셀 값
+```
+
+ABC 또는 XYZ가 미분류이면 정책 기본값을 추정하지 않고 `operational_io_eligible=false`로
+차단한다. `MATHEMATICAL`은 운영 적격이며, `PREDICTIVE_ML`과 `DEEP_RL`은 승인된 Model
+ID·Version·Hash가 결합된 Shadow 실행만 허용한다. 미승인 학습 전략을 수학적 전략으로
+자동 대체하지 않는다. Config Hash, 품목·Segment·VED 근거와 유효 정책을 결합한 품목별
+`effective_policy_hash` 및 전체 `effective_policy_content_hash`를 보존한다.
+
 ### 8.12 DSIM Read Contract
 
 아래는 미래 DSIM Consumer의 목표 계약이며 DSIM Agent·Query API의 현재 구현을 뜻하지 않는다. DSIM 개발은 IO 입력·PSI 개발의 선행 조건이 아니다.
@@ -1492,6 +1509,7 @@ Golden Scenario의 수작업 기대값과 Domain 단위 Test는 P0-10, P0-15와 
 | 정책 적용 우선순위 | 승인 Override → Python 계산값과 Source Hard Constraint → 승인 Source Fallback → 명시적 Legacy Fallback → 계산 제외 순으로 적용한다. |
 | 정책 값 계보 | Source·Python 계산·최종 적용값을 분리하고 Legacy 정책은 비교 또는 승인 Fallback 외에는 자동 우선하지 않는다. |
 | 보충 전략 확장 | 공통 PSI·제약 검증 위에 MATHEMATICAL/PREDICTIVE_ML/DEEP_RL을 연결한다. 수학적 기준 전략부터 구현하며 실제 학습·운영 활성화는 별도 검증한다. EOQ·범용 Solver·Multi-Echelon은 이번 범위 밖이다. |
+| Segmentation 정책 적용 | ABC-XYZ-VED 분류는 결정론적으로 수행하고 Matrix·VED 하한으로 품목별 서비스수준·검토주기·전략·정책 Hash를 고정한다. 수학적 전략만 운영 적격이며 ML/PPO는 승인 모델 기반 Shadow 전용이다. |
 | Cut-off Evidence | 기존 `TB_IO_SNAPSHOT_MANIFEST`를 확장하고 `TB_IO_INVENTORY_RECONCILIATION` 1개만 추가하며 상세 Movement·Late Event는 Artifact로 보존한다. |
 | DSIM 연계 | DSIM의 일반 질의는 Effective Run, 감사 질의는 명시적 Run을 사용하며 Versioned Read-only Query API로 Evidence에 접근한다. 내부 View는 Projection Adapter로만 사용한다. |
 

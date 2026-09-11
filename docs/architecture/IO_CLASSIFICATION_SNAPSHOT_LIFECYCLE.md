@@ -1,6 +1,6 @@
 # Inventory 분류 Snapshot Lifecycle
 
-기준일: 2026-09-08. 이 문서는 승인된 Inventory Configuration, Actual Close와 VED
+기준일: 2026-09-11. 이 문서는 승인된 Inventory Configuration, Actual Close와 VED
 Assignment를 이용해 품목별 ABC-XYZ-VED 분류 Snapshot을 계산하고 게시하는 독립 실행
 경계를 정의한다.
 
@@ -15,8 +15,11 @@ Assignment를 이용해 품목별 ABC-XYZ-VED 분류 Snapshot을 계산하고 �
 4. VED가 활성화되면 정확한 승인 Assignment ID/Hash와 Scope를 검증하고 품목별 배정을
    결합한다. 미배정 품목은 Configuration의 `default_class`를 사용한다.
 5. 품목별 `ABC/XYZ/VED`, `segment_key`, `final_segment_key`, 계산 근거와 미분류 사유를 만든다.
-6. Source Revision, Source/Config/content hash, Coverage와 9개 Segment 합계를 만든다.
-7. `--apply`가 있을 때만 Header·집계·품목 결과를 하나의 Transaction으로 게시한다.
+6. 분류된 품목에는 ABC-XYZ 정책 Matrix의 서비스수준·검토 주기·전략을 적용하고, VED
+   하한이 더 높으면 서비스수준을 상향한다.
+7. Source Revision, Source/Config/content hash, 품목별 유효 정책 Hash, Coverage와 9개 Segment
+   합계를 만든다.
+8. `--apply`가 있을 때만 Header·집계·품목 결과를 하나의 Transaction으로 게시한다.
 
 기본 CLI는 no-write다. 같은 Scope와 content hash의 재실행은 기존 Snapshot ID와 Revision을
 반환하며 행을 추가하지 않는다. 원천 근거가 부족한 자재는 Segment를 추정하지 않고 품목별
@@ -26,6 +29,25 @@ Assignment를 이용해 품목별 ABC-XYZ-VED 분류 Snapshot을 계산하고 �
 `final_segment_key`는 `AX-V`처럼 ABC-XYZ와 VED를 결합하고, VED가 비활성화되면 기존 `AX`
 형식을 유지한다. 분류되지 못한 품목은 VED 근거는 보존하되 ABC·XYZ·최종 Segment를 비워
 잘못된 정책 적용을 차단한다.
+
+유효 정책은 다음 규칙으로 고정한다.
+
+```text
+effective_target_service_level
+    = max(ABC-XYZ Matrix 목표 서비스수준, VED 서비스수준 하한)
+
+effective_review_cycle_weeks / effective_strategy
+    = ABC-XYZ Matrix 셀 값
+```
+
+`MATHEMATICAL`만 `operational_io_eligible=true`다. `PREDICTIVE_ML`과 `DEEP_RL`은 분류와
+정책 선택 결과를 보존하되 운영 적격을 `false`로 두며, 승인된 Model ID·Version·Hash가
+결합된 Shadow 실행에서만 사용한다. 운영 요청에서 미승인 학습 전략을 수학적 전략으로
+조용히 대체하지 않는다. ABC 또는 XYZ가 미분류인 품목에는 기본 정책을 만들지 않는다.
+
+품목별 `effective_policy_hash`는 Config Hash, 품목·분류·VED 근거와 최종 정책 필드를
+결합한다. Header의 `effective_policy_content_hash`는 정렬된 품목 ID와 정책 Hash 목록을
+봉인하므로 같은 Classification 입력과 Configuration은 항상 같은 정책 결과를 만든다.
 
 ## 2. 소유권과 호출 방식
 
@@ -55,8 +77,8 @@ Site Scope를 확인한 뒤 정규화된 품목 배정을 읽는다. Master/수�
 ## 3. Receipt와 멱등성
 
 Receipt 계약은 `inventory-classification-snapshot-publication-receipt-v1`이다. 조직 범위,
-기간, Config/Source/content hash, 전체·분류·미분류 SKU 수, 9개 Segment 합계와 미분류 사유
-합계만 반환한다.
+기간, Config/Source/content hash, 전체 유효 정책 Hash, 전체·분류·미분류 SKU 수, 9개
+Segment 합계와 미분류 사유 합계만 반환한다.
 
 - `dry_run`: 계산만 완료, DB write 없음
 - `published`: 새 content hash를 새 Revision으로 게시

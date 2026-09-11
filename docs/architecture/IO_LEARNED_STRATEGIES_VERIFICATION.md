@@ -74,4 +74,4 @@ BASE 예시:
 2. **외부 작업 대기 — 실제 Source:** DemandEngine Forecast 발행 이력, 당시 사용 가능했던 Actual·공급 확약/지연·비용을 같은 시점 계약에 연결한다.
 3. **다음 작업 / 실제 적용 승인 필요 — 모델·Run·Evidence 연결:** 불변 모델 Artifact/승인을 공통 Run Binding에 연결하고 상세 중간 산출물을 저장한다. 실제 DB Migration·Write·공용 Runtime 배포는 별도 승인 대상이다.
 
-P0-14·P0-18·P0-19 보류, 단일 Company/Site, DSIM 미구현 상태를 유지한다. `dsai-platform`의 `dsdm_engine_studio_dev` 브랜치나 DemandEngine Runtime은 이번에 변경하지 않았다.
+P0-14·P0-18·P0-19 보류, 단일 Company/Site, DSIM 미구현 상태를 유지한다. 현재 `dsai-platform` 기준선은 `develop`이며 DemandEngine Runtime은 이번에 변경하지 않았다.

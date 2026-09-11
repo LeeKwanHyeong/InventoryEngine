@@ -6,6 +6,7 @@ from .application import (
     InventoryClassificationLifecycleUseCase,
     InventoryScope,
     ItemMetric,
+    VedAssignment,
     build_snapshot,
     classify_items,
 )
@@ -16,6 +17,7 @@ __all__ = [
     "InventoryClassificationLifecycleUseCase",
     "InventoryScope",
     "ItemMetric",
+    "VedAssignment",
     "build_snapshot",
     "classify_items",
 ]

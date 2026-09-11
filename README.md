@@ -1,6 +1,6 @@
 # InventoryEngine
 
-Python 3.12 기반 Inventory Optimization 프로젝트다. **0.13.0은 Site·Item별 ABC·XYZ·VED와 결합 Segment, 계산 근거 및 품목별 미분류 사유를 불변 분류 Snapshot으로 생성한다.** 0.12.0의 Platform Runtime 계약과 기존 Canonical·PSI·전략 계약을 유지한다. 품목 결과 저장 Migration 075는 초안이며 실제 DB 적용, Runtime Segmentation Binding과 배포는 아직 수행하지 않았다.
+Python 3.12 기반 Inventory Optimization 프로젝트다. **0.14.0은 Site·Item별 ABC·XYZ·VED 결과에 승인 정책 Matrix와 VED 서비스수준 하한을 결정적으로 적용해 품목별 유효 정책과 Hash를 만든다.** 수학적 전략만 운영 적격으로 표시하고, ML/PPO는 승인 Model ID·Hash가 결합된 Shadow 실행만 허용한다. 품목 결과 저장 Migration 075는 초안이며 실제 DB 적용, Runtime Segmentation Binding과 배포는 아직 수행하지 않았다.
 
 ## Source 읽기·변환 예제
 
@@ -63,8 +63,10 @@ IO_POSTGRES_DSN=<external-profile> PYTHONPATH=src \
   --plant-cd V100 --site-cd V100 --approved-by <service-user>
 ```
 
-게시를 승인받은 실행에서만 마지막에 `--apply`를 추가한다. Receipt에는 자재별 원천이나
-분류 행이 아니라 조직 범위, Revision/hash와 Segment 집계만 포함된다.
+게시를 승인받은 실행에서만 마지막에 `--apply`를 추가한다. 품목 결과에는
+`effective_target_service_level`, 검토 주기, 전략, 정책 Source·조정 사유, 운영 적격 여부와
+`effective_policy_hash`가 포함된다. Receipt에는 자재별 원천이나 분류 행 대신 조직 범위,
+Revision/hash, 전체 유효 정책 Hash와 Segment 집계만 포함된다.
 
 공통 Runner에서는 `InventoryClassificationStageUseCase`를 사용한다. 이 경로는 이미 Claim된
 Inventory Run만 받으며 분류 Snapshot 게시 전후에 append-only 단계 Event를 기록한다. 독립

@@ -11,6 +11,10 @@ from datetime import date, timedelta
 from decimal import Decimal
 from typing import Any, Mapping, Protocol, Sequence
 
+from dsio_inventory_engine.inventory_contracts.classification import (
+    EFFECTIVE_POLICY_CONTRACT_VERSION,
+    derive_effective_item_policy,
+)
 from dsio_inventory_engine.inventory_contracts.values import (
     InventoryInputError,
     canonical_json,
@@ -388,6 +392,23 @@ def build_snapshot(inputs: ClassificationInputs) -> dict[str, Any]:
         ved_default_class=ved["default_class"],
         ved_assignments=inputs.ved_assignments,
     )
+    cells = {cell["segment_key"]: cell for cell in config["policy_matrix"]["cells"]}
+    effective_items = tuple(
+        {
+            **item,
+            **derive_effective_item_policy(
+                item_id=item["item_id"],
+                classification_status=item["classification_status"],
+                segment_key=item["segment_key"],
+                ved_class=item["ved_class"],
+                unclassified_reason_code=item["unclassified_reason_code"],
+                policy_cell=(cells[item["segment_key"]] if item["segment_key"] else None),
+                ved_service_level_floor=config["policy_matrix"]["ved_service_level_floor"],
+                config_hash=inputs.config_hash,
+            ),
+        }
+        for item in result.items
+    )
     start_monday, end_monday = classification_window(as_of_yyyyww, lookback_weeks)
     source_revision = (
         f"ACTUAL-CLOSE-{as_of_yyyyww}-R{inputs.closure_revision_no}-{inputs.publication_id}"
@@ -412,19 +433,25 @@ def build_snapshot(inputs: ClassificationInputs) -> dict[str, Any]:
         "xyz_metric": xyz["metric"],
         "xyz_lookback_weeks": int(xyz["lookback_weeks"]),
         "service_level_type": config["policy_matrix"]["service_level_type"],
-        "item_result_contract_version": "1.0.0",
-        "ved_assignment_snapshot_id": (
-            ved["assignment_snapshot_id"] if ved["enabled"] else None
+        "item_result_contract_version": "1.1.0",
+        "effective_policy_contract_version": EFFECTIVE_POLICY_CONTRACT_VERSION,
+        "effective_policy_content_hash": _snapshot_hash(
+            [
+                {
+                    "item_id": item["item_id"],
+                    "effective_policy_hash": item["effective_policy_hash"],
+                }
+                for item in effective_items
+            ]
         ),
-        "ved_assignment_content_hash": (
-            ved["assignment_content_hash"] if ved["enabled"] else None
-        ),
+        "ved_assignment_snapshot_id": (ved["assignment_snapshot_id"] if ved["enabled"] else None),
+        "ved_assignment_content_hash": (ved["assignment_content_hash"] if ved["enabled"] else None),
         "eligible_sku_count": result.eligible_sku_count,
         "classified_sku_count": result.classified_sku_count,
         "unclassified_sku_count": result.unclassified_sku_count,
         "segments": result.segments,
         "unclassified_reasons": result.unclassified_reasons,
-        "items": result.items,
+        "items": effective_items,
     }
     body["content_hash"] = _snapshot_hash(body)
     body["classification_snapshot_id"] = str(uuid.uuid5(SNAPSHOT_NAMESPACE, body["content_hash"]))
@@ -573,6 +600,8 @@ def publication_receipt(
         "source_content_hash": snapshot["source_content_hash"],
         "content_hash": snapshot["content_hash"],
         "item_result_contract_version": snapshot["item_result_contract_version"],
+        "effective_policy_contract_version": snapshot["effective_policy_contract_version"],
+        "effective_policy_content_hash": snapshot["effective_policy_content_hash"],
         "item_result_count": len(snapshot["items"]),
         "ved_assignment_snapshot_id": snapshot["ved_assignment_snapshot_id"],
         "ved_assignment_content_hash": snapshot["ved_assignment_content_hash"],

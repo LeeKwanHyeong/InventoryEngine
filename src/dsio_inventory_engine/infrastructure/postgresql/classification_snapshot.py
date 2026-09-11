@@ -148,14 +148,15 @@ INSERT INTO dsai.inventory_classification_snapshots (
     segmentation_type, abc_basis, abc_lookback_weeks,
     xyz_metric, xyz_lookback_weeks, service_level_type,
     item_result_contract_version, ved_assignment_snapshot_id,
-    ved_assignment_content_hash,
+    ved_assignment_content_hash, effective_policy_contract_version,
+    effective_policy_content_hash,
     eligible_sku_count, classified_sku_count,
     unclassified_sku_count, approved_by, approved_at
 ) VALUES (
     $1::uuid, $2, $3, $4, $5, $6, $7, $8,
     $9::uuid, $10::uuid, $11, $12, $13, $14, $15,
-    $16, $17, $18, $19, $20, $21, $22, $23::uuid, $24,
-    $25, $26, $27, $28, NOW()
+    $16, $17, $18, $19, $20, $21, $22, $23::uuid, $24, $25, $26,
+    $27, $28, $29, $30, NOW()
 )
 """
 
@@ -176,10 +177,14 @@ INSERT INTO dsai.inventory_classification_snapshot_items (
     classification_snapshot_id, item_id, classification_status,
     abc_class, xyz_class, ved_class, segment_key, final_segment_key,
     ved_assignment_source, ved_assignment_reason, unclassified_reason_code,
-    demand_cv2, revenue_value, cumulative_revenue_share_before
+    demand_cv2, revenue_value, cumulative_revenue_share_before,
+    effective_target_service_level, effective_review_cycle_weeks,
+    effective_strategy, policy_source, policy_adjustment_reason,
+    operational_io_eligible, effective_policy_hash
 ) VALUES (
     $1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
-    $12::numeric, $13::numeric, $14::numeric
+    $12::numeric, $13::numeric, $14::numeric, $15::numeric, $16,
+    $17, $18, $19, $20, $21
 )
 """
 
@@ -254,8 +259,7 @@ class PostgresClassificationSource:
                 require(header is not None, "CLASSIFICATION_VED_SNAPSHOT_NOT_FOUND")
                 require(
                     str(header["status"]).lower() == "approved"
-                    and str(header["assignment_content_hash"])
-                    == assignment_content_hash,
+                    and str(header["assignment_content_hash"]) == assignment_content_hash,
                     "CLASSIFICATION_VED_SNAPSHOT_MISMATCH",
                 )
                 assignment_rows = await self.connection.fetch(
@@ -385,6 +389,8 @@ class PostgresClassificationPublisher:
                 snapshot["item_result_contract_version"],
                 snapshot["ved_assignment_snapshot_id"],
                 snapshot["ved_assignment_content_hash"],
+                snapshot["effective_policy_contract_version"],
+                snapshot["effective_policy_content_hash"],
                 snapshot["eligible_sku_count"],
                 snapshot["classified_sku_count"],
                 snapshot["unclassified_sku_count"],
@@ -432,6 +438,13 @@ class PostgresClassificationPublisher:
                         item["demand_cv2"],
                         item["revenue"],
                         item["cumulative_revenue_share_before"],
+                        item["effective_target_service_level"],
+                        item["effective_review_cycle_weeks"],
+                        item["effective_strategy"],
+                        item["policy_source"],
+                        item["policy_adjustment_reason"],
+                        item["operational_io_eligible"],
+                        item["effective_policy_hash"],
                     )
                     for item in snapshot["items"]
                 ],

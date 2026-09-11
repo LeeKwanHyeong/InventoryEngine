@@ -50,7 +50,7 @@ Coverage는 오류 주입의 완전성이나 업무 정확성을 대신하지 �
 - 합성 TGSM Golden은 수작업으로 만든 작은 Fixture다. 52주 Warm-up Generator·실제 운영 재고 정확성은 검증하지 않았다.
 - 주간 집계이므로 주중 입출고 순서에 따른 정확한 품절 시각을 보장하지 않는다.
 - Local JSON 응답은 `TB_IO_*` 또는 봉인 Artifact가 아니다. `evidence_persisted=false`, `artifact_sealed=false`, `run_claimed=false`를 유지한다.
-- InventoryEngine은 Git 미초기화 상태다. dsai-platform `dsdm_engine_studio_dev`의 기존 변경은 보존했으며 이 작업에서 Commit/Push/Migration/배포를 하지 않았다.
+- 당시 InventoryEngine은 Git 미초기화 상태였다. 현재 dsai-platform 기준선은 `develop`이며 해당 검증에서는 Commit/Push/Migration/배포를 하지 않았다.
 
 ## 5. 재검증 방법
 

@@ -123,10 +123,9 @@ class InventoryClassificationStageUseCase:
                     "classification_snapshot_id": receipt["classification_snapshot_id"],
                     "snapshot_revision": receipt["snapshot_revision"],
                     "content_hash": receipt["content_hash"],
-                    "item_result_contract_version": receipt[
-                        "item_result_contract_version"
-                    ],
+                    "item_result_contract_version": receipt["item_result_contract_version"],
                     "item_result_count": receipt["item_result_count"],
+                    "effective_policy_content_hash": receipt["effective_policy_content_hash"],
                     "eligible_sku_count": receipt["eligible_sku_count"],
                     "classified_sku_count": receipt["classified_sku_count"],
                     "unclassified_sku_count": receipt["unclassified_sku_count"],
@@ -154,11 +153,13 @@ def _validate_publication_receipt(receipt: Mapping[str, Any]) -> None:
     )
     hash_value(receipt.get("content_hash"))
     require(
-        receipt.get("item_result_contract_version") == "1.0.0"
+        receipt.get("item_result_contract_version") == "1.1.0"
+        and receipt.get("effective_policy_contract_version") == "1.0.0"
         and type(receipt.get("item_result_count")) is int
         and receipt["item_result_count"] == receipt.get("eligible_sku_count"),
         "INVENTORY_CLASSIFICATION_ITEM_RESULTS_INCOMPLETE",
     )
+    hash_value(receipt.get("effective_policy_content_hash"))
     for field in (
         "eligible_sku_count",
         "classified_sku_count",

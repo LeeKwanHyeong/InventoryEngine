@@ -1,6 +1,6 @@
 # InventoryEngine 개발 기준선과 작업 순서
 
-기준일: 2026-09-08, 로컬 패키지 0.13.0. 이 문서는 **목표 계약 확정**, **코드 구현**, **개발 DB 검증**, **운영 사용**을 구분한다. 목표 아키텍처의 전체 파일 트리가 이미 구현돼 있다고 해석하지 않는다.
+기준일: 2026-09-11, 로컬 패키지 0.14.0. 이 문서는 **목표 계약 확정**, **코드 구현**, **개발 DB 검증**, **운영 사용**을 구분한다. 목표 아키텍처의 전체 파일 트리가 이미 구현돼 있다고 해석하지 않는다.
 
 동일 순서의 [의존관계 계획 JSON](IO_DEVELOPMENT_PLAN.json), [Network 검증 요약](evidence/network-input-validation-20260903.json), [Canonical·PSI 검증 기록](IO_CANONICAL_PSI_VERIFICATION.md)을 함께 관리한다. 계획 파일은 향후 작업 목록이며 자동 실행 지시나 DB 변경 승인이 아니다.
 
@@ -13,7 +13,7 @@
 | Canonical 입력·Golden | 8개 Snapshot 구조·JSON Schema, 요청 Binding·Hash 검증, 독립 Golden 14개/45 PSI Row | 실제 Legacy SQL Adapter, 운영 Source 의미·정확성 검증 |
 | 0.9.1 Source 읽기 호환 | 전체 로컬 검증 후 DB 연결과 기존 JSON v1 DTO·Hash 유지. 실제 DB 2건은 0.9.0 당시 기록 | 실제 재고/주문/정책 Collector와 운영 공유 Snapshot 미준비 |
 | 0.10.0 Forecast 전달 | Demand POINT opt-in Export/Guard·분할 Parquet, IO 독립 Reader·Canonical v2 계획/물리 정밀도 분리. 111,020행 전달·입력 준비 검증 | 실제 Artifact Mapping/실행 전 Receipt 저장/Studio 연결·DB Publication·대형 Recommended PSI 성능 |
-| ABC-XYZ-VED 분류 Snapshot | 정확한 Site Config·Actual Close·승인 VED로 품목별 결합 Segment와 미분류 사유를 생성. 기본 no-write, append-only 게시와 exact replay 지원 | Migration 075 적용, Runtime 입력 Binding·실제 Claim·Scheduler·공용 Runtime 배포 |
+| ABC-XYZ-VED 분류·유효 정책 Snapshot | 정확한 Site Config·Actual Close·승인 VED로 품목별 결합 Segment와 미분류 사유를 생성하고 Matrix·VED 하한으로 서비스수준·검토주기·전략·운영 적격·정책 Hash를 결정. 기본 no-write, append-only 게시와 exact replay 지원 | Migration 075 적용, Runtime 입력 Binding·품목별 전략 실행 조립·실제 Claim·Scheduler·공용 Runtime 배포 |
 | Cut-off·단일 Site PSI | 전기 EOH–BOH·Watermark·Late Posting·봉인/고아 검증, 공통 주차 전이·Baseline/로컬 Recommended PSI와 Evidence JSON | ERP 신규 거래 수집/실제 봉인 저장·DB Evidence 적재 |
 | 세 전략 공통 기반 | MATHEMATICAL/PREDICTIVE_ML/DEEP_RL 계약, 행동/납기/용량 검증, 공급 대기열 | 전략 간 자동 Fallback·운영 승인 인증 |
 | 수학적 정책 | 13/26주 이력·SS/ROP/목표재고·승인 Override/Fallback·권고 Golden 14개/42 PSI Row | 실제 Source 적합성/서비스수준 달성 검증 |
@@ -28,7 +28,9 @@
 
 InventoryEngine 작업 경로는 `/Users/igwanhyeong/PycharmProjects/InventoryEngine`이며 독립 Git 저장소와 `origin`이 구성돼 있다. `main.py`와 `sample_jupyter/io_proximal_policy_optimization.ipynb`는 기존 사용자 자료로 보존한다. 연구 Notebook은 재고정책·Solver 구현 기준선으로 자동 채택하지 않는다.
 
-dsai-platform은 `dsdm_engine_studio_dev` 브랜치에서 기존 Demand 업무 구현을 유지한다. `planning_cycle_revisions`, `planning_cycle_site_executions`, `engine_run_input_bindings`의 Migration 초안과 Repository/API, Demand Handoff Input Binding, Runtime Dispatch가 구현돼 있다. Migration 074 개발 DB 적용과 실제 Write E2E는 아직 수행하지 않았다.
+0.14.0 기준 전체 로컬 회귀는 단위 264건, 계약 20건, Offline 통합 38건을 통과했다. 이 수치는 실제 DB Migration 적용이나 Runtime 배포 검증을 포함하지 않는다.
+
+dsai-platform의 관련 변경은 `develop`에 병합돼 있다. 후속 Inventory 작업은 `origin/develop`에서 분리한 `codex/inventory-effective-policy`에서 진행한다. `planning_cycle_revisions`, `planning_cycle_site_executions`, `engine_run_input_bindings`의 Migration 초안과 Repository/API, Demand Handoff Input Binding, Runtime Dispatch가 구현돼 있다. Migration 074 개발 DB 적용과 실제 Write E2E는 아직 수행하지 않았다.
 
 ## 2. 다시 결정하지 않는 업무 기준선
 
@@ -69,7 +71,7 @@ dsai-platform은 `dsdm_engine_studio_dev` 브랜치에서 기존 Demand 업무 �
 
 0.8.0 [학습 안정성 계약](IO_LEARNING_STABILITY_CONTRACT.md)과 [검증 기록](IO_LEARNING_STABILITY_VERIFICATION.md)의 실험은 완료했다. 학습 모델12개, 새 홀드아웃·민감도128회/62,400 Item-week를 평가했지만 ML/PPO 모두 연구용 비용·서비스 Gate를 통과하지 못했다. 모델 승격은 하지 않았다.
 
-[Inventory 분류 Snapshot Lifecycle](IO_CLASSIFICATION_SNAPSHOT_LIFECYCLE.md)은 승인된 Config와 Actual Close를 사용한 계산, 집계 Receipt, append-only 게시와 exact replay를 구현했다. 이미 Claim된 Run에 분류 단계 Event와 Snapshot 집계 증적을 연결하는 Adapter도 추가했다. 공통 Run Claim DTO와 Platform 호환 Migration 074는 개발 초안이며 실제 Migration 적용·Claim·전체 실행 Evidence 저장은 아직 수행하지 않았다.
+[Inventory 분류 Snapshot Lifecycle](IO_CLASSIFICATION_SNAPSHOT_LIFECYCLE.md)은 승인된 Config와 Actual Close를 사용한 결정론적 분류, 품목별 유효 정책 Hash, 집계 Receipt, append-only 게시와 exact replay를 구현했다. 수학적 전략은 운영 적격, 학습 전략은 승인 모델 기반 Shadow 전용으로 차단한다. 이미 Claim된 Run에 분류 단계 Event와 Snapshot 집계 증적을 연결하는 Adapter도 추가했다. 공통 Run Claim DTO와 Platform 호환 Migration 074는 개발 초안이며 실제 Migration 적용·Claim·전체 실행 Evidence 저장은 아직 수행하지 않았다.
 
 ### 1. 실제 공유 Artifact·Receipt·Studio 연결 — 다음 작업 / 외부 작업 대기
 
@@ -137,7 +139,7 @@ dsai-platform은 `dsdm_engine_studio_dev` 브랜치에서 기존 Demand 업무 �
 
 기존 아키텍처·PM 기준선에 이번 Backend·QA 검증을 반영했다. 보호된 `.agents/` 대신 이 `docs/architecture`에서 기준선과 계획을 관리한다.
 
-InventoryEngine은 `inventory_engine_dev` Branch와 GitHub `origin`을 사용한다. dsai-platform의 후속 변경은 `dsdm_engine_studio_dev`를 기준으로 독립 검토한다. 실제 Migration, DB Write와 Runtime 배포는 별도 승인 전 수행하지 않는다.
+InventoryEngine은 `inventory_engine_dev` Branch와 GitHub `origin`을 사용한다. dsai-platform의 후속 변경은 `origin/develop`에서 분리한 Inventory 전용 브랜치를 기준으로 독립 검토한다. 실제 Migration, DB Write와 Runtime 배포는 별도 승인 전 수행하지 않는다.
 
 ## 6. 의사결정과 검증을 분리한 목록
 
