@@ -116,8 +116,14 @@ class EffectiveItemPolicyTests(unittest.TestCase):
             config_hash=CONFIG_HASH,
             execution_purpose="SHADOW",
             strategy_descriptor=approved_model,
+            model_approval={
+                "approval_reference": "MODEL-APPROVAL-1",
+                "status": "APPROVED",
+                **approved_model["model"],
+            },
         )
         self.assertEqual(shadow["effective_strategy"], "PREDICTIVE_ML")
+        self.assertEqual(shadow["model_approval_reference"], "MODEL-APPROVAL-1")
         self.assertFalse(learned["operational_io_eligible"])
 
         with self.assertRaisesRegex(InventoryInputError, "ITEM_POLICY_NOT_OPERATIONALLY_ELIGIBLE"):
@@ -126,6 +132,11 @@ class EffectiveItemPolicyTests(unittest.TestCase):
                 config_hash=CONFIG_HASH,
                 execution_purpose="OPERATIONAL",
                 strategy_descriptor=approved_model,
+                model_approval={
+                    "approval_reference": "MODEL-APPROVAL-1",
+                    "status": "APPROVED",
+                    **approved_model["model"],
+                },
             )
 
     def test_strategy_and_model_binding_are_never_silently_replaced(self):
@@ -146,6 +157,37 @@ class EffectiveItemPolicyTests(unittest.TestCase):
                 config_hash=CONFIG_HASH,
                 execution_purpose="SHADOW",
                 strategy_descriptor=mismatched,
+            )
+
+        with self.assertRaisesRegex(
+            InventoryInputError, "ITEM_POLICY_SHADOW_MODEL_APPROVAL_REQUIRED"
+        ):
+            admit_effective_item_policy(
+                learned,
+                config_hash=CONFIG_HASH,
+                execution_purpose="SHADOW",
+                strategy_descriptor={
+                    **mismatched,
+                    "strategy_type": "DEEP_RL",
+                },
+            )
+
+        with self.assertRaisesRegex(InventoryInputError, "ITEM_POLICY_MODEL_APPROVAL_MISMATCH"):
+            admit_effective_item_policy(
+                learned,
+                config_hash=CONFIG_HASH,
+                execution_purpose="SHADOW",
+                strategy_descriptor={
+                    **mismatched,
+                    "strategy_type": "DEEP_RL",
+                },
+                model_approval={
+                    "approval_reference": "MODEL-APPROVAL-OTHER",
+                    "status": "APPROVED",
+                    "model_id": "RL-OTHER",
+                    "version": "1.0.0",
+                    "content_hash": "c" * 64,
+                },
             )
 
         missing_model = copy.deepcopy(mismatched)

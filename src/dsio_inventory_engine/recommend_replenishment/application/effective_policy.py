@@ -8,7 +8,22 @@ from dsio_inventory_engine.inventory_contracts.classification import (
     validate_effective_item_policy,
 )
 from dsio_inventory_engine.inventory_contracts.replenishment import descriptor
-from dsio_inventory_engine.inventory_contracts.values import choice, require
+from dsio_inventory_engine.inventory_contracts.values import (
+    choice,
+    hash_value,
+    identifier,
+    require,
+    shape,
+)
+
+
+MODEL_APPROVAL_FIELDS = {
+    "approval_reference": identifier,
+    "status": choice("APPROVED"),
+    "model_id": identifier,
+    "version": identifier,
+    "content_hash": hash_value,
+}
 
 
 def admit_effective_item_policy(
@@ -17,6 +32,7 @@ def admit_effective_item_policy(
     config_hash: str,
     execution_purpose: str,
     strategy_descriptor: Mapping[str, Any],
+    model_approval: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Bind one item policy to an operational or approved-model shadow strategy."""
 
@@ -34,12 +50,22 @@ def admit_effective_item_policy(
             bound_strategy["strategy_type"] == "MATHEMATICAL" and bound_strategy["model"] is None,
             "ITEM_POLICY_OPERATIONAL_STRATEGY_BLOCKED",
         )
+        require(model_approval is None, "ITEM_POLICY_UNEXPECTED_MODEL_APPROVAL")
     else:
-        require(
-            bound_strategy["strategy_type"] == "MATHEMATICAL"
-            or bound_strategy["model"] is not None,
-            "ITEM_POLICY_SHADOW_MODEL_REQUIRED",
-        )
+        if bound_strategy["strategy_type"] == "MATHEMATICAL":
+            require(model_approval is None, "ITEM_POLICY_UNEXPECTED_MODEL_APPROVAL")
+        else:
+            require(model_approval is not None, "ITEM_POLICY_SHADOW_MODEL_APPROVAL_REQUIRED")
+            approval = shape(dict(model_approval), MODEL_APPROVAL_FIELDS)
+            require(
+                {
+                    "model_id": approval["model_id"],
+                    "version": approval["version"],
+                    "content_hash": approval["content_hash"],
+                }
+                == bound_strategy["model"],
+                "ITEM_POLICY_MODEL_APPROVAL_MISMATCH",
+            )
     return {
         "item_id": item["item_id"],
         "execution_purpose": purpose,
@@ -48,4 +74,7 @@ def admit_effective_item_policy(
         "effective_strategy": policy["effective_strategy"],
         "effective_policy_hash": policy["effective_policy_hash"],
         "strategy": bound_strategy,
+        "model_approval_reference": (
+            model_approval["approval_reference"] if model_approval is not None else None
+        ),
     }

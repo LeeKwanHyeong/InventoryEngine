@@ -42,7 +42,7 @@ effective_review_cycle_weeks / effective_strategy
 
 `MATHEMATICAL`만 `operational_io_eligible=true`다. `PREDICTIVE_ML`과 `DEEP_RL`은 분류와
 정책 선택 결과를 보존하되 운영 적격을 `false`로 두며, 승인된 Model ID·Version·Hash가
-결합된 Shadow 실행에서만 사용한다. 운영 요청에서 미승인 학습 전략을 수학적 전략으로
+승인 참조에 결합되고 실행 Descriptor와 완전히 일치하는 Shadow 실행에서만 사용한다. 운영 요청에서 미승인 학습 전략을 수학적 전략으로
 조용히 대체하지 않는다. ABC 또는 XYZ가 미분류인 품목에는 기본 정책을 만들지 않는다.
 
 품목별 `effective_policy_hash`는 Config Hash, 품목·분류·VED 근거와 최종 정책 필드를
