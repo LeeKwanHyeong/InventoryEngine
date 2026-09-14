@@ -26,6 +26,7 @@ from dsio_inventory_engine.inventory_contracts.network import DeploymentScope
 from dsio_inventory_engine.inventory_contracts.replenishment import RecommendationRequest
 from dsio_inventory_engine.inventory_contracts.runtime import (
     InventoryRuntimeExecutionRequest,
+    seal_canonical_context_binding,
     validate_canonical_runtime_binding,
 )
 from dsio_inventory_engine.inventory_contracts.values import InventoryInputError, digest
@@ -315,7 +316,7 @@ class RuntimeEffectivePolicyV2Tests(unittest.TestCase):
         calculate.assert_not_called()
 
     def test_runtime_binding_drift_is_rejected(self) -> None:
-        request, runtime = _requests()
+        _request, runtime = _requests()
         changed = copy.deepcopy(runtime.to_dict())
         classification = next(
             row
@@ -323,16 +324,11 @@ class RuntimeEffectivePolicyV2Tests(unittest.TestCase):
             if row["input_type"] == "INVENTORY_CLASSIFICATION"
         )
         classification["source_content_hash"] = "f" * 64
-        changed_runtime = InventoryRuntimeExecutionRequest.from_dict(changed)
-
         with self.assertRaisesRegex(
             InventoryInputError,
-            "RUNTIME_CLASSIFICATION_BINDING_MISMATCH",
+            "RUNTIME_STRATEGY_EXECUTION_PLAN_POLICY_MISMATCH",
         ):
-            RunMathematicalReplenishmentUseCase(DEPLOYMENT).execute(
-                request,
-                runtime_request=changed_runtime,
-            )
+            InventoryRuntimeExecutionRequest.from_dict(changed)
 
     def test_full_claim_identity_drift_is_rejected_before_policy_calculation(self) -> None:
         request, runtime = _requests()
@@ -422,9 +418,11 @@ class RuntimeEffectivePolicyV2Tests(unittest.TestCase):
 
     def test_forecast_provenance_demand_run_drift_is_rejected(self) -> None:
         request, runtime = _requests()
-        canonical = request.to_dict()["recommendation"]["canonical_input"]
-        provenance = dict(canonical["snapshots"]["forecast"]["metadata"])
-        provenance["demand_run_id"] = "50000000-0000-4000-8000-000000000099"
+        changed = copy.deepcopy(request.to_dict()["recommendation"]["canonical_input"])
+        changed["snapshots"]["forecast"]["metadata"]["demand_run_id"] = (
+            "50000000-0000-4000-8000-000000000099"
+        )
+        canonical = CanonicalInputRequest.from_dict(reseal(changed))
 
         with self.assertRaisesRegex(
             InventoryInputError,
@@ -432,10 +430,109 @@ class RuntimeEffectivePolicyV2Tests(unittest.TestCase):
         ):
             validate_canonical_runtime_binding(
                 runtime,
-                context=canonical["context"],
-                input_bindings=canonical["input_bindings"],
-                forecast_provenance=provenance,
+                canonical_input=canonical,
             )
+
+    def test_context_binding_rejects_every_resealed_context_field_drift(self) -> None:
+        request, runtime = _requests()
+        canonical = request.to_dict()["recommendation"]["canonical_input"]
+        replacements = {
+            "plan_type": "TGSM",
+            "plan_yyyyww": "202641",
+            "plan_start_date": "2026-09-29",
+            "plan_end_date": "2026-10-19",
+            "master_as_of_date": "2026-09-27",
+            "master_snapshot_revision": "MASTER-R2",
+            "business_timezone": "UTC",
+            "inventory_cutoff_at": "2026-09-27T14:00:00Z",
+            "inventory_source_watermark": "WATERMARK-TAMPERED",
+        }
+        for field, replacement in replacements.items():
+            with self.subTest(field=field):
+                changed = copy.deepcopy(canonical)
+                changed["context"][field] = replacement
+                resealed = CanonicalInputRequest.from_dict(changed)
+                with self.assertRaisesRegex(
+                    InventoryInputError,
+                    "RUNTIME_CANONICAL_CONTEXT_BINDING_MISMATCH",
+                ):
+                    validate_canonical_runtime_binding(
+                        runtime,
+                        canonical_input=resealed,
+                    )
+
+    def test_site_binding_seals_the_canonical_context_binding_hash(self) -> None:
+        request, runtime = _requests()
+        changed = copy.deepcopy(request.to_dict()["recommendation"]["canonical_input"])
+        changed["context"]["plan_type"] = "TGSM"
+        changed_canonical = CanonicalInputRequest.from_dict(changed)
+        changed_runtime = runtime.to_dict()
+        changed_runtime["claim"]["canonical_context_binding"] = seal_canonical_context_binding(
+            changed_canonical
+        )
+
+        with self.assertRaisesRegex(
+            InventoryInputError,
+            "RUNTIME_SITE_BINDING_HASH_MISMATCH",
+        ):
+            validate_canonical_runtime_binding(
+                InventoryRuntimeExecutionRequest.from_dict(changed_runtime),
+                canonical_input=changed_canonical,
+            )
+
+    def test_context_binding_rejects_resealed_v1_and_v2_quantity_rule_drift(self) -> None:
+        request, runtime = _requests()
+        canonical_v1 = request.to_dict()["recommendation"]["canonical_input"]
+        for field, replacement in (
+            ("tolerance_qty", "1"),
+            ("scale", 1),
+            ("approval_reference", "TAMPERED-APPROVAL"),
+        ):
+            with self.subTest(contract="v1", field=field):
+                changed = copy.deepcopy(canonical_v1)
+                changed["quantity_rules"][0][field] = replacement
+                with self.assertRaisesRegex(
+                    InventoryInputError,
+                    "RUNTIME_CANONICAL_CONTEXT_BINDING_MISMATCH",
+                ):
+                    validate_canonical_runtime_binding(
+                        runtime,
+                        canonical_input=CanonicalInputRequest.from_dict(changed),
+                    )
+
+        canonical_v2_data = copy.deepcopy(canonical_v1)
+        canonical_v2_data.update(
+            contract_id="io-canonical-input-v2",
+            contract_version="2.0.0",
+        )
+        for rule in canonical_v2_data["quantity_rules"]:
+            scale = rule.pop("scale")
+            rule["planning_scale"] = scale
+            rule["physical_scale"] = scale
+        canonical_v2 = CanonicalInputRequest.from_dict(canonical_v2_data)
+        v2_runtime = InventoryRuntimeExecutionRequest.from_dict(
+            bind_runtime_dispatch_to_canonical(
+                runtime.to_dict(),
+                canonical_v2.to_dict(),
+            )
+        )
+        for field, replacement in (
+            ("tolerance_qty", "1"),
+            ("planning_scale", 1),
+            ("physical_scale", 1),
+            ("approval_reference", "TAMPERED-APPROVAL"),
+        ):
+            with self.subTest(contract="v2", field=field):
+                changed = canonical_v2.to_dict()
+                changed["quantity_rules"][0][field] = replacement
+                with self.assertRaisesRegex(
+                    InventoryInputError,
+                    "RUNTIME_CANONICAL_CONTEXT_BINDING_MISMATCH",
+                ):
+                    validate_canonical_runtime_binding(
+                        v2_runtime,
+                        canonical_input=CanonicalInputRequest.from_dict(changed),
+                    )
 
     def test_all_canonical_snapshot_claim_drift_is_rejected(self) -> None:
         request, runtime = _requests()
@@ -488,17 +585,15 @@ class RuntimeEffectivePolicyV2Tests(unittest.TestCase):
                     field=claim_field,
                     mode="canonical_only",
                 ):
-                    canonical_bindings = copy.deepcopy(canonical["input_bindings"])
-                    canonical_bindings[kind][canonical_field] = replacement
+                    changed_canonical = copy.deepcopy(canonical)
+                    changed_canonical["input_bindings"][kind][canonical_field] = replacement
                     with self.assertRaisesRegex(
                         InventoryInputError,
                         "RUNTIME_CANONICAL_INPUT_BINDING_MISMATCH",
                     ):
                         validate_canonical_runtime_binding(
                             runtime,
-                            context=canonical["context"],
-                            input_bindings=canonical_bindings,
-                            forecast_provenance=canonical["snapshots"]["forecast"]["metadata"],
+                            canonical_input=CanonicalInputRequest.from_dict(changed_canonical),
                         )
 
                 with self.subTest(

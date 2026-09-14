@@ -1,0 +1,367 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dsio.local/schemas/inventory_result_bundle.schema.json",
+  "title": "Inventory strategy execution plan or PSI result bundle",
+  "oneOf": [
+    { "$ref": "#/$defs/strategyExecutionPlan" },
+    { "$ref": "#/$defs/resultBundle" }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "opaqueId": {
+      "type": "string",
+      "maxLength": 160,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]*$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "reference": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "allOf": [
+        { "pattern": "^\\S(?:.*\\S)?$" },
+        { "pattern": "^[^\\u0000-\\u001F\\u007F]+$" }
+      ]
+    },
+    "signedDecimal": {
+      "type": "string",
+      "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,6})?$"
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_id", "version", "content_hash"],
+      "properties": {
+        "model_id": { "$ref": "#/$defs/id" },
+        "version": { "$ref": "#/$defs/id" },
+        "content_hash": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "operationalStrategy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strategy_type",
+        "implementation_id",
+        "version",
+        "implementation_content_hash"
+      ],
+      "properties": {
+        "strategy_type": { "const": "MATHEMATICAL" },
+        "implementation_id": { "$ref": "#/$defs/id" },
+        "version": { "$ref": "#/$defs/id" },
+        "implementation_content_hash": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "shadowChallenger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "challenger_id",
+        "strategy_type",
+        "algorithm",
+        "implementation_id",
+        "version",
+        "implementation_content_hash",
+        "model",
+        "approval_reference"
+      ],
+      "properties": {
+        "challenger_id": { "$ref": "#/$defs/id" },
+        "strategy_type": { "const": "DEEP_RL" },
+        "algorithm": { "const": "PPO" },
+        "implementation_id": { "$ref": "#/$defs/id" },
+        "version": { "$ref": "#/$defs/id" },
+        "implementation_content_hash": { "$ref": "#/$defs/hash" },
+        "model": { "$ref": "#/$defs/model" },
+        "approval_reference": { "$ref": "#/$defs/reference" }
+      }
+    },
+    "stressScenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenario_id",
+        "scenario_type",
+        "scenario_contract_key",
+        "scenario_contract_version",
+        "scenario_content_hash"
+      ],
+      "properties": {
+        "scenario_id": { "$ref": "#/$defs/id" },
+        "scenario_type": { "const": "STRESS" },
+        "scenario_contract_key": { "$ref": "#/$defs/id" },
+        "scenario_contract_version": { "$ref": "#/$defs/version" },
+        "scenario_content_hash": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "strategyExecutionPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_id",
+        "contract_version",
+        "strategy_execution_plan_id",
+        "classification_config_hash",
+        "effective_policy_content_hash",
+        "base_scenario_content_hash",
+        "operational_strategy",
+        "shadow_challenger_bindings",
+        "stress_scenario_bindings",
+        "result_bundle_contract_key",
+        "result_bundle_contract_version",
+        "content_hash"
+      ],
+      "properties": {
+        "contract_id": { "const": "inventory-strategy-execution-plan-v1" },
+        "contract_version": { "const": "1.0.0" },
+        "strategy_execution_plan_id": { "$ref": "#/$defs/id" },
+        "classification_config_hash": { "$ref": "#/$defs/hash" },
+        "effective_policy_content_hash": { "$ref": "#/$defs/hash" },
+        "base_scenario_content_hash": { "$ref": "#/$defs/hash" },
+        "operational_strategy": { "$ref": "#/$defs/operationalStrategy" },
+        "shadow_challenger_bindings": {
+          "type": "array",
+          "maxItems": 32,
+          "items": { "$ref": "#/$defs/shadowChallenger" }
+        },
+        "stress_scenario_bindings": {
+          "type": "array",
+          "maxItems": 64,
+          "items": { "$ref": "#/$defs/stressScenario" }
+        },
+        "result_bundle_contract_key": { "const": "inventory.result_bundle" },
+        "result_bundle_contract_version": { "const": "1.0.0" },
+        "content_hash": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "actionEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "raw_action_reference",
+        "raw_action_content_hash",
+        "constrained_action_reference",
+        "constrained_action_content_hash",
+        "adjustment_reasons_reference",
+        "adjustment_reasons_content_hash"
+      ],
+      "properties": {
+        "raw_action_reference": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/reference" }]
+        },
+        "raw_action_content_hash": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/hash" }]
+        },
+        "constrained_action_reference": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/reference" }]
+        },
+        "constrained_action_content_hash": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/hash" }]
+        },
+        "adjustment_reasons_reference": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/reference" }]
+        },
+        "adjustment_reasons_content_hash": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/hash" }]
+        }
+      }
+    },
+    "childResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "child_result_id",
+        "result_kind",
+        "execution_role",
+        "strategy_type",
+        "scenario_id",
+        "scenario_content_hash",
+        "challenger_id",
+        "model_content_hash",
+        "status",
+        "artifact_reference",
+        "artifact_contract_key",
+        "artifact_contract_version",
+        "child_content_hash",
+        "row_count",
+        "failure_reason_code",
+        "action_evidence"
+      ],
+      "properties": {
+        "child_result_id": { "$ref": "#/$defs/id" },
+        "result_kind": {
+          "enum": ["BASELINE_PSI", "RECOMMENDED_PSI", "STRESS_PSI"]
+        },
+        "execution_role": {
+          "enum": ["OPERATIONAL", "SHADOW", "EVIDENCE_ONLY"]
+        },
+        "strategy_type": {
+          "enum": ["NONE", "MATHEMATICAL", "DEEP_RL"]
+        },
+        "scenario_id": { "$ref": "#/$defs/id" },
+        "scenario_content_hash": { "$ref": "#/$defs/hash" },
+        "challenger_id": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/id" }]
+        },
+        "model_content_hash": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/hash" }]
+        },
+        "status": { "enum": ["SUCCEEDED", "FAILED", "SKIPPED"] },
+        "artifact_reference": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/reference" }]
+        },
+        "artifact_contract_key": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/id" }]
+        },
+        "artifact_contract_version": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/version" }]
+        },
+        "child_content_hash": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/hash" }]
+        },
+        "row_count": {
+          "oneOf": [{ "type": "null" }, { "type": "integer", "minimum": 0, "maximum": 100000000 }]
+        },
+        "failure_reason_code": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/id" }]
+        },
+        "action_evidence": { "$ref": "#/$defs/actionEvidence" }
+      }
+    },
+    "metricDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "value", "reason_code"],
+      "properties": {
+        "status": { "enum": ["AVAILABLE", "NOT_AVAILABLE"] },
+        "value": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/signedDecimal" }]
+        },
+        "reason_code": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "enum": [
+                "COST_PROFILE_NOT_BOUND",
+                "CANDIDATE_RESULT_FAILED",
+                "CANDIDATE_RESULT_SKIPPED",
+                "NO_DEMAND_IN_HORIZON"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "comparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "baseline_child_result_id",
+        "candidate_child_result_id",
+        "cost_delta",
+        "service_level_delta",
+        "backorder_qty_delta"
+      ],
+      "properties": {
+        "baseline_child_result_id": { "$ref": "#/$defs/id" },
+        "candidate_child_result_id": { "$ref": "#/$defs/id" },
+        "cost_delta": { "$ref": "#/$defs/metricDelta" },
+        "service_level_delta": { "$ref": "#/$defs/metricDelta" },
+        "backorder_qty_delta": { "$ref": "#/$defs/metricDelta" }
+      }
+    },
+    "resultBundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_id",
+        "contract_version",
+        "source_contract_key",
+        "result_bundle_id",
+        "engine_run_id",
+        "attempt_no",
+        "tenant_id",
+        "project_id",
+        "planning_cycle_id",
+        "planning_cycle_revision_id",
+        "cycle_site_execution_id",
+        "plan_id",
+        "scope",
+        "canonical_input_hash",
+        "site_binding_hash",
+        "strategy_execution_plan_id",
+        "strategy_execution_plan_content_hash",
+        "classification_config_hash",
+        "effective_policy_content_hash",
+        "cost_profile_content_hash",
+        "result_children",
+        "effective_child_result_id",
+        "comparisons",
+        "automatic_publish_allowed",
+        "automatic_order_allowed",
+        "content_hash"
+      ],
+      "properties": {
+        "contract_id": { "const": "inventory-result-bundle-v1" },
+        "contract_version": { "const": "1.0.0" },
+        "source_contract_key": { "const": "inventory.result_bundle" },
+        "result_bundle_id": {
+          "type": "string",
+          "pattern": "^IOB-[0-9a-f]{64}$"
+        },
+        "engine_run_id": { "$ref": "#/$defs/id" },
+        "attempt_no": { "type": "integer", "minimum": 1, "maximum": 1000000 },
+        "tenant_id": { "$ref": "#/$defs/id" },
+        "project_id": { "$ref": "#/$defs/id" },
+        "planning_cycle_id": { "$ref": "#/$defs/id" },
+        "planning_cycle_revision_id": { "$ref": "#/$defs/id" },
+        "cycle_site_execution_id": { "$ref": "#/$defs/id" },
+        "plan_id": { "$ref": "#/$defs/opaqueId" },
+        "scope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["company_cd", "subs_cd", "plant_cd", "site_cd"],
+          "properties": {
+            "company_cd": { "$ref": "#/$defs/id" },
+            "subs_cd": { "$ref": "#/$defs/id" },
+            "plant_cd": { "$ref": "#/$defs/id" },
+            "site_cd": { "$ref": "#/$defs/id" }
+          }
+        },
+        "canonical_input_hash": { "$ref": "#/$defs/hash" },
+        "site_binding_hash": { "$ref": "#/$defs/hash" },
+        "strategy_execution_plan_id": { "$ref": "#/$defs/id" },
+        "strategy_execution_plan_content_hash": { "$ref": "#/$defs/hash" },
+        "classification_config_hash": { "$ref": "#/$defs/hash" },
+        "effective_policy_content_hash": { "$ref": "#/$defs/hash" },
+        "cost_profile_content_hash": { "type": "null" },
+        "result_children": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 512,
+          "items": { "$ref": "#/$defs/childResult" }
+        },
+        "effective_child_result_id": { "$ref": "#/$defs/id" },
+        "comparisons": {
+          "type": "array",
+          "maxItems": 511,
+          "items": { "$ref": "#/$defs/comparison" }
+        },
+        "automatic_publish_allowed": { "type": "boolean" },
+        "automatic_order_allowed": { "type": "boolean" },
+        "content_hash": { "$ref": "#/$defs/hash" }
+      }
+    }
+  }
+}

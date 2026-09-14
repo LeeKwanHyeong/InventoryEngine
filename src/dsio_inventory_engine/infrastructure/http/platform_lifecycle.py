@@ -125,18 +125,28 @@ class PlatformInventoryLifecycleHttpClient:
         expected_site_row_version: int,
         result: InventoryRuntimeResult,
     ) -> Mapping[str, Any]:
+        result_payload: dict[str, Any] = {
+            "contract_id": (
+                "inventory-engine-run-publish-v2"
+                if result.inventory_result_contract_key is not None
+                else "inventory-engine-run-publish-v1"
+            ),
+            "tenant_id": request.tenant_id,
+            "project_id": request.project_id,
+            "engine_run_id": request.engine_run_id,
+            "expected_site_row_version": expected_site_row_version,
+            "inventory_result_snapshot_id": result.inventory_result_snapshot_id,
+            "inventory_result_content_hash": result.inventory_result_content_hash,
+        }
+        if result.inventory_result_contract_key is not None:
+            result_payload.update(
+                inventory_result_contract_key=result.inventory_result_contract_key,
+                inventory_result_contract_version=result.inventory_result_contract_version,
+            )
         response = await self._request(
             "POST",
             f"/api/v1/engine-studio/inventory/runs/{request.engine_run_id}/publish",
-            json={
-                "contract_id": "inventory-engine-run-publish-v1",
-                "tenant_id": request.tenant_id,
-                "project_id": request.project_id,
-                "engine_run_id": request.engine_run_id,
-                "expected_site_row_version": expected_site_row_version,
-                "inventory_result_snapshot_id": result.inventory_result_snapshot_id,
-                "inventory_result_content_hash": result.inventory_result_content_hash,
-            },
+            json=result_payload,
         )
         payload = _response_payload(response, {200}, "PLATFORM_PUBLICATION_REJECTED")
         require(

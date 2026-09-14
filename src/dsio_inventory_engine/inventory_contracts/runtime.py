@@ -5,12 +5,20 @@ from __future__ import annotations
 import re
 import uuid
 from dataclasses import dataclass
+from datetime import date
 from typing import Any, Mapping
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+from .canonical import CanonicalInputRequest
+from .result_bundle import (
+    validate_inventory_result_bundle,
+    validate_strategy_execution_plan,
+)
 from .values import (
     boolean,
     canonical_json,
     choice,
+    day,
     digest,
     hash_value,
     identifier,
@@ -19,12 +27,16 @@ from .values import (
     read_json,
     require,
     shape,
+    timestamp,
+    yyyyww,
 )
 
 
 CONTRACT_ID = "inventory-engine-execution-request-v1"
 CONTRACT_VERSION = "1.0.0"
 RECEIPT_ID = "inventory-engine-execution-receipt-v1"
+CANONICAL_CONTEXT_BINDING_CONTRACT_ID = "inventory-canonical-context-binding-v1"
+CANONICAL_CONTEXT_BINDING_CONTRACT_VERSION = "1.0.0"
 REQUIRED_INPUT_TYPES = {
     "DEMAND_FORECAST",
     "INVENTORY_POSITION",
@@ -66,6 +78,113 @@ CANONICAL_INPUT_BINDING_TYPES = {
     "CALENDAR": ("calendar", "demand_io.calendar", "1.0.0"),
     "MASTER": ("master", "demand_io.master", "1.0.0"),
 }
+
+CANONICAL_CONTEXT_BINDING_BODY_FIELDS = {
+    "contract_id": choice(CANONICAL_CONTEXT_BINDING_CONTRACT_ID),
+    "contract_version": choice(CANONICAL_CONTEXT_BINDING_CONTRACT_VERSION),
+    "plan_type": choice("POSM", "TGSM"),
+    "plan_yyyyww": yyyyww,
+    "plan_start_date": day,
+    "plan_end_date": day,
+    "master_as_of_date": day,
+    "master_snapshot_revision": identifier,
+    "business_timezone": lambda value: _business_timezone(value),
+    "inventory_cutoff_at": timestamp,
+    "inventory_source_watermark": lambda value: _stable_text(value),
+    "quantity_rules_content_hash": hash_value,
+}
+CANONICAL_CONTEXT_BINDING_FIELDS = {
+    **CANONICAL_CONTEXT_BINDING_BODY_FIELDS,
+    "content_hash": hash_value,
+}
+
+
+def _stable_text(value: Any) -> str:
+    require(
+        isinstance(value, str)
+        and value == value.strip()
+        and bool(value)
+        and len(value) <= 512
+        and re.search(r"[\x00-\x1f\x7f]", value) is None,
+        "INVALID_STABLE_TEXT",
+    )
+    return value
+
+
+def _business_timezone(value: Any) -> str:
+    normalized = _stable_text(value)
+    try:
+        ZoneInfo(normalized)
+    except (ZoneInfoNotFoundError, ValueError):
+        require(False, "INVALID_BUSINESS_TIMEZONE")
+    return normalized
+
+
+def _canonical_context_binding_body(
+    context: Mapping[str, Any],
+    quantity_rules: list[Mapping[str, Any]],
+) -> dict[str, Any]:
+    """Normalize the claimable, non-attempt Canonical admission context."""
+
+    require(type(context) is dict, "CANONICAL_CONTEXT_BINDING_CONTEXT_INVALID")
+    require(type(quantity_rules) is list, "CANONICAL_CONTEXT_BINDING_QUANTITY_RULES_INVALID")
+    normalized_context = shape(
+        {
+            key: context.get(key)
+            for key in CANONICAL_CONTEXT_BINDING_BODY_FIELDS
+            if key
+            not in {
+                "contract_id",
+                "contract_version",
+                "quantity_rules_content_hash",
+            }
+        },
+        {
+            key: rule
+            for key, rule in CANONICAL_CONTEXT_BINDING_BODY_FIELDS.items()
+            if key not in {"contract_id", "contract_version", "quantity_rules_content_hash"}
+        },
+    )
+    require(
+        date.fromisoformat(normalized_context["plan_start_date"])
+        <= date.fromisoformat(normalized_context["plan_end_date"]),
+        "CANONICAL_CONTEXT_BINDING_HORIZON_INVALID",
+    )
+    return {
+        "contract_id": CANONICAL_CONTEXT_BINDING_CONTRACT_ID,
+        "contract_version": CANONICAL_CONTEXT_BINDING_CONTRACT_VERSION,
+        **normalized_context,
+        "quantity_rules_content_hash": digest(quantity_rules),
+    }
+
+
+def seal_canonical_context_binding(
+    canonical_input: CanonicalInputRequest,
+) -> dict[str, Any]:
+    """Seal Context and normalized quantity rules from an actual Canonical value object."""
+
+    canonical = CanonicalInputRequest.from_dict(canonical_input.to_dict()).to_dict()
+    body = _canonical_context_binding_body(
+        canonical["context"],
+        canonical["quantity_rules"],
+    )
+    return {**body, "content_hash": digest(body)}
+
+
+def validate_canonical_context_binding(value: Any) -> dict[str, Any]:
+    """Validate the binding wire and its self-hash before it enters a Run claim."""
+
+    normalized = shape(value, CANONICAL_CONTEXT_BINDING_FIELDS)
+    body = {key: normalized[key] for key in CANONICAL_CONTEXT_BINDING_BODY_FIELDS}
+    require(
+        date.fromisoformat(body["plan_start_date"]) <= date.fromisoformat(body["plan_end_date"]),
+        "CANONICAL_CONTEXT_BINDING_HORIZON_INVALID",
+    )
+    require(
+        normalized["content_hash"] == digest(body),
+        "CANONICAL_CONTEXT_BINDING_HASH_MISMATCH",
+    )
+    return normalized
 
 
 def _uuid(value: Any) -> str:
@@ -142,6 +261,8 @@ def _claim(value: Any) -> dict[str, Any]:
         value = dict(value)
         value.setdefault("expected_automatic_publish_allowed", None)
         value.setdefault("expected_automatic_order_allowed", None)
+        value.setdefault("strategy_execution_plan", None)
+        value.setdefault("canonical_context_binding", None)
     result = shape(
         value,
         {
@@ -162,6 +283,8 @@ def _claim(value: Any) -> dict[str, Any]:
             "site_binding_hash": hash_value,
             "expected_automatic_publish_allowed": optional(boolean),
             "expected_automatic_order_allowed": optional(boolean),
+            "strategy_execution_plan": optional(validate_strategy_execution_plan),
+            "canonical_context_binding": optional(validate_canonical_context_binding),
             "trigger_type": choice("manual", "scheduled", "api", "recovery"),
             "idempotency_key_hash": hash_value,
             "request_id": _opaque,
@@ -210,10 +333,30 @@ def _claim(value: Any) -> dict[str, Any]:
         "INVENTORY_POLICY_BINDING_MISMATCH",
     )
     classification = by_type.get("INVENTORY_CLASSIFICATION")
+    strategy_execution_plan = result["strategy_execution_plan"]
+    canonical_context_binding = result["canonical_context_binding"]
     require(
         (classification is None and policy["source_contract_version"] == "1.0.0")
         or (classification is not None and policy["source_contract_version"] == "2.0.0"),
         "INVENTORY_POLICY_BINDING_VERSION_MISMATCH",
+    )
+    require(
+        (classification is None and strategy_execution_plan is None)
+        or (classification is not None and strategy_execution_plan is not None),
+        (
+            "RUNTIME_STRATEGY_EXECUTION_PLAN_UNEXPECTED"
+            if classification is None
+            else "RUNTIME_STRATEGY_EXECUTION_PLAN_REQUIRED"
+        ),
+    )
+    require(
+        (classification is None and canonical_context_binding is None)
+        or (classification is not None and canonical_context_binding is not None),
+        (
+            "RUNTIME_CANONICAL_CONTEXT_BINDING_UNEXPECTED"
+            if classification is None
+            else "RUNTIME_CANONICAL_CONTEXT_BINDING_REQUIRED"
+        ),
     )
     expected_gates = (
         result["expected_automatic_publish_allowed"],
@@ -235,6 +378,16 @@ def _claim(value: Any) -> dict[str, Any]:
             else "RUNTIME_V2_POLICY_ADMISSION_REQUIRED"
         ),
     )
+    if classification is not None:
+        require(
+            strategy_execution_plan["classification_config_hash"] == result["config_hash"]
+            and strategy_execution_plan["effective_policy_content_hash"]
+            == classification["source_content_hash"],
+            "RUNTIME_STRATEGY_EXECUTION_PLAN_POLICY_MISMATCH",
+        )
+    else:
+        # The additive V2 field must not change the normalized V1 wire or hash.
+        del result["canonical_context_binding"]
     result["input_bindings"] = sorted(bindings, key=lambda item: item["input_type"])
     return result
 
@@ -274,12 +427,14 @@ def validate_effective_policy_runtime_binding(
 def validate_canonical_runtime_binding(
     request: "InventoryRuntimeExecutionRequest",
     *,
-    context: Mapping[str, Any],
-    input_bindings: Mapping[str, Any],
-    forecast_provenance: Mapping[str, Any],
+    canonical_input: CanonicalInputRequest,
 ) -> None:
     """Bind a Platform claim to one canonical attempt and its Demand provenance."""
 
+    canonical = CanonicalInputRequest.from_dict(canonical_input.to_dict()).to_dict()
+    context = canonical["context"]
+    input_bindings = canonical["input_bindings"]
+    forecast_provenance = canonical["snapshots"]["forecast"]["metadata"]
     claim = request.value["claim"]
     require(
         request.engine_run_id == context.get("engine_run_id"),
@@ -316,6 +471,10 @@ def validate_canonical_runtime_binding(
         "RUNTIME_CANONICAL_CONFIG_REVISION_MISMATCH",
     )
     require(
+        claim["canonical_context_binding"] == seal_canonical_context_binding(canonical_input),
+        "RUNTIME_CANONICAL_CONTEXT_BINDING_MISMATCH",
+    )
+    require(
         claim["plan_key_hash"]
         == digest(
             {
@@ -349,14 +508,84 @@ def validate_canonical_runtime_binding(
         "input_bindings": claim["input_bindings"],
     }
     if "INVENTORY_CLASSIFICATION" in by_type:
+        site_identity["canonical_context_binding_hash"] = claim["canonical_context_binding"][
+            "content_hash"
+        ]
         site_identity["effective_policy_admission"] = {
             "automatic_publish_allowed": claim["expected_automatic_publish_allowed"],
             "automatic_order_allowed": claim["expected_automatic_order_allowed"],
         }
+        site_identity["strategy_execution_plan_content_hash"] = claim["strategy_execution_plan"][
+            "content_hash"
+        ]
     require(
         claim["site_binding_hash"] == digest(site_identity),
         "RUNTIME_SITE_BINDING_HASH_MISMATCH",
     )
+
+
+def validate_result_bundle_runtime_binding(
+    request: "InventoryRuntimeExecutionRequest",
+    bundle: Mapping[str, Any],
+    *,
+    expected_canonical_input_hash: str,
+) -> dict[str, Any]:
+    """Bind a sealed Bundle back to the exact Platform-claimed Attempt."""
+
+    expected_canonical_input_hash = hash_value(expected_canonical_input_hash)
+    claim = request.value["claim"]
+    strategy_plan = request.strategy_execution_plan
+    require(strategy_plan is not None, "RUNTIME_RESULT_BUNDLE_PLAN_REQUIRED")
+    normalized = validate_inventory_result_bundle(
+        bundle,
+        strategy_execution_plan=strategy_plan,
+    )
+    classification = request.classification_binding
+    require(classification is not None, "RUNTIME_RESULT_BUNDLE_CLASSIFICATION_REQUIRED")
+    require(
+        normalized["engine_run_id"] == request.engine_run_id
+        and normalized["attempt_no"] == request.value["attempt_no"],
+        "RUNTIME_RESULT_BUNDLE_ATTEMPT_MISMATCH",
+    )
+    require(
+        normalized["tenant_id"] == claim["tenant_id"]
+        and normalized["project_id"] == claim["project_id"],
+        "RUNTIME_RESULT_BUNDLE_OWNER_MISMATCH",
+    )
+    require(
+        all(
+            normalized[key] == claim[key]
+            for key in (
+                "planning_cycle_id",
+                "planning_cycle_revision_id",
+                "cycle_site_execution_id",
+                "plan_id",
+            )
+        )
+        and normalized["scope"] == claim["scope"],
+        "RUNTIME_RESULT_BUNDLE_SCOPE_MISMATCH",
+    )
+    require(
+        normalized["canonical_input_hash"] == expected_canonical_input_hash,
+        "RUNTIME_RESULT_BUNDLE_CANONICAL_INPUT_MISMATCH",
+    )
+    require(
+        normalized["site_binding_hash"] == claim["site_binding_hash"]
+        and normalized["strategy_execution_plan_id"] == strategy_plan["strategy_execution_plan_id"]
+        and normalized["strategy_execution_plan_content_hash"] == strategy_plan["content_hash"],
+        "RUNTIME_RESULT_BUNDLE_INPUT_BINDING_MISMATCH",
+    )
+    require(
+        normalized["classification_config_hash"] == claim["config_hash"]
+        and normalized["effective_policy_content_hash"] == classification["source_content_hash"],
+        "RUNTIME_RESULT_BUNDLE_POLICY_MISMATCH",
+    )
+    require(
+        normalized["automatic_publish_allowed"] == claim["expected_automatic_publish_allowed"]
+        and normalized["automatic_order_allowed"] == claim["expected_automatic_order_allowed"],
+        "RUNTIME_RESULT_BUNDLE_GATE_MISMATCH",
+    )
+    return normalized
 
 
 @dataclass(frozen=True, slots=True)
@@ -408,6 +637,7 @@ class InventoryRuntimeExecutionRequest:
         if value["claim"]["expected_automatic_publish_allowed"] is None:
             del value["claim"]["expected_automatic_publish_allowed"]
             del value["claim"]["expected_automatic_order_allowed"]
+            del value["claim"]["strategy_execution_plan"]
         return digest(value)
 
     @property
@@ -420,6 +650,16 @@ class InventoryRuntimeExecutionRequest:
             ),
             None,
         )
+
+    @property
+    def strategy_execution_plan(self) -> dict[str, Any] | None:
+        value = self.value["claim"]["strategy_execution_plan"]
+        return None if value is None else dict(value)
+
+    @property
+    def canonical_context_binding(self) -> dict[str, Any] | None:
+        value = self.value["claim"].get("canonical_context_binding")
+        return None if value is None else dict(value)
 
     def to_dict(self) -> dict[str, Any]:
         return {**self.value, "claim": {**self.value["claim"]}}
@@ -453,11 +693,17 @@ class InventoryRuntimeExecutionReceipt:
 
 
 __all__ = [
+    "CANONICAL_CONTEXT_BINDING_CONTRACT_ID",
+    "CANONICAL_CONTEXT_BINDING_CONTRACT_VERSION",
+    "CANONICAL_CONTEXT_BINDING_FIELDS",
     "CONTRACT_ID",
     "CONTRACT_VERSION",
     "InventoryRuntimeExecutionReceipt",
     "InventoryRuntimeExecutionRequest",
     "RECEIPT_ID",
+    "seal_canonical_context_binding",
+    "validate_canonical_context_binding",
     "validate_canonical_runtime_binding",
     "validate_effective_policy_runtime_binding",
+    "validate_result_bundle_runtime_binding",
 ]

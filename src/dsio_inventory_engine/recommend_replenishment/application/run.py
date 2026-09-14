@@ -47,11 +47,8 @@ class RunRecommendedPsiUseCase:
         request = RecommendationRequest.from_dict(request.to_dict())
         require(self.deployment.environment == "DEVELOPMENT", "LOCAL_RECOMMENDATION_ONLY")
         data = request.to_dict()
-        prepared = (
-            PrepareInventoryInputUseCase(self.deployment)
-            .execute(CanonicalInputRequest.from_dict(data["canonical_input"]))
-            .to_dict()
-        )
+        canonical_input = CanonicalInputRequest.from_dict(data["canonical_input"])
+        prepared = PrepareInventoryInputUseCase(self.deployment).execute(canonical_input).to_dict()
         execution = data["execution"]
         require(
             descriptor(strategy.descriptor) == execution["strategy"], "STRATEGY_BINDING_MISMATCH"
@@ -65,6 +62,7 @@ class RunRecommendedPsiUseCase:
             prepared,
             execution,
             runtime_request=runtime_request,
+            canonical_input=canonical_input,
         )
         with localcontext() as ctx:
             ctx.prec = 40
@@ -126,6 +124,7 @@ def apply_effective_policy_controls(
     execution: dict,
     *,
     runtime_request: InventoryRuntimeExecutionRequest | None = None,
+    canonical_input: CanonicalInputRequest | None = None,
 ) -> dict[str, dict]:
     """Admit V2 item policies and project their operational controls onto Source policy rows."""
 
@@ -133,16 +132,17 @@ def apply_effective_policy_controls(
         require(runtime_request is None, "RUNTIME_BINDING_UNEXPECTED_FOR_V1")
         return {}
     if execution["execution_mode"] == "PLATFORM_BOUND":
-        require(runtime_request is not None, "RUNTIME_EXECUTION_BINDING_REQUIRED")
+        require(
+            runtime_request is not None and canonical_input is not None,
+            "RUNTIME_EXECUTION_BINDING_REQUIRED",
+        )
         validate_effective_policy_runtime_binding(
             runtime_request,
             execution["effective_policy_binding"],
         )
         validate_canonical_runtime_binding(
             runtime_request,
-            context=prepared["context"],
-            input_bindings=prepared["manifest"]["input_bindings"],
-            forecast_provenance=prepared["canonical_snapshots"]["forecast"]["metadata"],
+            canonical_input=canonical_input,
         )
     else:
         require(runtime_request is None, "LOCAL_SHADOW_RUNTIME_BINDING_FORBIDDEN")

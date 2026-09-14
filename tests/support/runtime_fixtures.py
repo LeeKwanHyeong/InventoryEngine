@@ -11,6 +11,38 @@ CONFIG_ID = "20000000-0000-4000-8000-000000000001"
 CONFIG_REVISION_ID = "30000000-0000-4000-8000-000000000001"
 CLASSIFICATION_SNAPSHOT_ID = "40000000-0000-4000-8000-000000000001"
 DEMAND_RUN_ID = "50000000-0000-4000-8000-000000000001"
+_CANONICAL_CONTEXT_KEYS = (
+    "plan_type",
+    "plan_yyyyww",
+    "plan_start_date",
+    "plan_end_date",
+    "master_as_of_date",
+    "master_snapshot_revision",
+    "business_timezone",
+    "inventory_cutoff_at",
+    "inventory_source_watermark",
+)
+_DEFAULT_CANONICAL = {
+    "context": {
+        "plan_type": "POSM",
+        "plan_yyyyww": "202640",
+        "plan_start_date": "2026-09-28",
+        "plan_end_date": "2026-10-18",
+        "master_as_of_date": "2026-09-28",
+        "master_snapshot_revision": "MASTER-R1",
+        "business_timezone": "Asia/Seoul",
+        "inventory_cutoff_at": "2026-09-27T15:00:00Z",
+        "inventory_source_watermark": "WATERMARK-R1",
+    },
+    "quantity_rules": [
+        {
+            "uom": "EA",
+            "scale": 0,
+            "tolerance_qty": "0",
+            "approval_reference": "FIXTURE-UOM-R1",
+        }
+    ],
+}
 
 
 def runtime_dispatch() -> dict:
@@ -112,6 +144,10 @@ def runtime_dispatch_v2(
     value["claim"]["config_hash"] = config_hash
     value["claim"]["expected_automatic_publish_allowed"] = expected_automatic_publish_allowed
     value["claim"]["expected_automatic_order_allowed"] = expected_automatic_order_allowed
+    value["claim"]["strategy_execution_plan"] = runtime_strategy_execution_plan(
+        config_hash=config_hash,
+        effective_policy_content_hash=effective_policy_content_hash,
+    )
     policy = next(
         row for row in value["claim"]["input_bindings"] if row["input_type"] == "INVENTORY_POLICY"
     )
@@ -126,7 +162,51 @@ def runtime_dispatch_v2(
             "source_contract_version": "2.0.0",
         }
     )
-    return value
+    value["claim"]["canonical_context_binding"] = _canonical_context_binding(_DEFAULT_CANONICAL)
+    return reseal_runtime_site_binding(value)
+
+
+def runtime_strategy_execution_plan(
+    *,
+    config_hash: str,
+    effective_policy_content_hash: str,
+) -> dict:
+    """Literal V1 strategy plan used on the Platform/Runtime wire."""
+
+    body = {
+        "contract_id": "inventory-strategy-execution-plan-v1",
+        "contract_version": "1.0.0",
+        "strategy_execution_plan_id": "IO-PLAN-1",
+        "classification_config_hash": config_hash,
+        "effective_policy_content_hash": effective_policy_content_hash,
+        "base_scenario_content_hash": "6" * 64,
+        "operational_strategy": {
+            "strategy_type": "MATHEMATICAL",
+            "implementation_id": "math-policy",
+            "version": "2.0.0",
+            "implementation_content_hash": "d" * 64,
+        },
+        "shadow_challenger_bindings": [
+            {
+                "challenger_id": "ppo-shadow-1",
+                "strategy_type": "DEEP_RL",
+                "algorithm": "PPO",
+                "implementation_id": "ppo-policy",
+                "version": "1.0.0",
+                "implementation_content_hash": "e" * 64,
+                "model": {
+                    "model_id": "ppo-model-1",
+                    "version": "1.0.0",
+                    "content_hash": "f" * 64,
+                },
+                "approval_reference": "MODEL-APPROVAL-1",
+            }
+        ],
+        "stress_scenario_bindings": [],
+        "result_bundle_contract_key": "inventory.result_bundle",
+        "result_bundle_contract_version": "1.0.0",
+    }
+    return {**body, "content_hash": _sha(body)}
 
 
 def bind_runtime_dispatch_to_canonical(value: dict, canonical: dict) -> dict:
@@ -173,6 +253,8 @@ def bind_runtime_dispatch_to_canonical(value: dict, canonical: dict) -> dict:
             "scope": claim["scope"],
         }
     )
+    if "INVENTORY_CLASSIFICATION" in by_type:
+        claim["canonical_context_binding"] = _canonical_context_binding(canonical)
     return reseal_runtime_site_binding(value)
 
 
@@ -186,12 +268,33 @@ def reseal_runtime_site_binding(value: dict) -> dict:
         "input_bindings": sorted(claim["input_bindings"], key=lambda row: row["input_type"]),
     }
     if "INVENTORY_CLASSIFICATION" in by_type:
+        site_identity["canonical_context_binding_hash"] = claim["canonical_context_binding"][
+            "content_hash"
+        ]
         site_identity["effective_policy_admission"] = {
             "automatic_publish_allowed": claim["expected_automatic_publish_allowed"],
             "automatic_order_allowed": claim["expected_automatic_order_allowed"],
         }
+        site_identity["strategy_execution_plan_content_hash"] = claim["strategy_execution_plan"][
+            "content_hash"
+        ]
     claim["site_binding_hash"] = _sha(site_identity)
     return value
+
+
+def _canonical_context_binding(canonical: dict) -> dict:
+    """Independent literal packaging of normalized Canonical context admission."""
+
+    context = canonical["context"]
+    body = {
+        "contract_id": "inventory-canonical-context-binding-v1",
+        "contract_version": "1.0.0",
+        **{key: context[key] for key in _CANONICAL_CONTEXT_KEYS},
+        "quantity_rules_content_hash": _sha(
+            sorted(canonical["quantity_rules"], key=lambda row: row["uom"])
+        ),
+    }
+    return {**body, "content_hash": _sha(body)}
 
 
 def runtime_plan_key_hash(value: dict) -> str:

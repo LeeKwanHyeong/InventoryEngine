@@ -74,7 +74,7 @@
     "learning_stability": "검증 기능/실행 완료: TRAIN52/VALIDATION52, 학습Seed3개×후보2개, 선정Hash 고정 후 새TEST Seed3개×104주. ML/PPO 모두 연구Gate 미달. 수학적 기준 유지; 운영 승인/통계적 우월성 주장 없음",
     "dsim_agent_and_read_api": "미구현; 현재 개발 선행 조건 아님",
     "inventory_git": "inventory_engine_dev Branch와 GitHub origin 구성",
-    "platform_branch": "dsai-platform: origin/develop 기반 codex/inventory-effective-policy",
+    "platform_branch": "dsai-platform: origin/develop 기반 codex/inventory-psi-strategy-v2",
     "strategy_shared_psi": "완료: 불변 계약·주차 전이·행동 검증·대기열·로컬 Recommended PSI. v1.1은 추가 전략 입력 Snapshot Binding을 지원; v1.0 유지",
     "mathematical_policy": "완료: FROZEN_PRE_W0 13/26주 이력·정규근사 SS/ROP/목표재고·승인 Override/정책 Fallback·독립 Golden. 실제 Source 적합성, 인증/Run/영속화 제외",
     "training_foundation": "완료: 52주 독립 BOH, 시간순 Feature/Label, 비용/서비스/지연 Reference World. 실제 Forecast Vintage, 운영 저장은 후속",

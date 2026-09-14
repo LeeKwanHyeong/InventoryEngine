@@ -10,6 +10,7 @@ from dsio_inventory_engine.inventory_contracts.values import InventoryInputError
 from tests.support.runtime_fixtures import runtime_dispatch
 from tests.support.runtime_fixtures import runtime_dispatch_v2
 from tests.support.runtime_fixtures import runtime_plan_key_hash
+from tests.support.runtime_fixtures import runtime_strategy_execution_plan
 
 
 class RuntimeExecutionContractTests(unittest.TestCase):
@@ -28,6 +29,13 @@ class RuntimeExecutionContractTests(unittest.TestCase):
         )
         self.assertIsNone(first.value["claim"]["expected_automatic_publish_allowed"])
         self.assertIsNone(first.value["claim"]["expected_automatic_order_allowed"])
+        self.assertIsNone(first.strategy_execution_plan)
+        self.assertIsNone(first.canonical_context_binding)
+        self.assertNotIn("canonical_context_binding", first.to_dict()["claim"])
+        self.assertEqual(
+            first.canonical_hash,
+            "6810bf4ce16a34fc12cd2d6f54d050a783e2bfe51cf50fc7ebc5d81be167dad2",
+        )
 
         explicit_null = runtime_dispatch()
         explicit_null["claim"].update(
@@ -37,6 +45,17 @@ class RuntimeExecutionContractTests(unittest.TestCase):
         self.assertEqual(
             first.canonical_hash,
             InventoryRuntimeExecutionRequest.from_dict(explicit_null).canonical_hash,
+        )
+
+        explicit_null["claim"]["strategy_execution_plan"] = None
+        explicit_null["claim"]["canonical_context_binding"] = None
+        self.assertEqual(
+            first.canonical_hash,
+            InventoryRuntimeExecutionRequest.from_dict(explicit_null).canonical_hash,
+        )
+        self.assertNotIn(
+            "canonical_context_binding",
+            InventoryRuntimeExecutionRequest.from_dict(explicit_null).to_dict()["claim"],
         )
 
     def test_missing_or_changed_binding_fails_closed(self):
@@ -184,6 +203,106 @@ class RuntimeExecutionContractTests(unittest.TestCase):
         )
         self.assertFalse(request.value["claim"]["expected_automatic_publish_allowed"])
         self.assertFalse(request.value["claim"]["expected_automatic_order_allowed"])
+        self.assertEqual(
+            request.strategy_execution_plan["effective_policy_content_hash"],
+            "c" * 64,
+        )
+        self.assertEqual(
+            request.strategy_execution_plan["result_bundle_contract_key"],
+            "inventory.result_bundle",
+        )
+        self.assertEqual(
+            request.canonical_context_binding["contract_id"],
+            "inventory-canonical-context-binding-v1",
+        )
+        self.assertEqual(request.canonical_context_binding["contract_version"], "1.0.0")
+        self.assertRegex(request.canonical_context_binding["content_hash"], r"^[0-9a-f]{64}$")
+
+    def test_v2_requires_a_sealed_canonical_context_binding(self):
+        missing = runtime_dispatch_v2(
+            config_hash="a" * 64,
+            effective_policy_content_hash="c" * 64,
+        )
+        del missing["claim"]["canonical_context_binding"]
+        with self.assertRaisesRegex(
+            InventoryInputError,
+            "RUNTIME_CANONICAL_CONTEXT_BINDING_REQUIRED",
+        ):
+            InventoryRuntimeExecutionRequest.from_dict(missing)
+
+        tampered = runtime_dispatch_v2(
+            config_hash="a" * 64,
+            effective_policy_content_hash="c" * 64,
+        )
+        tampered["claim"]["canonical_context_binding"]["plan_type"] = "TGSM"
+        with self.assertRaisesRegex(
+            InventoryInputError,
+            "CANONICAL_CONTEXT_BINDING_HASH_MISMATCH",
+        ):
+            InventoryRuntimeExecutionRequest.from_dict(tampered)
+
+    def test_v1_rejects_canonical_context_binding(self):
+        value = runtime_dispatch()
+        value["claim"]["canonical_context_binding"] = runtime_dispatch_v2(
+            config_hash="a" * 64,
+            effective_policy_content_hash="c" * 64,
+        )["claim"]["canonical_context_binding"]
+        with self.assertRaisesRegex(
+            InventoryInputError,
+            "RUNTIME_CANONICAL_CONTEXT_BINDING_UNEXPECTED",
+        ):
+            InventoryRuntimeExecutionRequest.from_dict(value)
+
+    def test_v2_requires_a_sealed_policy_bound_strategy_execution_plan(self):
+        missing = runtime_dispatch_v2(
+            config_hash="a" * 64,
+            effective_policy_content_hash="c" * 64,
+        )
+        del missing["claim"]["strategy_execution_plan"]
+        with self.assertRaisesRegex(
+            InventoryInputError,
+            "RUNTIME_STRATEGY_EXECUTION_PLAN_REQUIRED",
+        ):
+            InventoryRuntimeExecutionRequest.from_dict(missing)
+
+        tampered = runtime_dispatch_v2(
+            config_hash="a" * 64,
+            effective_policy_content_hash="c" * 64,
+        )
+        tampered["claim"]["strategy_execution_plan"]["operational_strategy"][
+            "implementation_id"
+        ] = "tampered"
+        with self.assertRaisesRegex(
+            InventoryInputError,
+            "STRATEGY_EXECUTION_PLAN_HASH_MISMATCH",
+        ):
+            InventoryRuntimeExecutionRequest.from_dict(tampered)
+
+        mismatched = runtime_dispatch_v2(
+            config_hash="a" * 64,
+            effective_policy_content_hash="c" * 64,
+        )
+        mismatched["claim"]["strategy_execution_plan"] = runtime_strategy_execution_plan(
+            config_hash="b" * 64,
+            effective_policy_content_hash="c" * 64,
+        )
+        with self.assertRaisesRegex(
+            InventoryInputError,
+            "RUNTIME_STRATEGY_EXECUTION_PLAN_POLICY_MISMATCH",
+        ):
+            InventoryRuntimeExecutionRequest.from_dict(mismatched)
+
+    def test_v1_rejects_strategy_execution_plan(self):
+        value = runtime_dispatch()
+        value["claim"]["strategy_execution_plan"] = runtime_strategy_execution_plan(
+            config_hash="3" * 64,
+            effective_policy_content_hash="c" * 64,
+        )
+        with self.assertRaisesRegex(
+            InventoryInputError,
+            "RUNTIME_STRATEGY_EXECUTION_PLAN_UNEXPECTED",
+        ):
+            InventoryRuntimeExecutionRequest.from_dict(value)
 
     def test_v2_requires_both_sealed_policy_admission_flags(self):
         for field, value in (

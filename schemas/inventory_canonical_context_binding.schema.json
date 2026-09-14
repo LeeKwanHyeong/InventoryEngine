@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dsio.local/schemas/inventory_canonical_context_binding.schema.json",
+  "title": "Inventory Canonical Context Binding v1",
+  "description": "V2 Runtime Claim binding for normalized Canonical planning context and quantity rules.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_id",
+    "contract_version",
+    "plan_type",
+    "plan_yyyyww",
+    "plan_start_date",
+    "plan_end_date",
+    "master_as_of_date",
+    "master_snapshot_revision",
+    "business_timezone",
+    "inventory_cutoff_at",
+    "inventory_source_watermark",
+    "quantity_rules_content_hash",
+    "content_hash"
+  ],
+  "properties": {
+    "contract_id": {
+      "const": "inventory-canonical-context-binding-v1"
+    },
+    "contract_version": {
+      "const": "1.0.0"
+    },
+    "plan_type": {
+      "enum": ["POSM", "TGSM"]
+    },
+    "plan_yyyyww": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]{3}(0[1-9]|[1-4][0-9]|5[0-3])$"
+    },
+    "plan_start_date": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "plan_end_date": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "master_as_of_date": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "master_snapshot_revision": {
+      "$ref": "#/$defs/id"
+    },
+    "business_timezone": {
+      "allOf": [
+        { "$ref": "#/$defs/text" },
+        {
+          "description": "Inventory validates this as an installed IANA ZoneInfo identifier."
+        }
+      ]
+    },
+    "inventory_cutoff_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "inventory_source_watermark": {
+      "$ref": "#/$defs/text"
+    },
+    "quantity_rules_content_hash": {
+      "$ref": "#/$defs/hash"
+    },
+    "content_hash": {
+      "$ref": "#/$defs/hash"
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "allOf": [
+        { "pattern": "^\\S(?:.*\\S)?$" },
+        { "pattern": "^[^\\u0000-\\u001F\\u007F]+$" }
+      ]
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

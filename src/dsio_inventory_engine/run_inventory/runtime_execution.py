@@ -6,12 +6,23 @@ import re
 from dataclasses import dataclass
 from typing import Any, Awaitable, Callable, Mapping, Protocol
 
+from dsio_inventory_engine.inventory_contracts.canonical import (
+    CanonicalInputRequest,
+    snapshot_content,
+)
 from dsio_inventory_engine.inventory_contracts.runtime import (
     InventoryRuntimeExecutionReceipt,
     InventoryRuntimeExecutionRequest,
+    validate_canonical_runtime_binding,
+    validate_result_bundle_runtime_binding,
+)
+from dsio_inventory_engine.inventory_contracts.result_bundle import (
+    RESULT_BUNDLE_CONTRACT_VERSION,
+    RESULT_BUNDLE_SOURCE_CONTRACT_KEY,
 )
 from dsio_inventory_engine.inventory_contracts.values import (
     InventoryInputError,
+    digest,
     hash_value,
     identifier,
     require,
@@ -25,6 +36,10 @@ class InventoryRuntimeResult:
     automatic_publish_allowed: bool | None = None
     automatic_order_allowed: bool | None = None
     effective_policy_content_hash: str | None = None
+    inventory_result_contract_key: str | None = None
+    inventory_result_contract_version: str | None = None
+    canonical_input: CanonicalInputRequest | None = None
+    inventory_result_bundle: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         identifier(self.inventory_result_snapshot_id)
@@ -48,6 +63,30 @@ class InventoryRuntimeResult:
         )
         if self.effective_policy_content_hash is not None:
             hash_value(self.effective_policy_content_hash)
+        require(
+            (self.inventory_result_contract_key is None)
+            == (self.inventory_result_contract_version is None),
+            "RUNTIME_RESULT_CONTRACT_BINDING_INCOMPLETE",
+        )
+        if self.inventory_result_contract_key is not None:
+            require(
+                self.inventory_result_contract_key == RESULT_BUNDLE_SOURCE_CONTRACT_KEY
+                and self.inventory_result_contract_version == RESULT_BUNDLE_CONTRACT_VERSION,
+                "RUNTIME_RESULT_CONTRACT_BINDING_INVALID",
+            )
+        require(
+            (self.canonical_input is None) == (self.inventory_result_bundle is None),
+            "RUNTIME_RESULT_BUNDLE_PAYLOAD_INCOMPLETE",
+        )
+        if self.canonical_input is not None:
+            require(
+                isinstance(self.canonical_input, CanonicalInputRequest),
+                "RUNTIME_RESULT_CANONICAL_INPUT_INVALID",
+            )
+            require(
+                isinstance(self.inventory_result_bundle, Mapping),
+                "RUNTIME_RESULT_BUNDLE_PAYLOAD_INVALID",
+            )
 
 
 @dataclass(frozen=True, slots=True)
@@ -234,6 +273,18 @@ class InventoryRuntimeWorker:
             row_version = receipt.site_row_version
             raise
 
+        sealed_result_payload: dict[str, str | bool | None] = {
+            "inventory_result_snapshot_id": result.inventory_result_snapshot_id,
+            "inventory_result_content_hash": result.inventory_result_content_hash,
+            "automatic_publish_allowed": automatic_publish_allowed,
+            "automatic_order_allowed": automatic_order_allowed,
+            "effective_policy_content_hash": result.effective_policy_content_hash,
+        }
+        if result.inventory_result_contract_key is not None:
+            sealed_result_payload.update(
+                inventory_result_contract_key=result.inventory_result_contract_key,
+                inventory_result_contract_version=result.inventory_result_contract_version,
+            )
         terminal = await self._platform.append_event(
             request,
             InventoryRuntimeStageEvent(
@@ -246,18 +297,12 @@ class InventoryRuntimeWorker:
                     if automatic_publish_allowed
                     else "INVENTORY_RESULT_REVIEW_REQUIRED"
                 ),
-                payload_redacted={
-                    "inventory_result_snapshot_id": result.inventory_result_snapshot_id,
-                    "inventory_result_content_hash": result.inventory_result_content_hash,
-                    "automatic_publish_allowed": automatic_publish_allowed,
-                    "automatic_order_allowed": automatic_order_allowed,
-                    "effective_policy_content_hash": result.effective_policy_content_hash,
-                },
+                payload_redacted=sealed_result_payload,
             ),
         )
         row_version = terminal.site_row_version
         if not automatic_publish_allowed:
-            return {
+            review_result = {
                 "engine_run_id": request.engine_run_id,
                 "status": "review_required",
                 "publication_status": "withheld_for_review",
@@ -268,6 +313,12 @@ class InventoryRuntimeWorker:
                 "automatic_order_allowed": False,
                 "site_row_version": row_version,
             }
+            if result.inventory_result_contract_key is not None:
+                review_result.update(
+                    inventory_result_contract_key=result.inventory_result_contract_key,
+                    inventory_result_contract_version=result.inventory_result_contract_version,
+                )
+            return review_result
         publication = await self._platform.publish(
             request,
             expected_site_row_version=row_version,
@@ -279,7 +330,7 @@ class InventoryRuntimeWorker:
             and publication.get("site_status") == "succeeded",
             "PLATFORM_PUBLICATION_RECEIPT_INVALID",
         )
-        return {
+        published_result = {
             "engine_run_id": request.engine_run_id,
             "status": "succeeded",
             "inventory_result_snapshot_id": result.inventory_result_snapshot_id,
@@ -288,6 +339,12 @@ class InventoryRuntimeWorker:
             "cycle_status": str(publication["cycle_status"]),
             "replayed": bool(publication["replayed"]),
         }
+        if result.inventory_result_contract_key is not None:
+            published_result.update(
+                inventory_result_contract_key=result.inventory_result_contract_key,
+                inventory_result_contract_version=result.inventory_result_contract_version,
+            )
+        return published_result
 
 
 def _stable_error_code(exc: Exception) -> str:
@@ -298,6 +355,39 @@ def _stable_error_code(exc: Exception) -> str:
     return "INVENTORY_RUNTIME_EXECUTION_FAILED"
 
 
+def _validate_result_canonical_input(
+    request: InventoryRuntimeExecutionRequest,
+    canonical_input: CanonicalInputRequest,
+) -> CanonicalInputRequest:
+    """Re-admit the Handler's actual input and independently derive its hash."""
+
+    canonical = CanonicalInputRequest.from_dict(canonical_input.to_dict())
+    data = canonical.to_dict()
+    for kind, snapshot in data["snapshots"].items():
+        require(snapshot["status"] == "SEALED", "UNSEALED_INPUT")
+        require(
+            snapshot["row_count"] == len(snapshot["rows"]),
+            "SNAPSHOT_ROW_COUNT_MISMATCH",
+        )
+        require(
+            snapshot["content_hash"] == digest(snapshot_content(kind, snapshot)),
+            "SNAPSHOT_HASH_MISMATCH",
+        )
+        require(
+            data["input_bindings"][kind]
+            == {
+                "snapshot_id": snapshot["snapshot_id"],
+                "content_hash": snapshot["content_hash"],
+            },
+            "PINNED_INPUT_MISMATCH",
+        )
+    validate_canonical_runtime_binding(
+        request,
+        canonical_input=canonical,
+    )
+    return canonical
+
+
 def _validate_result_policy_binding(
     request: InventoryRuntimeExecutionRequest,
     result: InventoryRuntimeResult,
@@ -306,6 +396,10 @@ def _validate_result_policy_binding(
     if classification is None:
         require(
             result.effective_policy_content_hash is None
+            and result.inventory_result_contract_key is None
+            and result.inventory_result_contract_version is None
+            and result.canonical_input is None
+            and result.inventory_result_bundle is None
             and (
                 (
                     result.automatic_publish_allowed is None
@@ -323,6 +417,11 @@ def _validate_result_policy_binding(
         result.effective_policy_content_hash == classification["source_content_hash"],
         "RUNTIME_EFFECTIVE_POLICY_RESULT_HASH_MISMATCH",
     )
+    require(
+        result.inventory_result_contract_key == RESULT_BUNDLE_SOURCE_CONTRACT_KEY
+        and result.inventory_result_contract_version == RESULT_BUNDLE_CONTRACT_VERSION,
+        "RUNTIME_RESULT_BUNDLE_CONTRACT_REQUIRED",
+    )
     expected = (
         request.value["claim"]["expected_automatic_publish_allowed"],
         request.value["claim"]["expected_automatic_order_allowed"],
@@ -336,6 +435,21 @@ def _validate_result_policy_binding(
         "RUNTIME_EFFECTIVE_POLICY_RESULT_GATE_REQUIRED",
     )
     require(actual == expected, "RUNTIME_EFFECTIVE_POLICY_RESULT_GATE_MISMATCH")
+    require(
+        result.canonical_input is not None and result.inventory_result_bundle is not None,
+        "RUNTIME_RESULT_BUNDLE_REQUIRED",
+    )
+    canonical = _validate_result_canonical_input(request, result.canonical_input)
+    bundle = validate_result_bundle_runtime_binding(
+        request,
+        result.inventory_result_bundle,
+        expected_canonical_input_hash=canonical.input_hash,
+    )
+    require(
+        result.inventory_result_snapshot_id == bundle["result_bundle_id"]
+        and result.inventory_result_content_hash == bundle["content_hash"],
+        "RUNTIME_RESULT_BUNDLE_POINTER_MISMATCH",
+    )
     return bool(actual[0]), bool(actual[1])
 
 

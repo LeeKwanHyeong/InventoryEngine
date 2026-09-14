@@ -140,15 +140,13 @@ def prepare_mathematical_strategy(
     require(deployment.environment == "DEVELOPMENT", "LOCAL_RECOMMENDATION_ONLY")
     data = request.to_dict()
     recommendation = RecommendationRequest.from_dict(data["recommendation"])
-    prepared = (
-        PrepareInventoryInputUseCase(deployment)
-        .execute(CanonicalInputRequest.from_dict(data["recommendation"]["canonical_input"]))
-        .to_dict()
-    )
+    canonical_input = CanonicalInputRequest.from_dict(data["recommendation"]["canonical_input"])
+    prepared = PrepareInventoryInputUseCase(deployment).execute(canonical_input).to_dict()
     apply_effective_policy_controls(
         prepared,
         data["recommendation"]["execution"],
         runtime_request=runtime_request,
+        canonical_input=canonical_input,
     )
     validate_controls(prepared, data["recommendation"]["execution"])
     validate_math_input(data["policy_input"], data["recommendation"], prepared)

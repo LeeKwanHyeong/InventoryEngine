@@ -33,7 +33,7 @@ dsai-platform 관련 Backend 62건과 Frontend 정적 계약 5건, Ruff와 diff-
 Migration 075·076의 개발 PostgreSQL 적용과 Rollback Canary는 포함하지만 실제 V2 업무 Snapshot,
 공통 Run DB Write와 공용 Runtime 배포 검증은 포함하지 않는다.
 
-dsai-platform의 관련 변경은 `develop`에 병합돼 있다. 후속 Inventory 작업은 `origin/develop`에서 분리한 `codex/inventory-effective-policy`에서 진행한다. `planning_cycle_revisions`, `planning_cycle_site_executions`, `engine_run_input_bindings`의 Migration 초안과 Repository/API, Demand Handoff Input Binding, Runtime Dispatch가 구현돼 있다. Migration 074 개발 DB 적용과 실제 Write E2E는 아직 수행하지 않았다.
+dsai-platform의 관련 변경은 `develop`에 병합돼 있다. 후속 Inventory 작업은 `origin/develop`에서 분리한 `codex/inventory-psi-strategy-v2`에서 진행한다. `planning_cycle_revisions`, `planning_cycle_site_executions`, `engine_run_input_bindings`의 Migration 초안과 Repository/API, Demand Handoff Input Binding, Runtime Dispatch가 구현돼 있다. Migration 074 개발 DB 적용과 실제 Write E2E는 아직 수행하지 않았다.
 
 ## 2. 다시 결정하지 않는 업무 기준선
 
