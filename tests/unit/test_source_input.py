@@ -132,6 +132,11 @@ class SourceTests(unittest.IsolatedAsyncioTestCase):
             ),
             ("inventory", lambda s: s["rows"][0].update(oper_part_no="ORPHAN"), "ORPHAN_ITEM"),
             ("forecast", lambda s: s["rows"].pop(), "MISSING_FORECAST_BUCKET"),
+            (
+                "forecast",
+                lambda s: s["semantics"]["selector"].update(plan_id="PLAN-OTHER"),
+                "FORECAST_SCOPE_MISMATCH",
+            ),
             ("inventory", lambda s: s.update(rows=[]), "MISSING_POSITION"),
             ("master", lambda s: s["rows"][0].update(stock_flag="N"), "EMPTY_BUFFER_UNIVERSE"),
             ("inventory", lambda s: s["metadata"].update(site_cd="V999"), "SOURCE_SCOPE_MISMATCH"),

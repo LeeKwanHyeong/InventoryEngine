@@ -153,8 +153,11 @@ def _validate_publication_receipt(receipt: Mapping[str, Any]) -> None:
     )
     hash_value(receipt.get("content_hash"))
     require(
-        receipt.get("item_result_contract_version") == "1.1.0"
-        and receipt.get("effective_policy_contract_version") == "1.0.0"
+        (
+            receipt.get("item_result_contract_version"),
+            receipt.get("effective_policy_contract_version"),
+        )
+        in {("1.1.0", "1.0.0"), ("2.0.0", "2.0.0")}
         and type(receipt.get("item_result_count")) is int
         and receipt["item_result_count"] == receipt.get("eligible_sku_count"),
         "INVENTORY_CLASSIFICATION_ITEM_RESULTS_INCOMPLETE",

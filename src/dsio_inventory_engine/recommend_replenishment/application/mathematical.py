@@ -17,6 +17,7 @@ from dsio_inventory_engine.inventory_contracts.replenishment import (
     ReplenishmentObservation,
     ReplenishmentProposal,
 )
+from dsio_inventory_engine.inventory_contracts.runtime import InventoryRuntimeExecutionRequest
 from dsio_inventory_engine.inventory_contracts.values import (
     canonical_json,
     digest,
@@ -28,7 +29,11 @@ from dsio_inventory_engine.prepare_inventory.application.inventory_input import 
 )
 from .math_input import validate_math_input
 from .math_policy import build_policy_report
-from .run import RunRecommendedPsiUseCase, validate_controls
+from .run import (
+    RunRecommendedPsiUseCase,
+    apply_effective_policy_controls,
+    validate_controls,
+)
 
 
 @dataclass(frozen=True)
@@ -90,12 +95,23 @@ class RunMathematicalReplenishmentUseCase:
     def __init__(self, deployment: DeploymentScope):
         self.deployment = deployment
 
-    def execute(self, request: MathematicalPolicyRequest) -> dict:
+    def execute(
+        self,
+        request: MathematicalPolicyRequest,
+        *,
+        runtime_request: InventoryRuntimeExecutionRequest | None = None,
+    ) -> dict:
         recommendation, _, report, strategy = prepare_mathematical_strategy(
-            request, self.deployment
+            request,
+            self.deployment,
+            runtime_request=runtime_request,
         )
         data = MathematicalPolicyRequest.from_dict(request.to_dict()).to_dict()
-        result = RunRecommendedPsiUseCase(self.deployment).execute(recommendation, strategy)
+        result = RunRecommendedPsiUseCase(self.deployment).execute(
+            recommendation,
+            strategy,
+            runtime_request=runtime_request,
+        )
         excluded = sum(
             r["effective_policy_source"] == "EXCLUDED" for r in report["policy_evidence"]
         )
@@ -114,7 +130,10 @@ class RunMathematicalReplenishmentUseCase:
 
 
 def prepare_mathematical_strategy(
-    request: MathematicalPolicyRequest, deployment: DeploymentScope
+    request: MathematicalPolicyRequest,
+    deployment: DeploymentScope,
+    *,
+    runtime_request: InventoryRuntimeExecutionRequest | None = None,
 ) -> tuple[RecommendationRequest, dict, dict, MathematicalStrategy]:
     """Single production admission/calculation path; no simulated future PSI needed."""
     request = MathematicalPolicyRequest.from_dict(request.to_dict())
@@ -125,6 +144,11 @@ def prepare_mathematical_strategy(
         PrepareInventoryInputUseCase(deployment)
         .execute(CanonicalInputRequest.from_dict(data["recommendation"]["canonical_input"]))
         .to_dict()
+    )
+    apply_effective_policy_controls(
+        prepared,
+        data["recommendation"]["execution"],
+        runtime_request=runtime_request,
     )
     validate_controls(prepared, data["recommendation"]["execution"])
     validate_math_input(data["policy_input"], data["recommendation"], prepared)

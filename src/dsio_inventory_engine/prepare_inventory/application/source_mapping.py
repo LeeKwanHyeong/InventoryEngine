@@ -135,7 +135,8 @@ def map_forecast(source: dict, master: dict, context: dict) -> list[dict]:
     )
     selector = semantics["selector"]
     require(
-        all(selector[k] == context[k] for k in (*SCOPE, "demand_run_id")), "FORECAST_SCOPE_MISMATCH"
+        all(selector[k] == context[k] for k in (*SCOPE, "demand_run_id", "plan_id")),
+        "FORECAST_SCOPE_MISMATCH",
     )
     require(
         selector["fcst_w0_yyyyww"] == context["plan_yyyyww"]

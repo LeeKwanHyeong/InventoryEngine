@@ -11,12 +11,21 @@
     },
     {
       "$ref": "#/$defs/executionV1_1"
+    },
+    {
+      "$ref": "#/$defs/executionV2"
     }
   ],
   "$defs": {
     "id": {
       "type": "string",
       "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    },
+    "itemId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^\\S(?:.*\\S)?$"
     },
     "hash": {
       "type": "string",
@@ -50,6 +59,24 @@
         "content_hash": {
           "$ref": "#/$defs/hash"
         }
+      }
+    },
+    "modelApproval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "approval_reference",
+        "status",
+        "model_id",
+        "version",
+        "content_hash"
+      ],
+      "properties": {
+        "approval_reference": { "$ref": "#/$defs/id" },
+        "status": { "const": "APPROVED" },
+        "model_id": { "$ref": "#/$defs/id" },
+        "version": { "$ref": "#/$defs/id" },
+        "content_hash": { "$ref": "#/$defs/hash" }
       }
     },
     "strategy": {
@@ -121,7 +148,7 @@
       ],
       "properties": {
         "item_id": {
-          "$ref": "#/$defs/id"
+          "$ref": "#/$defs/itemId"
         },
         "uom": {
           "$ref": "#/$defs/id"
@@ -415,6 +442,204 @@
         },
         "strategy_input_binding": {
           "$ref": "#/$defs/strategyInputBinding"
+        }
+      }
+    },
+    "effectivePolicyRunBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_id",
+        "contract_version",
+        "classification_snapshot_id",
+        "classification_config_hash",
+        "effective_policy_content_hash"
+      ],
+      "properties": {
+        "contract_id": { "const": "inventory-effective-policy-run-binding-v2" },
+        "contract_version": { "const": "2.0.0" },
+        "classification_snapshot_id": { "$ref": "#/$defs/id" },
+        "classification_config_hash": { "$ref": "#/$defs/hash" },
+        "effective_policy_content_hash": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "effectivePolicyProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["axis", "class_code", "source_contract_key", "policy_effect"],
+      "properties": {
+        "axis": { "enum": ["ABC", "XYZ", "VED", "FSN", "SDE", "HML", "PLC"] },
+        "class_code": { "$ref": "#/$defs/id" },
+        "source_contract_key": { "$ref": "#/$defs/id" },
+        "policy_effect": {
+          "type": "object",
+          "maxProperties": 2,
+          "additionalProperties": {
+            "oneOf": [
+              { "type": "string" },
+              { "type": "integer" },
+              { "type": "boolean" },
+              { "type": "null" }
+            ]
+          }
+        }
+      }
+    },
+    "effectiveItemPolicyV2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "item_id",
+        "effective_policy_contract_version",
+        "classification_config_hash",
+        "classification_config_binding_hash",
+        "effective_target_service_level",
+        "effective_review_cycle_weeks",
+        "effective_strategy",
+        "policy_source",
+        "policy_adjustment_reason",
+        "policy_adjustment_reasons",
+        "policy_gate_reason_codes",
+        "operational_io_eligible",
+        "recommendation_calculation_allowed",
+        "evidence_storage_allowed",
+        "effective_order_action",
+        "order_execution_allowed",
+        "no_order_gate",
+        "effective_protection_lead_time_basis",
+        "effective_protection_lead_time_days",
+        "effective_approval_level",
+        "automatic_publish_allowed",
+        "automatic_order_allowed",
+        "effective_axis_projection",
+        "effective_policy_hash"
+      ],
+      "properties": {
+        "item_id": { "$ref": "#/$defs/itemId" },
+        "effective_policy_contract_version": { "const": "2.0.0" },
+        "classification_config_hash": { "$ref": "#/$defs/hash" },
+        "classification_config_binding_hash": { "$ref": "#/$defs/hash" },
+        "effective_target_service_level": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/qty" }]
+        },
+        "effective_review_cycle_weeks": {
+          "oneOf": [{ "type": "null" }, { "type": "integer", "minimum": 1, "maximum": 13 }]
+        },
+        "effective_strategy": {
+          "oneOf": [
+            { "type": "null" },
+            { "enum": ["MATHEMATICAL", "PREDICTIVE_ML", "DEEP_RL"] }
+          ]
+        },
+        "policy_source": {
+          "enum": [
+            "ABC_XYZ_POLICY_MATRIX",
+            "ABC_XYZ_POLICY_MATRIX_WITH_VED_FLOOR",
+            "UNCLASSIFIED"
+          ]
+        },
+        "policy_adjustment_reason": {
+          "oneOf": [{ "type": "null" }, { "const": "VED_SERVICE_LEVEL_FLOOR_APPLIED" }]
+        },
+        "policy_adjustment_reasons": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "policy_gate_reason_codes": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "operational_io_eligible": { "type": "boolean" },
+        "recommendation_calculation_allowed": { "type": "boolean" },
+        "evidence_storage_allowed": { "type": "boolean" },
+        "effective_order_action": { "enum": ["ALLOW", "REVIEW", "BLOCK"] },
+        "order_execution_allowed": { "type": "boolean" },
+        "no_order_gate": { "type": "boolean" },
+        "effective_protection_lead_time_basis": {
+          "oneOf": [{ "type": "null" }, { "enum": ["P50", "P90"] }]
+        },
+        "effective_protection_lead_time_days": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/qty" }]
+        },
+        "effective_approval_level": {
+          "oneOf": [{ "type": "null" }, { "enum": ["AUTO", "STANDARD", "HIGH_VALUE"] }]
+        },
+        "automatic_publish_allowed": { "type": "boolean" },
+        "automatic_order_allowed": { "type": "boolean" },
+        "effective_axis_projection": {
+          "type": "array",
+          "maxItems": 7,
+          "items": { "$ref": "#/$defs/effectivePolicyProjection" }
+        },
+        "effective_policy_hash": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "executionV2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_id",
+        "contract_version",
+        "psi_scenario_type",
+        "execution_mode",
+        "configuration_revision",
+        "canonical_input_hash",
+        "strategy",
+        "approval_reference",
+        "allowed_action_types",
+        "decision_timing",
+        "receipt_mapping",
+        "capacity_mode",
+        "item_controls",
+        "strategy_input_binding",
+        "execution_purpose",
+        "model_approval",
+        "effective_policy_binding",
+        "effective_item_policies"
+      ],
+      "properties": {
+        "contract_id": { "const": "io-replenishment-v1" },
+        "contract_version": { "const": "2.0.0" },
+        "psi_scenario_type": { "const": "RECOMMENDED" },
+        "execution_mode": { "enum": ["LOCAL_SHADOW", "PLATFORM_BOUND"] },
+        "configuration_revision": { "$ref": "#/$defs/id" },
+        "canonical_input_hash": { "$ref": "#/$defs/hash" },
+        "strategy": { "$ref": "#/$defs/strategy" },
+        "approval_reference": { "$ref": "#/$defs/id" },
+        "allowed_action_types": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "contains": { "const": "HOLD" },
+          "items": { "enum": ["HOLD", "ORDER_QTY", "ORDER_UP_TO"] }
+        },
+        "decision_timing": { "const": "BUCKET_START_BEFORE_RECEIPTS" },
+        "receipt_mapping": { "const": "NEXT_BUCKET_START_ON_OR_AFTER_DUE_DATE" },
+        "capacity_mode": { "const": "CONSERVATIVE_NO_DEMAND_CREDIT" },
+        "item_controls": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": { "$ref": "#/$defs/control" }
+        },
+        "strategy_input_binding": { "$ref": "#/$defs/strategyInputBinding" },
+        "execution_purpose": { "enum": ["OPERATIONAL", "SHADOW"] },
+        "model_approval": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/modelApproval" }
+          ]
+        },
+        "effective_policy_binding": { "$ref": "#/$defs/effectivePolicyRunBinding" },
+        "effective_item_policies": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10000,
+          "items": { "$ref": "#/$defs/effectiveItemPolicyV2" }
         }
       }
     }

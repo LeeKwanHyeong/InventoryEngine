@@ -169,6 +169,7 @@ CONTEXT_FIELDS = {
     "planning_cycle_id": identifier,
     "planning_cycle_revision_id": identifier,
     "cycle_site_execution_id": identifier,
+    "plan_id": identifier,
     "plan_type": choice("POSM", "TGSM"),
     "plan_yyyyww": yyyyww,
     "plan_start_date": day,

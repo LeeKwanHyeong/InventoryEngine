@@ -86,6 +86,7 @@ def build_request(case: dict) -> dict:
         "planning_cycle_id": "PC-GOLDEN",
         "planning_cycle_revision_id": "PC-GOLDEN-R1",
         "cycle_site_execution_id": "PC-GOLDEN-R1:V101",
+        "plan_id": "PLAN-GOLDEN",
         "plan_type": case.get("plan_type", "POSM"),
         "plan_yyyyww": weeks[0],
         "plan_start_date": start.isoformat(),

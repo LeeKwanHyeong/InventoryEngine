@@ -52,7 +52,7 @@ class PrepareForecastHandoffUseCase:
         )
         request = export["manifest"]["request"]
         shared, context, snapshots = request["shared"], value["context"], value["snapshots"]
-        for key in ("company_cd", "subs_cd", "site_cd", "demand_run_id"):
+        for key in ("company_cd", "subs_cd", "site_cd", "demand_run_id", "plan_id"):
             require(context[key] == request["selector"][key], "HANDOFF_SCOPE_MISMATCH")
         for key in (
             "planning_cycle_id",

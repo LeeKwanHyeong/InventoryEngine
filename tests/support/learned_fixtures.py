@@ -61,13 +61,14 @@ def model_fixture(anchor, family="PREDICTIVE_ML", action=3):
     )
 
 
-def inference_request(anchor, model):
+def inference_request(anchor, model, *, model_approval=None):
     from dsio_inventory_engine.learned.application import LearnedInferenceRequest
 
-    return LearnedInferenceRequest.from_dict(
-        {
-            "mathematical_request": anchor,
-            "model": model.to_dict(),
-            "model_reference": model.reference,
-        }
-    )
+    value = {
+        "mathematical_request": anchor,
+        "model": model.to_dict(),
+        "model_reference": model.reference,
+    }
+    if model_approval is not None:
+        value["model_approval"] = model_approval
+    return LearnedInferenceRequest.from_dict(value)

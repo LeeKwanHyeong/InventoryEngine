@@ -37,6 +37,41 @@
           "pattern": "^[0-9a-f]{64}$"
         }
       }
+    },
+    "model_approval": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "approval_reference",
+            "status",
+            "model_id",
+            "version",
+            "content_hash"
+          ],
+          "properties": {
+            "approval_reference": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "status": { "const": "APPROVED" },
+            "model_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "version": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "content_hash": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        }
+      ]
     }
   }
 }

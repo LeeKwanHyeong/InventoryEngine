@@ -114,6 +114,10 @@ class GoldenTests(unittest.TestCase):
         request["context"]["planning_cycle_revision_id"] = "NEW-REVISION"
         self.assertNotEqual(first.input_hash, CanonicalInputRequest.from_dict(request).input_hash)
 
+        request = build_request(golden_case())
+        request["context"]["plan_id"] = "PLAN-OTHER"
+        self.assertNotEqual(first.input_hash, CanonicalInputRequest.from_dict(request).input_hash)
+
     def test_frozen_input_output_detached_and_row_order_irrelevant(self):
         request = build_request(golden_case())
         canonical = CanonicalInputRequest.from_dict(request)

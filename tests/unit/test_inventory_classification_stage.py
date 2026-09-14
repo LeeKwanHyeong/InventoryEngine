@@ -108,6 +108,21 @@ class InventoryClassificationStageTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(recorder.events[-1][1].status, "failed")
 
+    async def test_v2_publication_receipt_is_admitted_without_weakening_v1(self):
+        value = receipt()
+        value.update(
+            item_result_contract_version="2.0.0",
+            effective_policy_contract_version="2.0.0",
+        )
+        recorder = FakeRecorder()
+
+        result = await InventoryClassificationStageUseCase(
+            FakeLifecycle(receipt=value), recorder
+        ).execute(context(), approved_by="admin")
+
+        self.assertEqual(result["effective_policy_contract_version"], "2.0.0")
+        self.assertTrue(result["stage_event_persisted"])
+
 
 if __name__ == "__main__":
     unittest.main()

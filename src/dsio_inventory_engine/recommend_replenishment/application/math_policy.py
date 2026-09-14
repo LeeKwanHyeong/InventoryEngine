@@ -48,9 +48,20 @@ def calculate_policy(stats: dict, source: dict, profile: dict, scale: int) -> tu
     if stats["missing_weeks"]:
         return dict(EMPTY_POLICY), {}
     mean, deviation = Decimal(stats["mean_weekly_demand"]), Decimal(stats["stddev"])
+    # SDE quantiles widen/narrow the demand-protection window.  They must not
+    # alter the physical supplier due date used by the shared order guard.
+    physical_lead_time_days = source["lead_time_days"]
+    protection_lead_time_days = source.get(
+        "effective_protection_lead_time_days", physical_lead_time_days
+    )
     # Match the common forward boundary mapping for complete 7-day buckets.
-    lead = Decimal((source["lead_time_days"] + 6) // 7)
-    cycle = Decimal(profile["replenishment_cycle_weeks"])
+    lead = Decimal((protection_lead_time_days + 6) // 7)
+    cycle = Decimal(
+        source.get(
+            "effective_review_cycle_weeks",
+            profile["replenishment_cycle_weeks"],
+        )
+    )
     factor = Decimal(str(NormalDist().inv_cdf(float(source["approved_service_level"])))).quantize(
         Decimal("0.000000000001"), rounding=ROUND_HALF_EVEN
     )
@@ -62,20 +73,32 @@ def calculate_policy(stats: dict, source: dict, profile: dict, scale: int) -> tu
     raw_target = rop + mean * cycle
     target = raw_target.quantize(quantum, rounding=ROUND_CEILING)
     require(target <= Decimal("1000000000000"), "CALCULATED_POLICY_RANGE")
-    return {
+    result = {
         "safety_stock_qty": quantity_text(safety),
         "rop_qty": quantity_text(rop),
         "target_inventory_qty": quantity_text(target),
-    }, {
+    }
+    trace = {
         "service_level_factor": quantity_text(factor),
         "lead_time_weeks": quantity_text(lead),
-        "source_lead_time_days": source["lead_time_days"],
-        "replenishment_cycle_weeks": profile["replenishment_cycle_weeks"],
+        "source_lead_time_days": physical_lead_time_days,
+        "replenishment_cycle_weeks": int(cycle),
         "raw_safety_stock_qty": quantity_text(raw_safety),
         "raw_rop_qty": quantity_text(raw_rop),
         "raw_target_inventory_qty": quantity_text(raw_target),
         "rounding": "SEQUENTIAL_UOM_CEILING",
     }
+    if "source_approved_service_level" in source:
+        trace.update(
+            source_approved_service_level=source["source_approved_service_level"],
+            effective_target_service_level=source["approved_service_level"],
+            source_master_lead_time_days=physical_lead_time_days,
+            physical_due_lead_time_days=physical_lead_time_days,
+            effective_protection_lead_time_basis=source.get("effective_protection_lead_time_basis"),
+            effective_protection_lead_time_days=protection_lead_time_days,
+            effective_policy_hash=source["classification_effective_policy_hash"],
+        )
+    return result, trace
 
 
 def select_policy(

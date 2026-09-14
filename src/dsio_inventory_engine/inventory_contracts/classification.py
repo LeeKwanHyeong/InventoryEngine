@@ -11,7 +11,7 @@ from .values import (
     decimal_string,
     digest,
     hash_value,
-    identifier,
+    item_identifier,
     integer,
     optional,
     require,
@@ -51,7 +51,7 @@ def derive_effective_item_policy(
 ) -> dict[str, Any]:
     """Apply one approved matrix cell without invoking a model or optimizer."""
 
-    identifier(item_id)
+    item_identifier(item_id)
     hash_value(config_hash)
     require(classification_status in {"CLASSIFIED", "UNCLASSIFIED"}, "ITEM_POLICY_STATUS")
     if classification_status == "UNCLASSIFIED":
@@ -122,7 +122,7 @@ def validate_effective_item_policy(item: Mapping[str, Any], *, config_hash: str)
         ),
         "ITEM_POLICY_FIELDS_MISSING",
     )
-    identifier(item["item_id"])
+    item_identifier(item["item_id"])
     require(
         item["classification_status"] in {"CLASSIFIED", "UNCLASSIFIED"}
         and (

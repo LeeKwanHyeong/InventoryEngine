@@ -148,8 +148,10 @@ PYTHONPATH=src python3 examples/learned_inference.py --request-only | IO_COMPANY
 ```bash
 PYTHONPATH=src python3 examples/learning_stability.py request
 PYTHONPATH=src python3 examples/learning_stability.py select --output /tmp/io-selection-new.json
-PYTHONPATH=src python3 examples/learning_stability.py verify-selection --selection docs/architecture/evidence/learning-stability-selection-20260903.json --selection-hash db4d8f24a85e65876b7eba60811208900bbebf3b714f883c7a787b1cb3bbaa76
+PYTHONPATH=src python3 examples/learning_stability.py verify-selection --selection docs/architecture/evidence/learning-stability-selection-20260903.json --selection-hash b4833a65db48b1cae6550864c334a3d2fbd38bfabceb159ee19c3e3d778d92da
 ```
+
+2026-09-11 Canonical Context에 `plan_id`를 필수 봉인하면서 평가 입력 Hash와 선택 증적 Seal을 재계산했다. 학습 모델과 수치 결과는 변경하지 않았다.
 
 `holdout`에는 `--selection`과 별도로 기록한 `--selection-hash`가 필수다. 출력 파일은 덮어쓰지 않는다. 모든 Seed와 실패 지표를 보존하며, 후보 지명/Hash 검증은 운영 승인이나 DB Run 생성이 아니다.
 

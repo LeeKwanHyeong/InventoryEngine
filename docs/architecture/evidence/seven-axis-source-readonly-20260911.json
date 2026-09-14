@@ -1,0 +1,58 @@
+{
+  "verification_date": "2026-09-11",
+  "mode": "READ_ONLY",
+  "transaction_isolation": "REPEATABLE_READ_READ_ONLY",
+  "database": "development PostgreSQL dsai",
+  "scope": {
+    "tenant_id": "default",
+    "company_cd": "DSE",
+    "subs_cd": "C100",
+    "plant_cd": "V100",
+    "site_cd": "V100"
+  },
+  "actual_close": {
+    "actual_yyyyww": "202601",
+    "status": "CLOSED",
+    "closure_revision_no": 1
+  },
+  "observed_counts": {
+    "eligible_stock_items": 7000,
+    "positive_demand_items_in_52_weeks": 6009,
+    "sde_authoritative_items": 0,
+    "hml_authoritative_items": 0,
+    "plc_synthetic_items": 7000,
+    "dse_total_stock_items": 350000,
+    "dse_total_sites": 50
+  },
+  "axis_source_decisions": {
+    "ABC": "AVAILABLE_WITH_ITEM_LEVEL_GAPS",
+    "XYZ": "AVAILABLE_WITH_ITEM_LEVEL_GAPS",
+    "VED": "APPROVED_ASSIGNMENT_REQUIRED",
+    "FSN": "AVAILABLE",
+    "SDE": "UNVERIFIED_MISSING_SUPPLIER_RECEIPT_PERFORMANCE",
+    "HML": "UNVERIFIED_MISSING_INVENTORY_COST_CURRENCY_AS_OF",
+    "PLC": "SYNTHETIC_SHADOW_ONLY"
+  },
+  "authority_findings": {
+    "SDE": {
+      "decision": "UNVERIFIED",
+      "reason": "No sealed vendor-confirmed purchase-order and receipt history maps to the DSDM Site+Item universe.",
+      "rejected_candidate": "scm_part sample relations",
+      "rejected_candidate_reason": "No approved BU-to-Site mapping, zero V100 item overlap, incomplete PO-to-receipt joins, future-dated rows and no Snapshot lineage."
+    },
+    "HML": {
+      "decision": "UNVERIFIED",
+      "reason": "No inventory valuation cost with currency and valuation as-of date maps to the DSDM Site+Item universe.",
+      "rejected_candidate": "purchase and sales unit prices",
+      "rejected_candidate_reason": "They are not authoritative inventory valuation values and do not provide a sealed currency/as-of contract."
+    },
+    "PLC": {
+      "decision": "SYNTHETIC_SHADOW_ONLY",
+      "reason": "All 350000 lifecycle rows were created by synthetic_demand_parts and all matching LTB policy rows are classified as SYNTHETIC.",
+      "operational_policy_effect": false
+    }
+  },
+  "database_writes": false,
+  "migration_applied": false,
+  "runtime_deployed": false
+}

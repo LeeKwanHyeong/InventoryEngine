@@ -30,6 +30,7 @@
         "planning_cycle_id",
         "planning_cycle_revision_id",
         "cycle_site_execution_id",
+        "plan_id",
         "plan_type",
         "plan_yyyyww",
         "plan_start_date",
@@ -68,6 +69,10 @@
           "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
         },
         "cycle_site_execution_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "plan_id": {
           "type": "string",
           "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
         },

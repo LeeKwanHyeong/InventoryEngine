@@ -14,6 +14,7 @@ from dsio_inventory_engine.classify_inventory.application import (
     InventoryScope,
     ItemMetric,
     VedAssignment,
+    build_snapshot,
     classify_items,
     config_hash,
 )
@@ -133,6 +134,28 @@ class FakePublisher:
 
 
 class ClassificationSnapshotTests(unittest.IsolatedAsyncioTestCase):
+    def test_source_business_item_id_is_preserved_through_v1_snapshot(self):
+        original = inputs()
+        changed = replace(
+            original,
+            metrics=(
+                replace(original.metrics[0], item_id="ITEM/01"),
+                *original.metrics[1:],
+            ),
+        )
+
+        snapshot = build_snapshot(changed)
+
+        self.assertIn("ITEM/01", {item["item_id"] for item in snapshot["items"]})
+
+    def test_v1_source_content_hash_keeps_published_projection(self):
+        snapshot = build_snapshot(inputs())
+
+        self.assertEqual(
+            snapshot["source_content_hash"],
+            "fa68b90d53aaa4b3b94423c8fc57843bb1ebad53efa5f831d18f924258aeb1f3",
+        )
+
     async def test_dry_run_is_deterministic_and_never_calls_publisher(self):
         source = FakeSource(inputs())
         publisher = FakePublisher()
@@ -318,6 +341,121 @@ class ClassificationSnapshotTests(unittest.IsolatedAsyncioTestCase):
                 ved_enabled=True,
                 ved_assignments=(VedAssignment("ORPHAN", "V"),),
             )
+
+    def test_abc_and_xyz_use_their_own_lookback_aggregates_and_divisors(self):
+        row = metric("ITEM", "520", "5200", "999")
+        row = replace(
+            row,
+            abc_source_row_count=52,
+            abc_invalid_row_count=0,
+            abc_observed_week_count=52,
+            abc_revenue=Decimal("200"),
+            xyz_source_row_count=13,
+            xyz_invalid_row_count=0,
+            xyz_observed_week_count=13,
+            xyz_total_demand=Decimal("130"),
+            xyz_demand_square_sum=Decimal("1300"),
+        )
+
+        result = classify_items(
+            [row],
+            abc_a_cumulative_share=Decimal("0.8"),
+            abc_b_cumulative_share=Decimal("0.95"),
+            xyz_x_max_cv2=Decimal("0.49"),
+            xyz_y_max_cv2=Decimal("1"),
+            abc_lookback_weeks=52,
+            xyz_lookback_weeks=13,
+        )
+
+        item = result.items[0]
+        self.assertEqual(item["revenue"], "200")
+        self.assertEqual(item["demand_cv2"], "0.000000000000")
+        self.assertEqual(item["segment_key"], "AX")
+
+    def test_semantically_equal_axis_fallbacks_have_same_source_hash(self):
+        fallback = metric("ITEM", "520", "5200", "200")
+        explicit = replace(
+            fallback,
+            abc_source_row_count=52,
+            abc_invalid_row_count=0,
+            abc_observed_week_count=52,
+            abc_revenue=Decimal("200"),
+            xyz_source_row_count=52,
+            xyz_invalid_row_count=0,
+            xyz_observed_week_count=52,
+            xyz_total_demand=Decimal("520"),
+            xyz_demand_square_sum=Decimal("5200"),
+        )
+
+        def classify(row: ItemMetric):
+            return classify_items(
+                [row],
+                abc_a_cumulative_share=Decimal("0.8"),
+                abc_b_cumulative_share=Decimal("0.95"),
+                xyz_x_max_cv2=Decimal("0.49"),
+                xyz_y_max_cv2=Decimal("1"),
+                abc_lookback_weeks=52,
+                xyz_lookback_weeks=52,
+            )
+
+        self.assertEqual(
+            classify(fallback).source_content_hash,
+            classify(explicit).source_content_hash,
+        )
+
+    def test_one_axis_missing_history_is_reported_explicitly(self):
+        row = replace(
+            metric("ITEM", "130", "1300", "200"),
+            abc_source_row_count=52,
+            abc_observed_week_count=52,
+            xyz_source_row_count=0,
+            xyz_observed_week_count=0,
+        )
+
+        result = classify_items(
+            [row, metric("VALID", "130", "1300", "100")],
+            abc_a_cumulative_share=Decimal("0.8"),
+            abc_b_cumulative_share=Decimal("0.95"),
+            xyz_x_max_cv2=Decimal("0.49"),
+            xyz_y_max_cv2=Decimal("1"),
+            abc_lookback_weeks=52,
+            xyz_lookback_weeks=13,
+        )
+
+        item = next(item for item in result.items if item["item_id"] == "ITEM")
+        self.assertEqual(
+            item["unclassified_reason_code"],
+            "INSUFFICIENT_XYZ_HISTORY",
+        )
+
+    def test_price_invalidity_excludes_abc_but_keeps_xyz_evidence_valid(self):
+        price_invalid = replace(
+            metric("PRICE_INVALID", "130", "1300", "200"),
+            abc_invalid_row_count=1,
+            xyz_invalid_row_count=0,
+            xyz_source_row_count=13,
+            xyz_observed_week_count=13,
+            xyz_total_demand=Decimal("130"),
+            xyz_demand_square_sum=Decimal("1300"),
+        )
+
+        result = classify_items(
+            [price_invalid, metric("VALID", "130", "1300", "100")],
+            abc_a_cumulative_share=Decimal("0.8"),
+            abc_b_cumulative_share=Decimal("0.95"),
+            xyz_x_max_cv2=Decimal("0.49"),
+            xyz_y_max_cv2=Decimal("1"),
+            abc_lookback_weeks=52,
+            xyz_lookback_weeks=13,
+        )
+
+        item = next(item for item in result.items if item["item_id"] == "PRICE_INVALID")
+        self.assertEqual(item["classification_status"], "UNCLASSIFIED")
+        self.assertEqual(item["abc_classification_status"], "UNCLASSIFIED")
+        self.assertEqual(item["abc_unclassified_reason_code"], "INVALID_ABC_SOURCE_RECORD")
+        self.assertEqual(item["xyz_classification_status"], "CLASSIFIED")
+        self.assertEqual(item["xyz_class"], "X")
+        self.assertEqual(item["demand_cv2"], "0.000000000000")
 
 
 if __name__ == "__main__":

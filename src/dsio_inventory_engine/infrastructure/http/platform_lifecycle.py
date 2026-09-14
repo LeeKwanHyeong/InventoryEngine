@@ -40,17 +40,14 @@ class PlatformLifecycleHttpSettings:
         base_url = str(values.get("INVENTORY_PLATFORM_API_BASE_URL") or "").strip()
         require(bool(base_url), "PLATFORM_API_BASE_URL_REQUIRED")
         try:
-            timeout = float(
-                values.get("INVENTORY_PLATFORM_API_TIMEOUT_SECONDS") or "10"
-            )
+            timeout = float(values.get("INVENTORY_PLATFORM_API_TIMEOUT_SECONDS") or "10")
         except (TypeError, ValueError):
             raise InventoryInputError("PLATFORM_API_TIMEOUT_INVALID") from None
         settings = cls(
             base_url=base_url.rstrip("/"),
             timeout_seconds=timeout,
             bearer_token=(
-                str(values.get("INVENTORY_PLATFORM_API_BEARER_TOKEN") or "").strip()
-                or None
+                str(values.get("INVENTORY_PLATFORM_API_BEARER_TOKEN") or "").strip() or None
             ),
         )
         settings.validate(environment=str(values.get("IO_ENVIRONMENT") or "development"))
@@ -109,8 +106,7 @@ class PlatformInventoryLifecycleHttpClient:
         )
         payload = _response_payload(response, {200, 201}, "PLATFORM_EVENT_REJECTED")
         require(
-            payload.get("contract_id")
-            == "inventory-engine-run-stage-event-receipt-v1"
+            payload.get("contract_id") == "inventory-engine-run-stage-event-receipt-v1"
             and _uuid(payload.get("engine_run_id")) == request.engine_run_id
             and type(payload.get("event_seq")) is int
             and payload["event_seq"] > 0,

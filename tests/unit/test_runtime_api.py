@@ -21,9 +21,7 @@ class Submission:
 class RuntimeApiTests(unittest.TestCase):
     def test_authenticated_request_is_submitted(self):
         submission = Submission()
-        client = TestClient(
-            create_inventory_runtime_app(submission, bearer_token="internal-token")
-        )
+        client = TestClient(create_inventory_runtime_app(submission, bearer_token="internal-token"))
 
         response = client.post(
             "/api/v1/executions",
@@ -39,9 +37,7 @@ class RuntimeApiTests(unittest.TestCase):
 
     def test_auth_and_duplicate_json_keys_fail_closed(self):
         submission = Submission()
-        client = TestClient(
-            create_inventory_runtime_app(submission, bearer_token="internal-token")
-        )
+        client = TestClient(create_inventory_runtime_app(submission, bearer_token="internal-token"))
         denied = client.post("/api/v1/executions", json=runtime_dispatch())
         self.assertEqual(denied.status_code, 401)
 

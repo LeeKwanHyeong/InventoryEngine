@@ -39,7 +39,11 @@ def vector(observation: dict, policy: dict, stats: dict) -> tuple[list[float], f
         for p in observation["pending_supply"]
         if p["due_date"] < observation["decision_date"]
     )
-    lead = (observation["policy"]["lead_time_days"] + 6) // 7
+    protection_lead_time_days = observation["policy"].get(
+        "effective_protection_lead_time_days",
+        observation["policy"]["lead_time_days"],
+    )
+    lead = (protection_lead_time_days + 6) // 7
     cycle = policy["calculation_trace"].get("replenishment_cycle_weeks", 1)
     known_demand = [
         float(r["net_forecast_qty"]) + float(r["confirmed_customer_order_qty"])
@@ -53,7 +57,7 @@ def vector(observation: dict, policy: dict, stats: dict) -> tuple[list[float], f
         float(effective["target_inventory_qty"]) / scale,
         float(effective["rop_qty"]) / scale,
         float(stats["stddev"] or 0) / scale,
-        ((observation["policy"]["lead_time_days"] + 6) // 7) / 52,
+        lead / 52,
         float(observation["policy"]["approved_service_level"]),
         1 - stats["positive_demand_weeks"] / max(1, stats["observation_count"]),
         len(observation["calendar"]) / 52,

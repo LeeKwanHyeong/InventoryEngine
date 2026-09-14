@@ -18,7 +18,10 @@ from dsio_inventory_engine.inventory_contracts.mathematical import (
     PROFILE_FIELDS,
     MathematicalPolicyRequest,
 )
-from dsio_inventory_engine.inventory_contracts.replenishment import EXECUTION_FIELDS_V1_1
+from dsio_inventory_engine.inventory_contracts.replenishment import (
+    EXECUTION_FIELDS_V1_1,
+    EXECUTION_FIELDS_V2,
+)
 
 try:
     from jsonschema import Draft202012Validator, FormatChecker, ValidationError
@@ -44,6 +47,9 @@ class MathematicalContractTests(unittest.TestCase):
         strategy = json.loads((ROOT / "schemas/replenishment.schema.json").read_text())
         self.assertEqual(
             set(strategy["$defs"]["executionV1_1"]["required"]), set(EXECUTION_FIELDS_V1_1)
+        )
+        self.assertEqual(
+            set(strategy["$defs"]["executionV2"]["required"]), set(EXECUTION_FIELDS_V2)
         )
 
     @unittest.skipIf(Draft202012Validator is None, "jsonschema is a development dependency")

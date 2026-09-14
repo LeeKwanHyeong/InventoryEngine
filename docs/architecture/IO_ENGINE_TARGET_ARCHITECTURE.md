@@ -22,8 +22,8 @@
 
 - 현재 작업 디렉터리: `InventoryEngine`
 - 목표 Repository 명칭: `DSIOInventoryOptimizationEngine`
-- 현재 상태: 승인 Network 입력, Canonical·Cut-off·공통 PSI/행동 검증, 수학적 정책, 독립 합성 기반·ML/PPO와 0.8.0 안정성 검증을 구현했다. ML/PPO 성능 Gate 미달은 유지한다. 0.9.1 [Source 읽기/변환](IO_SOURCE_READ_CONTRACT.md)은 전체 로컬 검증 후 DB에 연결한다. [지정 Run 개발 DB 검증](IO_SOURCE_READ_VERIFICATION.md)은 0.9.0 당시 기록이다. 실제 Forecast 출력 봉인 Export·재고/정책 Source·전체 Runner·DB Evidence 저장은 후속
-- Git 저장소: 미초기화 상태
+- 현재 상태: 승인 Network 입력, Canonical·Cut-off·공통 PSI/행동 검증, 수학적 정책, 독립 합성 기반·ML/PPO와 0.8.0 안정성 검증을 구현했다. 0.15.0은 7축 Source·Lookback·Coverage 불일치를 보정하고 Effective Policy V2 Snapshot ID·Hash를 Run Input에 고정해 FSN/PLC Gate, SDE Lead Time, HML 승인 수준을 실제 보충 계산에 연결했다. Migration 075·076은 개발 PostgreSQL에 적용하고 Rollback Canary를 완료했다. 실제 V2 업무 Snapshot·공통 Run Migration 074·공용 Runtime 배포는 후속이며 ML/PPO 성능 Gate 미달은 유지한다. SDE/HML은 권위 Source가 없어 `UNVERIFIED`, PLC는 `SYNTHETIC + SHADOW_ONLY`다.
+- Git 저장소: `inventory_engine_dev` Branch와 GitHub `origin` 구성 완료
 - Python 패키지·테스트·Wheel 빌드: 구성 및 검증 완료. 배포와 공통 Runtime 연결은 미구성
 - 기존 `main.py`와 연구 Notebook은 보존하며 Production 실행 경로로 사용하지 않음
 
@@ -289,13 +289,13 @@ DSIOInventoryOptimizationEngine/
 | `bootstrap` | 설정 로딩과 의존성 조립 | `build_inventory_engine_runner()` |
 | `entrypoints` | CLI, HTTP, Worker 요청 수신 | `engine_run`, `POST /executions` |
 | `platform_contracts` | Platform과 Engine 사이의 중립 계약 | `ExecutionRequest`, `ExecutionEvent` |
-| `inventory_contracts` | IO 단계 간 Snapshot과 Artifact 계약 | `ForecastSnapshot`, `PsiResult` |
+| `inventory_contracts` | IO 단계 간 Snapshot·Artifact·7축 분류와 Effective Policy V2 계약 | `ForecastSnapshot`, `PsiResult`, `derive_effective_item_policy_v2` |
 | `configuration` | 설정 Schema 검증과 불변 Snapshot Binding | `BindConfigurationUseCase` |
 | `run_inventory` | Plan Claim, 상태 전이, 단계 조정, 재시작 | `ExecuteInventoryPlanUseCase` |
 | `inventory_evidence` | Run별 `TB_IO_*` Manifest, 단계별 Materialization Receipt와 DSIM 조회 계약 | `MaterializeEvidenceUseCase`, `QueryInventoryEvidenceUseCase` |
 | `prepare_inventory` | POSM/TGSM별 원천 조회, Canonical 입력 정규화와 `TB_IO_*` Input Materialization | `PrepareInventoryInputUseCase` |
 | `simulate_inventory` | 공통 주차 전이·Baseline PSI. TB_IO Materialization은 후속 목표 | `RunPsiSimulationUseCase`, `advance_bucket` |
-| `recommend_replenishment` | 세 전략 호출·행동 검증·주문 대기열·로컬 Recommended PSI. 실제 정책/모델은 후속 | `RunRecommendedPsiUseCase`, `ReplenishmentStrategy` |
+| `recommend_replenishment` | 세 전략 호출·행동 검증·주문 대기열·로컬 Recommended PSI와 V1/V2 정책 Admission. V2 Gate·Lead Time·승인 수준의 Runtime 소비 완료 | `RunRecommendedPsiUseCase`, `ReplenishmentStrategy`, `admit_effective_item_policy` |
 | `deliver_inventory` | 결과 검증, Upsert, 발행 완료 처리 | `PublishInventoryResultUseCase` |
 | `infrastructure` | DB, `TB_IO_*` Evidence, Parquet, Event와 DSIM Read Contract 기술 Adapter | PostgreSQL Repository, Evidence Store Adapter |
 
@@ -714,8 +714,10 @@ effective_policy
 
 0.4.0 로컬 수학적 구현은 [수학적 정책 계약](IO_MATHEMATICAL_POLICY_CONTRACT.md)을 따른다. W0 이전 13/26주 이력·Profile·승인 레코드를 추가 Snapshot Hash로 고정하고 SS/ROP/목표재고를 계산한다. 수학적 Golden 통과는 운영 서비스수준 달성이나 실제 Legacy Column 의미 확인의 완료를 뜻하지 않는다.
 
-품목 Segmentation은 전략 실행과 분리된 결정론적 전처리다. 승인된 ABC-XYZ Matrix와 VED
-하한을 분류 Snapshot에 적용해 다음 값을 품목별로 고정한다.
+품목 Segmentation은 전략 실행과 분리된 결정론적 전처리다. ABC·XYZ·VED·FSN·SDE·HML·PLC는
+독립 축으로 보존하고 표시용 코드만 결합한다. 7축 Source·임계값·상태와 정책 충돌 규칙은
+`IO_SEVEN_AXIS_SEGMENTATION_CONTRACT.md`를 따른다. 승인된 ABC-XYZ Matrix와 VED 하한을
+분류 Snapshot에 적용해 다음 값을 품목별로 고정한다.
 
 ```text
 effective_target_service_level
@@ -728,8 +730,28 @@ effective_review_cycle_weeks / effective_strategy
 ABC 또는 XYZ가 미분류이면 정책 기본값을 추정하지 않고 `operational_io_eligible=false`로
 차단한다. `MATHEMATICAL`은 운영 적격이며, `PREDICTIVE_ML`과 `DEEP_RL`은 승인된 Model
 ID·Version·Hash가 결합된 Shadow 실행만 허용한다. 미승인 학습 전략을 수학적 전략으로
-자동 대체하지 않는다. Config Hash, 품목·Segment·VED 근거와 유효 정책을 결합한 품목별
-`effective_policy_hash` 및 전체 `effective_policy_content_hash`를 보존한다.
+자동 대체하지 않는다.
+
+0.15.0의 Effective Policy V2 순수 계약은 FSN과 향후 권위 Source로 전환된 PLC의 주문 행동을
+`BLOCK > REVIEW > ALLOW`로 결합하고, SDE가 선택한 P50/P90 보호기간과 HML 승인 수준을
+품목 정책에 포함한다. `REVIEW`는 권고 후보 계산과 Evidence 저장만 허용하며 자동 게시·발주를
+차단한다. `BLOCK`과 Operational 미검증 축은 계산·주문을 fail-closed하고 안정적인 Gate 사유를
+남긴다. V2 `effective_policy_hash`에는 전체 Config Hash나 Shadow·비활성 축 결과를 넣지 않고
+`OPERATIONAL + CLASSIFIED` 축의 정규화 Projection과 실제 유효값만 포함한다. 전체 Config와
+모든 축의 결과는 별도 분류 Snapshot Hash가 봉인한다. 품목 정책의 별도
+`classification_config_hash`는 Effective Hash에서 제외하되
+`classification_config_binding_hash`가 품목 ID·Config Hash·Effective Hash를 함께 봉인한다.
+Run Admission은 이 Binding을 재검증하고 정확한 Config Hash와 대조하므로, Config 필드만
+바꾸거나 같은 Effective Hash를 다른 Config Revision에서 재사용할 수 없다.
+현재 합성 PLC는 Config 2.0.0에서 Shadow-only로 고정하며 운영 전환은 권위 Source와 새 Schema
+Version이 준비된 뒤 허용한다. 합성 PLC도 Profile Hash와 Lifecycle 시간 순서를 검증해 등급·
+Evidence·표시 코드는 만들되 Effective Policy에는 투영하지 않는다. ABC·XYZ·FSN의 Demand
+Actual Lineage는 전체 Lookback의 최신 주차별 Revision을 Hash하며 SDE 입고 Lookback은 이
+Demand Window를 확장하지 않는다. V1/V2 Admission과 분류 Snapshot 조립은 구현됐지만 이 V2
+정책을 실제 보충 Runtime 입력에 끝까지 연결하는 작업은 진행 중이며,
+7축 DB Projection Migration 075·076은 2026-09-11 개발 PostgreSQL에 적용했다. V2 1품목·7축·
+4 Window·5 사유 Canary는 Deferred Constraint를 강제한 뒤 전체 Rollback했고 기존 Snapshot
+1건을 보존했다. 이는 실제 V2 업무 Snapshot 게시나 운영 적용을 의미하지 않는다.
 
 ### 8.12 DSIM Read Contract
 
@@ -1196,6 +1218,11 @@ DRAFT -> VALIDATED -> PUBLISHED -> DEPRECATED -> RETIRED
 | Performance | 대량 품목과 Horizon에서 처리 시간 및 메모리 검증 |
 | E2E | EngineStudio Run 요청부터 DB Publication까지 전체 검증 |
 
+2026-09-11 Effective Policy V2 기준선은 InventoryEngine 374건 통과·20건 Skip·355 Subtest,
+dsai-platform Backend 62건과 Frontend 정적 계약 5건, Ruff와 diff-check 통과다. 개발
+PostgreSQL에서는 Migration 075·076과 V2 Rollback Canary만 검증했으며 실제 V2 업무 Snapshot,
+Migration 074, 공용 Runtime과 전체 Run E2E는 이 수치에 포함하지 않는다.
+
 핵심 불변조건 예시:
 
 ```text
@@ -1338,7 +1365,7 @@ Ending Inventory
 - 완료: Run/Event를 Engine별로 복제하지 않고 `engine_key`, 의미 기반 `plan_source_key`와 Contract Version을 사용하는 공통 Run/Configuration 계약으로 일반화
 - 완료: `dsai`, `dsdm`, `dsim`을 초기에는 동일 PostgreSQL Database의 독립 Schema로 배치해 Cross-schema FK와 Claim-and-Start 단일 UoW를 지원
 - 다음 작업: 기존 Demand 전용 FK와 물리 `plan_source` 값을 무중단 전환하는 호환 Migration DDL 작성
-- 다음 작업: IO의 Forecast·Inventory·Policy·Calendar·Master Snapshot 계보를 저장하는 `engine_run_input_bindings` DDL과 무결성 규칙 확정
+- 완료: IO의 Forecast·Inventory·Policy·Calendar·Master와 선택 Network, V2 Classification Snapshot 계보를 저장하는 `engine_run_input_bindings` DDL·무결성 규칙 및 로컬 계약 검증
 - 다음 작업: 첫 Attempt의 Inventory Snapshot ID/Hash 고정, `attempt_no` 할당, `effective_run_id` 승격과 Cycle 상태 집계의 CAS·Transaction DDL 및 Repository/UoW 검증
 
 완료 조건은 Demand 성공 Snapshot 하나와 Site별 IO Attempt가 같은 Binding으로 추적되고 부분 실패·복구 상태가 결정론적으로 집계되는 상태다.
@@ -1381,6 +1408,7 @@ Golden Scenario의 수작업 기대값과 Domain 단위 Test는 P0-10, P0-15와 
 - 완료: Runtime Execution Request/Receipt, Event/Result Callback 계약과 Offline 통합 검증
 - 완료: IO Plan 식별값과 Ready/Claim/Terminal 상태 전이, 의미 기반 Plan Source와 Input Binding 계약
 - 완료: 공통 Engine Configuration·Config Revision과 Demand 호환 Migration 초안
+- 완료: V2 Classification Snapshot ID·Effective Policy Content Hash의 시스템 생성 Run Input Binding과 보충 계산 소비, `REVIEW` 자동 Publish 차단
 - 다음 작업: Engine Manifest 전체 조립과 Runtime 영속 Submission/Worker 계약
 - 다음 작업: Migration 074 개발 적용 전 DDL/UoW 대사와 실제 DB E2E 승인
 
@@ -1391,7 +1419,8 @@ Golden Scenario의 수작업 기대값과 Domain 단위 Test는 P0-10, P0-15와 
 - 완료: Python 3.12 기반 `pyproject.toml`, `src` Layout, Network CLI·테스트·Ruff와 Wheel 빌드 검증
 - 완료: 독립 Git 저장소와 `inventory_engine_dev` Branch·GitHub `origin` 구성
 - 완료: Runtime HTTP 접수·Platform Callback·Worker Orchestration의 Mock/Offline 경계
-- 다음 작업: 실제 계산 Handler, 영속 Queue/Worker, Type Check·구조화 Logging과 배포 환경 구성
+- 완료: Effective Policy V2를 실제 보충 계산 Handler에 연결하고 Mock/Offline에서 `ALLOW/REVIEW/BLOCK` 실행 경계 검증
+- 다음 작업: 영속 Queue/Worker, 전체 Pipeline Handler, Type Check·구조화 Logging과 배포 환경 구성
 - 다음 작업: 전체 Engine Manifest/Contract Version 구성. 현재 Network Wire Contract Version은 `1.0.0`
 
 완료 조건은 빈 Runner가 동일한 설정과 Run ID로 CLI 및 테스트에서 실행되고 구조 검증을 통과하는 상태다.
@@ -1401,7 +1430,7 @@ Golden Scenario의 수작업 기대값과 Domain 단위 Test는 P0-10, P0-15와 
 - `run_inventory` 실행 Lifecycle 구현
 - 완료: `prepare_inventory`의 Network 준비와 Canonical Snapshot/Hash·Cut-off/EOH–BOH 검증. 다음 작업: 실제 Source 수집·Snapshot 봉인 저장
 - 완료: `simulate_inventory` 공통 주차 전이와 단일 Site Baseline PSI
-- 완료: `recommend_replenishment` 공통 계약·Guard·Recommended PSI·수학적 정책·Golden, 독립 합성 기반·생산 평가·ML/PPO 및 0.8.0 학습 안정성 검증, 0.9.0 Source 읽기/매핑·개발 PostgreSQL 읽기 검증과 0.9.1 DB 연결 전 입력 검증. ML/PPO 성능은 미달. 다음 작업: 실제 봉인 Export·Source 준비 조건 해결과 공통 Run·모델/Evidence 연결. Source Reader 완료를 ERP Collector/봉인·운영 입력 준비 완료로 해석하지 않는다
+- 완료: `recommend_replenishment` 공통 계약·Guard·Recommended PSI·수학적 정책·Golden, 독립 합성 기반·생산 평가·ML/PPO 및 0.8.0 학습 안정성 검증, 0.9.0 Source 읽기/매핑·개발 PostgreSQL 읽기 검증과 0.9.1 DB 연결 전 입력 검증, Effective Policy V2 Gate·Lead Time·승인 수준의 실제 계산 소비. ML/PPO 성능은 미달. 다음 작업: 실제 봉인 Export·권위 Source·영속 Evidence·공용 Runtime 연결. Source Reader 완료를 ERP Collector/봉인·운영 입력 준비 완료로 해석하지 않는다
 - `deliver_inventory` 검증 및 Publication 구현
 
 단계별 구현은 앞 단계의 Contract와 Golden Dataset 확정 이후 직렬 진행한다.
@@ -1509,7 +1538,7 @@ Golden Scenario의 수작업 기대값과 Domain 단위 Test는 P0-10, P0-15와 
 | 정책 적용 우선순위 | 승인 Override → Python 계산값과 Source Hard Constraint → 승인 Source Fallback → 명시적 Legacy Fallback → 계산 제외 순으로 적용한다. |
 | 정책 값 계보 | Source·Python 계산·최종 적용값을 분리하고 Legacy 정책은 비교 또는 승인 Fallback 외에는 자동 우선하지 않는다. |
 | 보충 전략 확장 | 공통 PSI·제약 검증 위에 MATHEMATICAL/PREDICTIVE_ML/DEEP_RL을 연결한다. 수학적 기준 전략부터 구현하며 실제 학습·운영 활성화는 별도 검증한다. EOQ·범용 Solver·Multi-Echelon은 이번 범위 밖이다. |
-| Segmentation 정책 적용 | ABC-XYZ-VED 분류는 결정론적으로 수행하고 Matrix·VED 하한으로 품목별 서비스수준·검토주기·전략·정책 Hash를 고정한다. 수학적 전략만 운영 적격이며 ML/PPO는 승인 모델 기반 Shadow 전용이다. |
+| Segmentation 정책 적용 | 7축 분류는 결정론적으로 수행한다. ABC는 현재 검증된 `REVENUE`만 지원하고 ABC·XYZ·FSN·SDE Lookback을 분리한다. HML은 Source 경과기간을 검증하고 현재 PLC 개발 자료는 `SYNTHETIC`으로 표시하며 Config 2.0.0에서 Shadow-only로 고정한다. FSN 및 향후 권위 PLC의 주문 Gate, SDE P50/P90 보호기간, HML 승인 수준과 Shadow 무영향 Effective Policy V2는 Run Input Binding과 실제 보충 계산까지 연결했다. Migration 075·076 개발 적용은 완료했고 실제 V2 업무 Snapshot 게시·공용 Runtime E2E는 후속이다. |
 | Cut-off Evidence | 기존 `TB_IO_SNAPSHOT_MANIFEST`를 확장하고 `TB_IO_INVENTORY_RECONCILIATION` 1개만 추가하며 상세 Movement·Late Event는 Artifact로 보존한다. |
 | DSIM 연계 | DSIM의 일반 질의는 Effective Run, 감사 질의는 명시적 Run을 사용하며 Versioned Read-only Query API로 Evidence에 접근한다. 내부 View는 Projection Adapter로만 사용한다. |
 
@@ -1591,3 +1620,5 @@ Golden Scenario의 수작업 기대값과 Domain 단위 Test는 P0-10, P0-15와 
 33. DSIM 일반 질의는 `effective_run_id`, 감사 질의는 명시적 `engine_run_id`를 사용하고 물리 `TB_IO_*` 대신 Versioned Read-only Query API에 의존한다.
 34. Site의 정적 국가·시장 속성은 `dsdm.tb_mst_site_country`에 유지하고, Versioned 공급 관계와 운송 Lead Time은 Inventory Domain의 `dsim.tb_mst_inventory_network*`에 저장한다. 신규 Master와 실행별 `TB_IO_*` Evidence를 구분한다.
 35. PostgreSQL Network Revision을 권위 데이터로 사용하며 Neo4j는 Outbox로 동기화되는 경로·영향도 조회용 파생 Projection으로 운영한다.
+36. 7축 분류는 축별 Source·Lookback과 상태를 독립 보존하고, `OPERATIONAL + CLASSIFIED` 결과만 Effective Policy V2에 적용한다. `REVIEW`는 계산·Evidence만 허용하고 자동 게시·발주는 차단하며, Shadow·비활성 축은 운영 정책 Hash를 바꾸지 않는다. 현재 합성 PLC는 Config 2.0.0에서 Shadow-only로 둔다.
+37. Effective Policy V2 실행은 승인 Classification Snapshot ID와 전체 Policy Content Hash를 시스템 생성 Run Input으로 봉인한다. `REVIEW`는 Runtime 계산 후 자동 Publish를 호출하지 않고, `BLOCK`과 미검증 Operational 축은 계산 전에 차단한다.

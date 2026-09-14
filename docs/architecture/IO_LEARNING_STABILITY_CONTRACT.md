@@ -77,7 +77,9 @@ PYTHONPATH=src python3 examples/learning_stability.py select --output /tmp/io-se
 위 실행이 반환한 `content_hash`를 별도 기록한 다음 `holdout --selection <선택 파일> --selection-hash <기록한 Hash> --output <새 결과 파일>`로 진행한다. 기존 증적의 검증 명령은 다음과 같다. 검증은 학습·홀드아웃 실행이 아니다.
 
 ```bash
-PYTHONPATH=src python3 examples/learning_stability.py verify-selection --selection docs/architecture/evidence/learning-stability-selection-20260903.json --selection-hash db4d8f24a85e65876b7eba60811208900bbebf3b714f883c7a787b1cb3bbaa76
+PYTHONPATH=src python3 examples/learning_stability.py verify-selection --selection docs/architecture/evidence/learning-stability-selection-20260903.json --selection-hash b4833a65db48b1cae6550864c334a3d2fbd38bfabceb159ee19c3e3d778d92da
 ```
+
+2026-09-11 Canonical Context의 필수 Plan 식별자에 `plan_id`를 추가했으므로 평가 입력 Hash와 선택 증적 Seal을 재계산했다. 기존 모델 Artifact와 평가 수치는 그대로 보존한다.
 
 구현: [요청 계약](../../src/dsio_inventory_engine/inventory_contracts/stability.py), [실행기](../../src/dsio_inventory_engine/stability/application.py), [자료 생성](../../src/dsio_inventory_engine/stability/data.py), [선정 규칙](../../src/dsio_inventory_engine/stability/selection.py), [검증 결과](IO_LEARNING_STABILITY_VERIFICATION.md).

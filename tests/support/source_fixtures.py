@@ -67,7 +67,7 @@ def mapped():
         tenant_id="default",
         project_id="TEST-PROJECT",
         plant_cd=c["site_cd"],
-        plan_id="TEST-PLAN",
+        plan_id=c["plan_id"],
         plan_yyyyww="202639",
         fcst_w0_yyyyww=c["plan_yyyyww"],
         target_cd="DMD",

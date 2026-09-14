@@ -51,10 +51,12 @@ PPO의 해당 사례는 종료 벌점을 제거해도 BO·서비스 결과가 �
 
 ## 4. 고정 증적과 재현 범위
 
-- [선정·전체 모델·Optimizer/VALIDATION 증적](evidence/learning-stability-selection-20260903.json): `db4d8f24a85e65876b7eba60811208900bbebf3b714f883c7a787b1cb3bbaa76`
-- [새 홀드아웃·종료 민감도 증적](evidence/learning-stability-holdout-20260903.json): `6766a53615a263eb1ffc9a8378b40cc1081df0a2c35efa9a19b1864f6653fce8`
+- [선정·전체 모델·Optimizer/VALIDATION 증적](evidence/learning-stability-selection-20260903.json): `b4833a65db48b1cae6550864c334a3d2fbd38bfabceb159ee19c3e3d778d92da`
+- [새 홀드아웃·종료 민감도 증적](evidence/learning-stability-holdout-20260903.json): `002a6b08b9c7734d01959bb916ae96e83b995c467446390ff532e2682f7be99c`
 
 위 값은 파일 전체 바이트 Hash가 아니라 자기 `content_hash`를 제외한 Canonical JSON SHA-256이다. Holdout은 선정 Hash를 참조하며 선택·모델을 바꾸지 않는다. 원본0.7.0 실험 파일도 보존했다. 로컬 요약 JSON이며 Artifact 서비스 봉인·TB_IO 이중 기록 완료는 아니다.
+
+2026-09-11 Canonical Context에 `plan_id`를 필수 봉인하면서 VALIDATION·Holdout 평가 입력 Hash와 두 증적 Seal을 재계산했다. 학습 모델, 평가 수치, 선정 결과는 변경하지 않았다.
 
 ## 5. 코드 검증
 

@@ -22,10 +22,32 @@ from dsio_inventory_engine.inventory_contracts.values import (
 class InventoryRuntimeResult:
     inventory_result_snapshot_id: str
     inventory_result_content_hash: str
+    automatic_publish_allowed: bool | None = None
+    automatic_order_allowed: bool | None = None
+    effective_policy_content_hash: str | None = None
 
     def __post_init__(self) -> None:
         identifier(self.inventory_result_snapshot_id)
         hash_value(self.inventory_result_content_hash)
+        require(
+            (self.automatic_publish_allowed is None) == (self.automatic_order_allowed is None)
+            and (
+                self.automatic_publish_allowed is None
+                or (
+                    type(self.automatic_publish_allowed) is bool
+                    and type(self.automatic_order_allowed) is bool
+                )
+            ),
+            "RUNTIME_RESULT_POLICY_GATE_INVALID",
+        )
+        require(
+            self.automatic_publish_allowed is None
+            or self.automatic_publish_allowed
+            or not self.automatic_order_allowed,
+            "RUNTIME_RESULT_POLICY_GATE_INVALID",
+        )
+        if self.effective_policy_content_hash is not None:
+            hash_value(self.effective_policy_content_hash)
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,8 +73,7 @@ class InventoryRuntimeStageEvent:
             "RUNTIME_EVENT_STATUS_INVALID",
         )
         require(
-            type(self.progress_percent) is int
-            and 0 <= self.progress_percent <= 100,
+            type(self.progress_percent) is int and 0 <= self.progress_percent <= 100,
             "RUNTIME_EVENT_PROGRESS_INVALID",
         )
         require(
@@ -64,10 +85,7 @@ class InventoryRuntimeStageEvent:
             and all(
                 isinstance(key, str)
                 and re.fullmatch(r"[a-z][a-z0-9_]{0,63}", key) is not None
-                and (
-                    value is None
-                    or type(value) in {str, int, bool}
-                )
+                and (value is None or type(value) in {str, int, bool})
                 for key, value in self.payload_redacted.items()
             ),
             "RUNTIME_EVENT_PAYLOAD_INVALID",
@@ -86,8 +104,7 @@ class InventoryRuntimeStageEventReceipt:
             "PLATFORM_EVENT_RECEIPT_INVALID",
         )
         require(
-            self.run_status
-            in {"created", "running", "succeeded", "failed", "canceled"},
+            self.run_status in {"created", "running", "succeeded", "failed", "canceled"},
             "PLATFORM_EVENT_RECEIPT_INVALID",
         )
         require(type(self.replayed) is bool, "PLATFORM_EVENT_RECEIPT_INVALID")
@@ -140,9 +157,7 @@ class InventoryRuntimeExecutionUseCase:
 
     async def accept(self, document: str) -> InventoryRuntimeExecutionReceipt:
         request = InventoryRuntimeExecutionRequest.from_json(document)
-        receipt = InventoryRuntimeExecutionReceipt.from_dict(
-            await self._submission.submit(request)
-        )
+        receipt = InventoryRuntimeExecutionReceipt.from_dict(await self._submission.submit(request))
         require(
             receipt.engine_run_id == request.engine_run_id,
             "RUNTIME_SUBMISSION_ID_MISMATCH",
@@ -200,6 +215,9 @@ class InventoryRuntimeWorker:
         )
         try:
             result = await self._handler.execute(request, report)
+            automatic_publish_allowed, automatic_order_allowed = _validate_result_policy_binding(
+                request, result
+            )
         except Exception as exc:
             error_code = _stable_error_code(exc)
             receipt = await self._platform.append_event(
@@ -221,16 +239,35 @@ class InventoryRuntimeWorker:
             InventoryRuntimeStageEvent(
                 event_type="inventory.run",
                 stage="publication",
-                status="succeeded",
+                status=("succeeded" if automatic_publish_allowed else "running"),
                 progress_percent=100,
-                message_code="INVENTORY_RESULT_SEALED",
+                message_code=(
+                    "INVENTORY_RESULT_SEALED"
+                    if automatic_publish_allowed
+                    else "INVENTORY_RESULT_REVIEW_REQUIRED"
+                ),
                 payload_redacted={
                     "inventory_result_snapshot_id": result.inventory_result_snapshot_id,
                     "inventory_result_content_hash": result.inventory_result_content_hash,
+                    "automatic_publish_allowed": automatic_publish_allowed,
+                    "automatic_order_allowed": automatic_order_allowed,
+                    "effective_policy_content_hash": result.effective_policy_content_hash,
                 },
             ),
         )
         row_version = terminal.site_row_version
+        if not automatic_publish_allowed:
+            return {
+                "engine_run_id": request.engine_run_id,
+                "status": "review_required",
+                "publication_status": "withheld_for_review",
+                "inventory_result_snapshot_id": result.inventory_result_snapshot_id,
+                "inventory_result_content_hash": result.inventory_result_content_hash,
+                "effective_policy_content_hash": result.effective_policy_content_hash,
+                "automatic_publish_allowed": False,
+                "automatic_order_allowed": False,
+                "site_row_version": row_version,
+            }
         publication = await self._platform.publish(
             request,
             expected_site_row_version=row_version,
@@ -259,6 +296,47 @@ def _stable_error_code(exc: Exception) -> str:
         if re.fullmatch(r"[A-Z][A-Z0-9_]{0,127}", code) is not None:
             return code
     return "INVENTORY_RUNTIME_EXECUTION_FAILED"
+
+
+def _validate_result_policy_binding(
+    request: InventoryRuntimeExecutionRequest,
+    result: InventoryRuntimeResult,
+) -> tuple[bool, bool]:
+    classification = request.classification_binding
+    if classification is None:
+        require(
+            result.effective_policy_content_hash is None
+            and (
+                (
+                    result.automatic_publish_allowed is None
+                    and result.automatic_order_allowed is None
+                )
+                or (
+                    result.automatic_publish_allowed is True
+                    and result.automatic_order_allowed is True
+                )
+            ),
+            "RUNTIME_EFFECTIVE_POLICY_BINDING_UNEXPECTED",
+        )
+        return True, True
+    require(
+        result.effective_policy_content_hash == classification["source_content_hash"],
+        "RUNTIME_EFFECTIVE_POLICY_RESULT_HASH_MISMATCH",
+    )
+    expected = (
+        request.value["claim"]["expected_automatic_publish_allowed"],
+        request.value["claim"]["expected_automatic_order_allowed"],
+    )
+    actual = (
+        result.automatic_publish_allowed,
+        result.automatic_order_allowed,
+    )
+    require(
+        all(type(value) is bool for value in actual),
+        "RUNTIME_EFFECTIVE_POLICY_RESULT_GATE_REQUIRED",
+    )
+    require(actual == expected, "RUNTIME_EFFECTIVE_POLICY_RESULT_GATE_MISMATCH")
+    return bool(actual[0]), bool(actual[1])
 
 
 __all__ = [

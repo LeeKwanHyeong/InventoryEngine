@@ -122,7 +122,7 @@ def fixture(items=1, weeks=3):
                 "plant_cd": "V101",
                 "tenant_id": "default",
                 "project_id": "project-1",
-                "plan_id": "PLAN-1",
+                "plan_id": context["plan_id"],
                 "plan_yyyyww": "202626",
                 "fcst_w0_yyyyww": week_ids[0],
                 "target_cd": "DS_T_01",
@@ -251,6 +251,7 @@ class ForecastHandoffIntegrationTests(unittest.TestCase):
             "planning_cycle_revision_id",
             "master_snapshot_revision",
             "demand_run_id",
+            "plan_id",
         ):
             wrong = copy.deepcopy(template)
             wrong["context"][key] = "OTHER"

@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SELECTION = ROOT / "docs/architecture/evidence/learning-stability-selection-20260903.json"
-PINNED = "db4d8f24a85e65876b7eba60811208900bbebf3b714f883c7a787b1cb3bbaa76"
+PINNED = "b4833a65db48b1cae6550864c334a3d2fbd38bfabceb159ee19c3e3d778d92da"
 
 
 class StabilityCliTests(unittest.TestCase):

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from .canonical import SCOPE, read_canonical_envelope
+from .effective_policy_v2 import EFFECTIVE_POLICY_V2_CONTRACT_VERSION
 from .replenishment import RecommendationRequest
 from .values import (
     boolean,
@@ -128,7 +129,10 @@ class MathematicalPolicyRequest:
         )
         execution = result["recommendation"]["execution"]
         snapshot = result["policy_input"]
-        require(execution["contract_version"] == "1.1.0", "MATH_REQUIRES_BOUND_EXECUTION")
+        require(
+            execution["contract_version"] in {"1.1.0", EFFECTIVE_POLICY_V2_CONTRACT_VERSION},
+            "MATH_REQUIRES_BOUND_EXECUTION",
+        )
         require(execution["strategy"] == MATH_DESCRIPTOR, "MATH_STRATEGY_BINDING_MISMATCH")
         require(
             execution["strategy_input_binding"] == policy_input_binding(snapshot),

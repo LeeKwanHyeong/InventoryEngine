@@ -2,9 +2,9 @@
   "project_name": "InventoryEngine",
   "baseline_date": "2026-09-04",
   "latest_contract_review_date": "2026-09-11",
-  "description": "0.14.0은 Site·Item별 ABC·XYZ·VED 결합 Segment에 승인 Matrix와 VED 하한을 적용해 품목별 유효 정책과 Hash를 생성한다. 수학적 전략만 운영 적격이며 ML/PPO는 승인 모델 기반 Shadow 전용이다. Migration 075 적용과 Runtime Segmentation Binding은 아직 미완료다.",
+  "description": "0.15.0은 Config 1.1.0 호환을 유지하면서 7축 결정론적 분류와 Effective Policy V2를 구현한다. 승인된 V2 Snapshot ID·Policy Content Hash를 Run Input Binding에 고정하고 FSN/PLC Gate, SDE Lead Time, HML 승인 수준을 실제 보충 계산에 연결했다. Migration 075·076은 개발 PostgreSQL에 적용하고 Rollback Canary를 완료했다. SDE/HML 권위 Source, PLC 권위 Source, 실제 V2 업무 Snapshot·Migration 074·공용 Runtime 배포는 미완료다.",
   "tech_stack": {
-    "frontend": "이번 범위 없음; 후속 EngineStudio",
+    "frontend": "dsai-platform Engine Studio의 Inventory Config 2.0.0 편집·Source 상태 표시",
     "backend": "Python >=3.12, src layout, 순수 계산 UseCase, asyncpg 읽기 Adapter",
     "mobile": "없음",
     "database": "PostgreSQL의 dsai/dsdm/dsim; Neo4j는 Network 조회 Projection이며 IO 입력 Source 아님",
@@ -33,8 +33,13 @@
     "forecast_handoff_proposal": "2026-09-04 사용자 구현 승인 반영. IO 0.10.0/Demand opt-in Export·공유 Guard·Parquet Reader와 111020행 전달/입력 검증 완료. 실제 Artifact Mapping/Receipt Port·Studio 활성화·DB Publication은 미완료. IO_FORECAST_HANDOFF_CONTRACT.md 참조",
     "network_input": "완료: 요청 ID/Hash·승인·Scope·Plan 기준일 검증과 메모리 Snapshot/Manifest",
     "validation": {
-      "unit": 264,
-      "contract": 20,
+      "inventory_tests_passed": 374,
+      "inventory_tests_skipped": 20,
+      "inventory_subtests_passed": 355,
+      "platform_backend_tests_passed": 62,
+      "platform_frontend_tests_passed": 5,
+      "ruff": "PASSED",
+      "diff_check": "PASSED",
       "offline_cli_integration": 38,
       "forecast_handoff_large_rows": 111020,
       "source_readonly_integration": 2,
@@ -64,8 +69,8 @@
     },
     "canonical_cutoff_baseline_psi": "로컬 구현 완료; 원천 수집/실제 봉인 저장 제외",
     "source_read_adapter": "0.9.1 완료: Source DTO/Schema/매핑/파일 Reader/지정 Run PostgreSQL 대조. 전체 로컬 검증 후에만 DB 연결, 검증된 메모리 Snapshot 재사용. Canonical Hash 결정론성·미확인 Due-in 제외·기존 14 Golden/52주 합성 입력 호환. 운영 Source Admission 완료는 아님",
-    "run_lifecycle_evidence_persistence": "진행 중: Platform Claim DTO·Repository/API·Migration 074 초안, Demand Input Binding, Runtime Dispatch·접수·Event/Publish Callback과 Offline 통합 완료. 실제 DB Claim, 영속 Runtime Queue/Worker와 전체 실행 Evidence는 미구현",
-    "classification_snapshot_lifecycle": "구현 완료: 정확한 Site Config/Actual Close/승인 VED, 품목별 ABC·XYZ·VED·결합 Segment와 미분류 사유, Matrix·VED 하한 기반 유효 정책·정책 Hash, 기본 no-write, hash-bound append-only 게시와 exact replay. 수학적 전략만 운영 적격이며 ML/PPO는 승인 모델 Shadow 전용. Migration 075 적용과 Runtime Binding은 미수행",
+    "run_lifecycle_evidence_persistence": "진행 중: Platform Claim DTO·Repository/API·Migration 074 초안, Demand 및 V2 Classification Input Binding, Runtime Dispatch·접수·Event/Publish Callback과 실제 보충 계산 소비를 Offline 검증했다. 실제 DB Claim, Migration 074, 영속 Runtime Queue/Worker와 전체 실행 Evidence는 미구현",
+    "classification_snapshot_lifecycle": "0.15.0 구현: 1.1.0 호환, 2.0.0 7축 axis_results·Effective Policy V2와 Run Binding을 구현했다. FSN/PLC Gate·SDE Lead Time·HML 승인 수준을 실제 보충 계산에 적용하고 REVIEW 자동 Publish를 차단한다. Migration 075·076은 개발 PostgreSQL에 적용했으며 Canary는 전체 Rollback됐다. SDE/HML은 UNVERIFIED, PLC는 SYNTHETIC_SHADOW_ONLY다. 실제 V2 업무 Snapshot은 미게시",
     "learning_stability": "검증 기능/실행 완료: TRAIN52/VALIDATION52, 학습Seed3개×후보2개, 선정Hash 고정 후 새TEST Seed3개×104주. ML/PPO 모두 연구Gate 미달. 수학적 기준 유지; 운영 승인/통계적 우월성 주장 없음",
     "dsim_agent_and_read_api": "미구현; 현재 개발 선행 조건 아님",
     "inventory_git": "inventory_engine_dev Branch와 GitHub origin 구성",
@@ -395,6 +400,32 @@
       ]
     },
     {
+      "id": "io-seven-axis-segmentation",
+      "agent": "backend/frontend",
+      "status": "완료(로컬)",
+      "title": "7축 Segmentation 계약·Config·결정론적 분류",
+      "description": "ABC·XYZ·VED·FSN·SDE·HML·PLC를 독립 axis_results로 계산하고 Config 1.1.0/2.0.0 병행 검증, Source 상태 API와 Engine Studio 설정 화면을 구현했다. Migration 075·076의 개발 DB Projection과 Rollback Canary도 완료했다. SDE/HML 권위 Source와 실제 V2 업무 Snapshot은 미완료다.",
+      "priority": 1,
+      "dependencies": ["io-source-read"],
+      "estimated_complexity": "high",
+      "acceptance_criteria": ["동일 Source Revision과 Config Hash의 결과 재현", "ABC_XYZ와 Schema 1.1.0, SEVEN_AXIS와 Schema 2.0.0의 정확한 결합", "FSN Source 0건·불완전 Row를 N으로 추정하지 않음", "SHADOW 축 정책 영향 제외", "미검증 OPERATIONAL Source fail-closed", "사용자 Hash 직접 입력 없음"],
+      "artifacts_expected": ["Config Schema 2.0.0", "7축 분류 계약", "Source 상태 API", "Engine Studio 편집 화면"],
+      "scope": ["InventoryEngine/classify_inventory", "InventoryEngine/inventory_contracts", "dsai-platform Backend/Frontend"]
+    },
+    {
+      "id": "io-effective-policy-v2",
+      "agent": "backend",
+      "status": "완료(로컬·개발 DB Schema)",
+      "title": "7축 Effective Policy V2의 Snapshot·Runtime Binding",
+      "description": "FSN 및 향후 권위 PLC의 주문 Gate, SDE P50/P90 보호기간, HML 승인 수준, Operational Source fail-closed와 Shadow 무영향 Hash를 V2 Snapshot·Run Input Binding·실제 보충 계산에 연결했다. REVIEW는 계산·Evidence 후 자동 게시·발주를 차단하고 BLOCK은 계산 전에 차단한다. Migration 075·076은 개발 DB 적용과 Rollback Canary까지 완료했으나 실제 V2 업무 Snapshot은 게시하지 않았다.",
+      "priority": 1,
+      "dependencies": ["io-seven-axis-segmentation"],
+      "estimated_complexity": "medium",
+      "acceptance_criteria": ["OPERATIONAL+CLASSIFIED 축만 유효 Projection과 Hash에 포함", "품목 ID·classification_config_hash·effective_policy_hash의 Binding Hash 봉인과 Run config_hash 대조", "REVIEW는 계산·Evidence 허용, 자동 게시·발주 차단", "BLOCK·미검증 Operational 축 fail-closed", "V1 회귀와 V2 Snapshot·Runtime 정책 Hash 일치", "개발 DB Projection 적용과 Rollback Canary 완료; 실제 V2 업무 Snapshot 미게시"],
+      "artifacts_expected": ["Effective Policy V2 계약", "V1/V2 Admission", "분류 Snapshot Binding", "보충 Runtime Binding 테스트", "Migration 075·076 개발 적용 증적"],
+      "scope": ["InventoryEngine/inventory_contracts", "InventoryEngine/classify_inventory", "InventoryEngine/recommend_replenishment", "InventoryEngine/run_inventory"]
+    },
+    {
       "id": "io-model-improvement",
       "agent": "backend",
       "status": "다음 작업",
@@ -476,12 +507,13 @@
     {
       "id": "io-runtime",
       "agent": "backend",
-      "status": "다음 작업",
+      "status": "진행 중",
       "title": "공통 Run·Planning Cycle 연결",
-      "description": "기존 Demand 계약을 보존하며 IO Claim·Attempt·Network Binding을 연결한다.",
+      "description": "기존 Demand 계약을 보존하며 IO Claim·Attempt·Network Binding과 7축 Classification/Effective Policy Snapshot 입력을 연결했다. Platform Dispatch와 Runtime 접수·Callback, V2 보충 계산 소비의 로컬 계약은 구현됐고 Migration 074·영속 Queue/Worker·전체 Pipeline Handler 조립은 진행 중이다.",
       "priority": 2,
       "dependencies": [
-        "io-strategy-contract"
+        "io-strategy-contract",
+        "io-effective-policy-v2"
       ],
       "estimated_complexity": "high",
       "acceptance_criteria": [
@@ -685,9 +717,9 @@
     ]
   },
   "testing_strategy": {
-    "unit_tests": "111건 통과. 기존 Baseline Golden 14개/45 Row + 수학적 Golden 14개/42 Row. 정책 선택·미래 정보/고아/기간/숫자 경계와 공통 회귀",
-    "integration_tests": "계약 7건·오프라인 프로세스 통합 7건 통과. 실제 수학적 정책 CLI 포함; 이전 개발 Network DB 5건은 이번에 실행하지 않음",
-    "e2e_tests": "IO Run Write 미수행; P0-18과 대상 승인 이후 실행",
+    "unit_tests": "InventoryEngine 전체 374건 통과, 20건 Skip, 355 Subtest 통과. 7축 Source·V1/V2 Snapshot·Runtime Binding·REVIEW/BLOCK 회귀 포함",
+    "integration_tests": "dsai-platform Backend 62건, Frontend 정적 계약 5건, Ruff와 diff-check 통과. Migration 075·076 개발 적용 및 Rollback Canary 통과",
+    "e2e_tests": "Canary는 V2 1품목·7축·4 Window·5 사유를 Deferred Constraint까지 검증하고 전체 Rollback. 실제 V2 업무 Snapshot과 IO Run Write는 미수행",
     "performance_tests": "후속 대표 POSM/TGSM 입력으로 실측; 현재 처리량 주장 없음"
   }
 }

@@ -1,6 +1,6 @@
 """Strategy-neutral, local Recommended PSI with request-local supply ledgers."""
 
-from decimal import Decimal, localcontext
+from decimal import Decimal, ROUND_CEILING, localcontext
 
 from dsio_inventory_engine.inventory_contracts.canonical import CanonicalInputRequest, SCOPE
 from dsio_inventory_engine.inventory_contracts.network import DeploymentScope
@@ -17,10 +17,16 @@ from dsio_inventory_engine.inventory_contracts.values import (
     quantity_text,
     require,
 )
+from dsio_inventory_engine.inventory_contracts.runtime import (
+    InventoryRuntimeExecutionRequest,
+    validate_canonical_runtime_binding,
+    validate_effective_policy_runtime_binding,
+)
 from dsio_inventory_engine.prepare_inventory.application.inventory_input import (
     PrepareInventoryInputUseCase,
 )
 from dsio_inventory_engine.simulate_inventory.application.step import InventoryState, advance_bucket
+from .effective_policy import admit_effective_item_policy
 from .guard import policy_at, validate_action
 from .observation import build_observation
 
@@ -31,7 +37,13 @@ class RunRecommendedPsiUseCase:
     def __init__(self, deployment: DeploymentScope):
         self.deployment = deployment
 
-    def execute(self, request: RecommendationRequest, strategy: ReplenishmentStrategy) -> dict:
+    def execute(
+        self,
+        request: RecommendationRequest,
+        strategy: ReplenishmentStrategy,
+        *,
+        runtime_request: InventoryRuntimeExecutionRequest | None = None,
+    ) -> dict:
         request = RecommendationRequest.from_dict(request.to_dict())
         require(self.deployment.environment == "DEVELOPMENT", "LOCAL_RECOMMENDATION_ONLY")
         data = request.to_dict()
@@ -49,11 +61,28 @@ class RunRecommendedPsiUseCase:
                 getattr(strategy, "input_binding", None) == execution["strategy_input_binding"],
                 "STRATEGY_INPUT_BINDING_MISMATCH",
             )
+        admissions = apply_effective_policy_controls(
+            prepared,
+            execution,
+            runtime_request=runtime_request,
+        )
         with localcontext() as ctx:
             ctx.prec = 40
             validate_controls(prepared, execution)
-            rows, decisions, orders = simulate(prepared, execution, request.input_hash, strategy)
-        return {
+            rows, decisions, orders = simulate(
+                prepared,
+                execution,
+                request.input_hash,
+                strategy,
+                admissions=admissions,
+            )
+        automatic_publish_allowed = all(
+            admission["automatic_publish_allowed"] for admission in admissions.values()
+        )
+        automatic_order_allowed = all(
+            admission["automatic_order_allowed"] for admission in admissions.values()
+        )
+        result = {
             "contract_id": "io-replenishment-result-v1",
             "contract_version": execution["contract_version"],
             "status": "RECOMMENDED_PSI_COMPUTED_LOCALLY",
@@ -75,6 +104,96 @@ class RunRecommendedPsiUseCase:
             "recommended_orders": orders,
             "orders_content_hash": digest(orders),
         }
+        if admissions:
+            result.update(
+                effective_policy_binding=execution["effective_policy_binding"],
+                effective_policy_content_hash=execution["effective_policy_binding"][
+                    "effective_policy_content_hash"
+                ],
+                effective_policy_admission_evidence=list(admissions.values()),
+                effective_policy_admission_content_hash=digest(list(admissions.values())),
+                automatic_publish_allowed=automatic_publish_allowed,
+                automatic_order_allowed=automatic_order_allowed,
+                publication_disposition=(
+                    "AUTO_PUBLISH_ALLOWED" if automatic_publish_allowed else "REVIEW_REQUIRED"
+                ),
+            )
+        return result
+
+
+def apply_effective_policy_controls(
+    prepared: dict,
+    execution: dict,
+    *,
+    runtime_request: InventoryRuntimeExecutionRequest | None = None,
+) -> dict[str, dict]:
+    """Admit V2 item policies and project their operational controls onto Source policy rows."""
+
+    if execution["contract_version"] != "2.0.0":
+        require(runtime_request is None, "RUNTIME_BINDING_UNEXPECTED_FOR_V1")
+        return {}
+    if execution["execution_mode"] == "PLATFORM_BOUND":
+        require(runtime_request is not None, "RUNTIME_EXECUTION_BINDING_REQUIRED")
+        validate_effective_policy_runtime_binding(
+            runtime_request,
+            execution["effective_policy_binding"],
+        )
+        validate_canonical_runtime_binding(
+            runtime_request,
+            context=prepared["context"],
+            input_bindings=prepared["manifest"]["input_bindings"],
+            forecast_provenance=prepared["canonical_snapshots"]["forecast"]["metadata"],
+        )
+    else:
+        require(runtime_request is None, "LOCAL_SHADOW_RUNTIME_BINDING_FORBIDDEN")
+
+    policies = {row["item_id"]: row for row in execution["effective_item_policies"]}
+    master_items = {row["item_id"] for row in prepared["master"]}
+    require(set(policies) == master_items, "EFFECTIVE_POLICY_UNIVERSE_MISMATCH")
+    admissions = {
+        item_id: admit_effective_item_policy(
+            policy,
+            config_hash=execution["effective_policy_binding"]["classification_config_hash"],
+            execution_purpose=execution["execution_purpose"],
+            strategy_descriptor=execution["strategy"],
+            model_approval=execution["model_approval"],
+        )
+        for item_id, policy in policies.items()
+    }
+    if runtime_request is not None:
+        claim = runtime_request.value["claim"]
+        require(
+            (
+                all(admission["automatic_publish_allowed"] for admission in admissions.values()),
+                all(admission["automatic_order_allowed"] for admission in admissions.values()),
+            )
+            == (
+                claim["expected_automatic_publish_allowed"],
+                claim["expected_automatic_order_allowed"],
+            ),
+            "RUNTIME_EFFECTIVE_POLICY_ADMISSION_MISMATCH",
+        )
+
+    for source_policy in prepared["policies"]:
+        admission = admissions[source_policy["item_id"]]
+        source_policy["classification_effective_policy_hash"] = admission["effective_policy_hash"]
+        source_policy["classification_config_hash"] = execution["effective_policy_binding"][
+            "classification_config_hash"
+        ]
+        source_policy["source_approved_service_level"] = source_policy["approved_service_level"]
+        source_policy["approved_service_level"] = admission["effective_target_service_level"]
+        source_policy["effective_review_cycle_weeks"] = admission["effective_review_cycle_weeks"]
+        effective_lead_time = admission["effective_protection_lead_time_days"]
+        if effective_lead_time is not None:
+            rounded_days = int(
+                Decimal(effective_lead_time).to_integral_value(rounding=ROUND_CEILING)
+            )
+            require(0 <= rounded_days <= 3660, "LEAD_TIME_RANGE")
+            source_policy["effective_protection_lead_time_days"] = rounded_days
+            source_policy["effective_protection_lead_time_basis"] = admission[
+                "effective_protection_lead_time_basis"
+            ]
+    return admissions
 
 
 def validate_controls(prepared: dict, execution: dict) -> None:
@@ -110,12 +229,18 @@ def validate_controls(prepared: dict, execution: dict) -> None:
 
 
 def simulate(
-    prepared: dict, execution: dict, input_hash: str, strategy: ReplenishmentStrategy
+    prepared: dict,
+    execution: dict,
+    input_hash: str,
+    strategy: ReplenishmentStrategy,
+    *,
+    admissions: dict[str, dict] | None = None,
 ) -> tuple[list, list, list]:
     rows: list[dict] = []
     decisions: list[dict] = []
     orders: list[dict] = []
     controls = {r["item_id"]: r for r in execution["item_controls"]}
+    admissions = admissions or {}
     rules = {r["uom"]: r for r in prepared["manifest"]["quantity_rules"]}
     positions = {r["item_id"]: r for r in prepared["positions"]}
     # Build per-item indexes once; all mutable state remains local to this call.
@@ -184,6 +309,19 @@ def simulate(
                     "source_policy_id": policy["policy_id"],
                     "status": "SIMULATED_PENDING",
                 }
+                if item_id in admissions:
+                    admission = admissions[item_id]
+                    order.update(
+                        effective_policy_hash=admission["effective_policy_hash"],
+                        effective_order_action=admission["effective_order_action"],
+                        effective_approval_level=admission["effective_approval_level"],
+                        automatic_order_allowed=admission["automatic_order_allowed"],
+                        execution_disposition=(
+                            "AUTO_ALLOWED"
+                            if admission["automatic_order_allowed"]
+                            else "APPROVAL_REQUIRED"
+                        ),
+                    )
                 orders.append(order)
                 pending.append(
                     {
@@ -228,14 +366,15 @@ def simulate(
                 }
             )
             pending[:] = [s for s in pending if s["receipt_bucket"] != bucket["yyyyww"]]
-            decisions.append(
-                {
-                    "observation": observation.to_dict(),
-                    "observation_hash": observation.content_hash,
-                    "proposal": proposal,
-                    "validation": validation,
-                }
-            )
+            decision = {
+                "observation": observation.to_dict(),
+                "observation_hash": observation.content_hash,
+                "proposal": proposal,
+                "validation": validation,
+            }
+            if item_id in admissions:
+                decision["effective_policy_admission"] = admissions[item_id]
+            decisions.append(decision)
     # Every accepted order is within the horizon and has been simulated exactly once.
     for order in orders:
         order["status"] = "SIMULATED_RECEIVED"

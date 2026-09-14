@@ -4,20 +4,31 @@ from dataclasses import dataclass
 from decimal import localcontext
 
 from dsio_inventory_engine.inventory_contracts.evaluation import ProductionEvaluationRequest
-from dsio_inventory_engine.inventory_contracts.canonical import read_canonical_envelope
+from dsio_inventory_engine.inventory_contracts.canonical import (
+    CanonicalInputRequest,
+    read_canonical_envelope,
+)
 from dsio_inventory_engine.inventory_contracts.mathematical import MathematicalPolicyRequest
 from dsio_inventory_engine.inventory_contracts.model import ModelArtifact
 from dsio_inventory_engine.inventory_contracts.network import DeploymentScope
 from dsio_inventory_engine.inventory_contracts.replenishment import (
     MODEL_FIELDS,
+    MODEL_APPROVAL_FIELDS,
     RecommendationRequest,
 )
 from dsio_inventory_engine.inventory_contracts.training import TrainingRequest
 from dsio_inventory_engine.inventory_contracts.values import (
     canonical_json,
     digest,
+    optional,
     require,
     shape,
+)
+from dsio_inventory_engine.prepare_inventory.application.inventory_input import (
+    PrepareInventoryInputUseCase,
+)
+from dsio_inventory_engine.recommend_replenishment.application.math_input import (
+    validate_math_input,
 )
 from dsio_inventory_engine.recommend_replenishment.application.math_policy import (
     build_policy_report,
@@ -26,6 +37,10 @@ from dsio_inventory_engine.recommend_replenishment.application.mathematical impo
     prepare_mathematical_strategy,
 )
 from dsio_inventory_engine.recommend_replenishment.application.run import RunRecommendedPsiUseCase
+from dsio_inventory_engine.recommend_replenishment.application.run import (
+    apply_effective_policy_controls,
+    validate_controls,
+)
 from dsio_inventory_engine.evaluate_replenishment.admission import validate_binding
 from dsio_inventory_engine.evaluate_replenishment.application import (
     EvaluateMathematicalStrategyUseCase,
@@ -41,14 +56,33 @@ class LearnedInferenceRequest:
 
     @classmethod
     def from_dict(cls, value: dict) -> "LearnedInferenceRequest":
+        if type(value) is dict:
+            value = dict(value)
+            value.setdefault("model_approval", None)
         data = shape(
             value,
             {
                 "mathematical_request": lambda v: MathematicalPolicyRequest.from_dict(v).to_dict(),
                 "model": lambda v: ModelArtifact.from_dict(v).to_dict(),
                 "model_reference": lambda v: shape(v, MODEL_FIELDS),
+                "model_approval": optional(lambda v: shape(v, MODEL_APPROVAL_FIELDS)),
             },
         )
+        execution = data["mathematical_request"]["recommendation"]["execution"]
+        if execution["contract_version"] == "2.0.0":
+            require(
+                execution["execution_purpose"] == "SHADOW"
+                and execution["execution_mode"] == "LOCAL_SHADOW"
+                and data["model_approval"] is not None
+                and {
+                    key: data["model_approval"][key]
+                    for key in ("model_id", "version", "content_hash")
+                }
+                == data["model_reference"],
+                "LEARNED_SHADOW_MODEL_APPROVAL_REQUIRED",
+            )
+        else:
+            require(data["model_approval"] is None, "LEARNED_MODEL_APPROVAL_UNEXPECTED")
         return cls(canonical_json(data))
 
     def to_dict(self) -> dict:
@@ -63,8 +97,9 @@ def compile_strategy(
     deployment: DeploymentScope,
     *,
     training_predictor=None,
+    model_approval=None,
 ) -> tuple:
-    _, prepared, _, _ = prepare_mathematical_strategy(anchor, deployment)
+    anchor = MathematicalPolicyRequest.from_dict(anchor.to_dict())
     data = anchor.to_dict()
     require(
         all(
@@ -74,8 +109,29 @@ def compile_strategy(
         "MODEL_POLICY_CONTRACT_MISMATCH",
     )
     rec = data["recommendation"]
-    rec["execution"]["strategy"] = artifact.descriptor
-    recommendation = RecommendationRequest.from_dict(rec)
+    if rec["execution"]["contract_version"] == "2.0.0":
+        require(
+            rec["execution"]["execution_purpose"] == "SHADOW"
+            and rec["execution"]["execution_mode"] == "LOCAL_SHADOW"
+            and model_approval is not None,
+            "LEARNED_SHADOW_MODEL_APPROVAL_REQUIRED",
+        )
+        rec["execution"]["strategy"] = artifact.descriptor
+        rec["execution"]["model_approval"] = model_approval
+        recommendation = RecommendationRequest.from_dict(rec)
+        prepared = (
+            PrepareInventoryInputUseCase(deployment)
+            .execute(CanonicalInputRequest.from_dict(rec["canonical_input"]))
+            .to_dict()
+        )
+        apply_effective_policy_controls(prepared, recommendation.to_dict()["execution"])
+        validate_controls(prepared, recommendation.to_dict()["execution"])
+        validate_math_input(data["policy_input"], recommendation.to_dict(), prepared)
+    else:
+        require(model_approval is None, "LEARNED_MODEL_APPROVAL_UNEXPECTED")
+        _, prepared, _, _ = prepare_mathematical_strategy(anchor, deployment)
+        rec["execution"]["strategy"] = artifact.descriptor
+        recommendation = RecommendationRequest.from_dict(rec)
     report = build_policy_report(data["policy_input"], prepared, recommendation.input_hash)
     strategy = LearnedStrategy(
         artifact,
@@ -103,6 +159,7 @@ class RunLearnedPsiUseCase:
             MathematicalPolicyRequest.from_dict(data["mathematical_request"]),
             artifact,
             self.deployment,
+            model_approval=data["model_approval"],
         )
         result = RunRecommendedPsiUseCase(self.deployment).execute(rec, strategy)
         result.update(

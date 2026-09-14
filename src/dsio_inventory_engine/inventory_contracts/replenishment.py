@@ -7,9 +7,15 @@ Canonical v1 remains unchanged. This extension is development-only until Run bin
 
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Callable, Protocol
+from typing import Any, Callable, Mapping, Protocol
 
 from .canonical import CanonicalInputRequest, read_canonical_envelope
+from .effective_policy_v2 import (
+    EFFECTIVE_POLICY_V2_FIELDS,
+    EFFECTIVE_POLICY_V2_CONTRACT_VERSION,
+    effective_policy_content_hash,
+    validate_effective_item_policy_v2,
+)
 from .values import (
     canonical_json,
     choice,
@@ -18,6 +24,7 @@ from .values import (
     digest,
     hash_value,
     identifier,
+    item_identifier,
     optional,
     read_json,
     records,
@@ -27,6 +34,11 @@ from .values import (
 
 STRATEGY_TYPES = ("MATHEMATICAL", "PREDICTIVE_ML", "DEEP_RL")
 MODEL_FIELDS = {"model_id": identifier, "version": identifier, "content_hash": hash_value}
+MODEL_APPROVAL_FIELDS = {
+    "approval_reference": identifier,
+    "status": choice("APPROVED"),
+    **MODEL_FIELDS,
+}
 DESCRIPTOR_FIELDS = {
     "strategy_type": choice(*STRATEGY_TYPES),
     "implementation_id": identifier,
@@ -66,7 +78,7 @@ def action_types(value: list) -> list[str]:
 
 
 CONTROL_FIELDS = {
-    "item_id": identifier,
+    "item_id": item_identifier,
     "uom": identifier,
     "max_order_qty": decimal_string,
     "min_target_qty": decimal_string,
@@ -94,16 +106,60 @@ STRATEGY_INPUT_BINDING_FIELDS = {
     "snapshot_id": identifier,
     "content_hash": hash_value,
 }
+EFFECTIVE_POLICY_RUN_BINDING_FIELDS = {
+    "contract_id": choice("inventory-effective-policy-run-binding-v2"),
+    "contract_version": choice(EFFECTIVE_POLICY_V2_CONTRACT_VERSION),
+    "classification_snapshot_id": identifier,
+    "classification_config_hash": hash_value,
+    "effective_policy_content_hash": hash_value,
+}
 EXECUTION_FIELDS_V1_1 = {
     **EXECUTION_FIELDS,
     "contract_version": choice("1.1.0"),
     "strategy_input_binding": lambda v: shape(v, STRATEGY_INPUT_BINDING_FIELDS),
 }
+EXECUTION_FIELDS_V2 = {
+    **EXECUTION_FIELDS,
+    "contract_version": choice(EFFECTIVE_POLICY_V2_CONTRACT_VERSION),
+    "execution_mode": choice("LOCAL_SHADOW", "PLATFORM_BOUND"),
+    "strategy_input_binding": lambda v: shape(v, STRATEGY_INPUT_BINDING_FIELDS),
+    "execution_purpose": choice("OPERATIONAL", "SHADOW"),
+    "model_approval": optional(lambda v: shape(v, MODEL_APPROVAL_FIELDS)),
+    "effective_policy_binding": lambda v: shape(v, EFFECTIVE_POLICY_RUN_BINDING_FIELDS),
+    "effective_item_policies": lambda v: _effective_item_policies(v),
+}
+
+
+def _effective_item_policies(value: Any) -> list[dict[str, Any]]:
+    require(type(value) is list and 0 < len(value) <= 10_000, "EFFECTIVE_POLICY_SET_INVALID")
+    result: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for item in value:
+        require(isinstance(item, Mapping), "EFFECTIVE_POLICY_SET_INVALID")
+        require(
+            set(item) == {"item_id", *EFFECTIVE_POLICY_V2_FIELDS},
+            "EFFECTIVE_POLICY_SET_INVALID",
+        )
+        item_id = item_identifier(item.get("item_id"))
+        require(item_id not in seen, "EFFECTIVE_POLICY_ITEM_DUPLICATE")
+        seen.add(item_id)
+        result.append(
+            {
+                "item_id": item_id,
+                **validate_effective_item_policy_v2(item),
+            }
+        )
+    return sorted(result, key=lambda item: item["item_id"])
 
 
 def execution_config(value: dict) -> dict:
     require(type(value) is dict, "CONTRACT_FIELDS")
-    fields = EXECUTION_FIELDS_V1_1 if value.get("contract_version") == "1.1.0" else EXECUTION_FIELDS
+    if value.get("contract_version") == EFFECTIVE_POLICY_V2_CONTRACT_VERSION:
+        fields = EXECUTION_FIELDS_V2
+    elif value.get("contract_version") == "1.1.0":
+        fields = EXECUTION_FIELDS_V1_1
+    else:
+        fields = EXECUTION_FIELDS
     return shape(value, fields)
 
 
@@ -154,6 +210,50 @@ class RecommendationRequest:
             require(
                 Decimal(row["min_target_qty"]) <= Decimal(row["max_target_qty"]),
                 "INVALID_TARGET_BOUNDS",
+            )
+        if execution["contract_version"] == EFFECTIVE_POLICY_V2_CONTRACT_VERSION:
+            strategy = execution["strategy"]
+            model_approval = execution["model_approval"]
+            require(
+                (
+                    execution["execution_purpose"] == "OPERATIONAL"
+                    and strategy["strategy_type"] == "MATHEMATICAL"
+                    and model_approval is None
+                )
+                or (
+                    execution["execution_purpose"] == "SHADOW"
+                    and (
+                        (strategy["strategy_type"] == "MATHEMATICAL" and model_approval is None)
+                        or (
+                            strategy["strategy_type"] != "MATHEMATICAL"
+                            and model_approval is not None
+                            and {
+                                key: model_approval[key]
+                                for key in ("model_id", "version", "content_hash")
+                            }
+                            == strategy["model"]
+                        )
+                    )
+                ),
+                "REPLENISHMENT_MODEL_APPROVAL_BINDING_MISMATCH",
+            )
+            policies = execution["effective_item_policies"]
+            policy_by_item = {row["item_id"]: row for row in policies}
+            require(
+                set(policy_by_item) == {row["item_id"] for row in controls},
+                "EFFECTIVE_POLICY_UNIVERSE_MISMATCH",
+            )
+            binding = execution["effective_policy_binding"]
+            require(
+                all(
+                    row["classification_config_hash"] == binding["classification_config_hash"]
+                    for row in policies
+                ),
+                "EFFECTIVE_POLICY_CONFIG_HASH_MISMATCH",
+            )
+            require(
+                effective_policy_content_hash(policies) == binding["effective_policy_content_hash"],
+                "EFFECTIVE_POLICY_CONTENT_HASH_MISMATCH",
             )
         controls.sort(key=lambda r: r["item_id"])
         return cls(canonical_json(value))

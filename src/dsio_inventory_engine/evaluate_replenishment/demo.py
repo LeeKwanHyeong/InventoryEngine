@@ -58,6 +58,7 @@ def build_evaluation_request(
     context = {
         **data["context"],
         "engine_run_id": prefix + ":RUN",
+        "plan_id": prefix + ":PLAN",
         "plan_yyyyww": data["calendar"][origin]["yyyyww"],
         "plan_start_date": start.isoformat(),
         "plan_end_date": finish.isoformat(),

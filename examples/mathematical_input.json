@@ -13,6 +13,7 @@
         "master_as_of_date": "2026-09-28",
         "master_snapshot_revision": "MASTER-R1",
         "plan_end_date": "2026-10-18",
+        "plan_id": "PLAN-GOLDEN",
         "plan_start_date": "2026-09-28",
         "plan_type": "POSM",
         "plan_yyyyww": "202640",
@@ -312,7 +313,7 @@
         "ORDER_UP_TO"
       ],
       "approval_reference": "TEST-FIXTURE-NOT-OPERATIONAL-APPROVAL",
-      "canonical_input_hash": "72d1e013d1f37d802d7dc9137e7e55389e4a652187609b7d077b40968e55b12a",
+      "canonical_input_hash": "c0175a797490652535defe89de46d9853836a65d3f07210d4772e1f360a0da27",
       "capacity_mode": "CONSERVATIVE_NO_DEMAND_CREDIT",
       "configuration_revision": "CONFIG-GOLDEN-R1",
       "contract_id": "io-replenishment-v1",
@@ -345,7 +346,7 @@
         "contract_id": "io-mathematical-policy-input-v1",
         "contract_version": "1.0.0",
         "snapshot_id": "MATH-INPUT-variable",
-        "content_hash": "d7d41646379d52d37b526a88c83ec6a5da36f79e48574050e46a435e020ac501"
+        "content_hash": "cf0c30c6363b1efe929f1209501848033cc2dd0f7f582ba032b5cd65feea8c48"
       }
     }
   },
@@ -353,7 +354,7 @@
     "contract_id": "io-mathematical-policy-input-v1",
     "contract_version": "1.0.0",
     "snapshot_id": "MATH-INPUT-variable",
-    "content_hash": "d7d41646379d52d37b526a88c83ec6a5da36f79e48574050e46a435e020ac501",
+    "content_hash": "cf0c30c6363b1efe929f1209501848033cc2dd0f7f582ba032b5cd65feea8c48",
     "status": "SEALED",
     "history_row_count": 13,
     "context": {
@@ -361,7 +362,7 @@
       "subs_cd": "C100",
       "site_cd": "V101",
       "configuration_revision": "CONFIG-GOLDEN-R1",
-      "canonical_input_hash": "72d1e013d1f37d802d7dc9137e7e55389e4a652187609b7d077b40968e55b12a",
+      "canonical_input_hash": "c0175a797490652535defe89de46d9853836a65d3f07210d4772e1f360a0da27",
       "as_of_date": "2026-09-27",
       "available_at": "2026-09-27T14:59:59Z",
       "history_source_type": "SYNTHETIC_DEMAND",

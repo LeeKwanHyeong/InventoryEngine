@@ -62,6 +62,25 @@ def identifier(value: Any) -> str:
     return value
 
 
+def item_identifier(value: Any) -> str:
+    """Validate an opaque business item key without rewriting it.
+
+    Item numbers originate outside the engine and are join keys, so punctuation
+    must not be normalized away.  Whitespace-only, padded, NUL-containing, and
+    overlong values remain invalid to keep hashing and joins deterministic.
+    """
+
+    require(
+        isinstance(value, str)
+        and bool(value.strip())
+        and value == value.strip()
+        and len(value) <= 160
+        and "\x00" not in value,
+        "INVALID_ITEM_IDENTIFIER",
+    )
+    return value
+
+
 def hash_value(value: Any) -> str:
     require(
         isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value) is not None, "INVALID_HASH"
