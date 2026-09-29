@@ -1,0 +1,158 @@
+{
+  "contract_id": "io-trade-cost-source-catalog-v1",
+  "contract_version": "1.0.0",
+  "scope": {
+    "company_cd": "DSE",
+    "subs_cd": "C100",
+    "origin_site_cd": "V100",
+    "destination_site_cds": ["V101", "V102", "V103", "V104"],
+    "environment": "DEVELOPMENT"
+  },
+  "audited_at": "2026-09-16T00:00:00Z",
+  "fields": [
+    {
+      "field_name": "CUSTOMS_FX_RATE",
+      "status": "UNVERIFIED",
+      "source_reference": "dsdm.tb_dyn_sales_product.exchange_rate",
+      "source_revision": "development-readonly-audit-20260916",
+      "source_as_of_date": "2023-12-25",
+      "coverage_numerator": 4613,
+      "coverage_denominator": 4613,
+      "evidence_hash": "fd33dac9681588f4ab248ec7aedf9f298977eb1f8cc5b04d7d3f3792e943afd8",
+      "notes": "Historical sales exchange rates exist for 2018-2023 but are not customs declaration-date rates."
+    },
+    {
+      "field_name": "HS_CLASSIFICATION",
+      "status": "NOT_FOUND",
+      "source_reference": null,
+      "source_revision": null,
+      "source_as_of_date": null,
+      "coverage_numerator": 0,
+      "coverage_denominator": 35000,
+      "evidence_hash": null,
+      "notes": "No HS code, HS version, or destination national tariff line was found in the audited schemas."
+    },
+    {
+      "field_name": "INCOTERMS_INSURANCE",
+      "status": "NOT_FOUND",
+      "source_reference": null,
+      "source_revision": null,
+      "source_as_of_date": null,
+      "coverage_numerator": 0,
+      "coverage_denominator": 35000,
+      "evidence_hash": null,
+      "notes": "No Incoterms or shipment insurance source was found."
+    },
+    {
+      "field_name": "INLAND_FREIGHT",
+      "status": "NOT_FOUND",
+      "source_reference": null,
+      "source_revision": null,
+      "source_as_of_date": null,
+      "coverage_numerator": 0,
+      "coverage_denominator": 8,
+      "evidence_hash": null,
+      "notes": "Network lanes contain time estimates only; no inland freight charge source exists."
+    },
+    {
+      "field_name": "INTERNATIONAL_FREIGHT",
+      "status": "NOT_FOUND",
+      "source_reference": null,
+      "source_revision": null,
+      "source_as_of_date": null,
+      "coverage_numerator": 0,
+      "coverage_denominator": 8,
+      "evidence_hash": null,
+      "notes": "Eight SEA/AIR lanes exist but none contains a contracted or observed freight charge."
+    },
+    {
+      "field_name": "MANUFACTURING_ORIGIN",
+      "status": "NOT_FOUND",
+      "source_reference": null,
+      "source_revision": null,
+      "source_as_of_date": null,
+      "coverage_numerator": 0,
+      "coverage_denominator": 35000,
+      "evidence_hash": null,
+      "notes": "Site country is not item manufacturing origin; no item-origin source was found."
+    },
+    {
+      "field_name": "PREFERENTIAL_ORIGIN_CERTIFICATE",
+      "status": "NOT_FOUND",
+      "source_reference": null,
+      "source_revision": null,
+      "source_as_of_date": null,
+      "coverage_numerator": 0,
+      "coverage_denominator": 35000,
+      "evidence_hash": null,
+      "notes": "No item and shipment-level certificate-of-origin evidence or eligibility decision was found."
+    },
+    {
+      "field_name": "QUANTITY_UOM",
+      "status": "DEVELOPMENT_FIXTURE",
+      "source_reference": "dsdm.tb_mst_oper_part.unit",
+      "source_revision": "development-readonly-audit-20260916",
+      "source_as_of_date": "2026-09-16",
+      "coverage_numerator": 35000,
+      "coverage_denominator": 35000,
+      "evidence_hash": "fd33dac9681588f4ab248ec7aedf9f298977eb1f8cc5b04d7d3f3792e943afd8",
+      "notes": "All C100 V100-V104 item rows use EA, but the audited database is a development fixture."
+    },
+    {
+      "field_name": "SHIPPING_COUNTRY",
+      "status": "DEVELOPMENT_FIXTURE",
+      "source_reference": "dsdm.tb_mst_site_country + dsim.tb_mst_inventory_network_node",
+      "source_revision": "development-network-approved-20260903",
+      "source_as_of_date": "2026-09-16",
+      "coverage_numerator": 5,
+      "coverage_denominator": 5,
+      "evidence_hash": "fd33dac9681588f4ab248ec7aedf9f298977eb1f8cc5b04d7d3f3792e943afd8",
+      "notes": "V100 and V101-V104 country labels exist, but lanes are synthetic low-confidence development scenarios."
+    },
+    {
+      "field_name": "TRANSACTION_CURRENCY",
+      "status": "UNVERIFIED",
+      "source_reference": "dsdm.tb_dyn_sales_product.currency",
+      "source_revision": "development-readonly-audit-20260916",
+      "source_as_of_date": "2023-12-25",
+      "coverage_numerator": 4613,
+      "coverage_denominator": 4613,
+      "evidence_hash": "fd33dac9681588f4ab248ec7aedf9f298977eb1f8cc5b04d7d3f3792e943afd8",
+      "notes": "Historical sales currency is USD; it is not the purchase invoice or customs transaction currency."
+    },
+    {
+      "field_name": "TRANSACTION_VALUE",
+      "status": "UNVERIFIED",
+      "source_reference": "dsdm.tb_dyn_sales_product.unit_price",
+      "source_revision": "development-readonly-audit-20260916",
+      "source_as_of_date": "2023-12-25",
+      "coverage_numerator": 4613,
+      "coverage_denominator": 4613,
+      "evidence_hash": "fd33dac9681588f4ab248ec7aedf9f298977eb1f8cc5b04d7d3f3792e943afd8",
+      "notes": "Historical sales price is observational only; purchase invoice and declared customs value are absent."
+    },
+    {
+      "field_name": "VAT_RECOVERABILITY",
+      "status": "NOT_FOUND",
+      "source_reference": null,
+      "source_revision": null,
+      "source_as_of_date": null,
+      "coverage_numerator": 0,
+      "coverage_denominator": 4,
+      "evidence_hash": null,
+      "notes": "No importer registration and tax-recovery eligibility source was found for the four destinations."
+    },
+    {
+      "field_name": "WEIGHT_VOLUME",
+      "status": "UNVERIFIED",
+      "source_reference": "dsdm.tb_map_site_product.weight",
+      "source_revision": "development-readonly-audit-20260916",
+      "source_as_of_date": "2026-09-16",
+      "coverage_numerator": 0,
+      "coverage_denominator": 35000,
+      "evidence_hash": "fd33dac9681588f4ab248ec7aedf9f298977eb1f8cc5b04d7d3f3792e943afd8",
+      "notes": "Only 15 rows for 7 products exist without item grain or physical UOM, so the factor cannot allocate shipment cost."
+    }
+  ],
+  "content_hash": "d1eab017e71533810e24aabe5e16e24b34c2cfad51dba8d519e192c669a424cd"
+}

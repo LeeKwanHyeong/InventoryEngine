@@ -1,0 +1,78 @@
+{
+  "contract_id": "io-landed-cost-development-golden-v1",
+  "notice": "Synthetic development fixtures only. Rates are not legal or operational tariff advice.",
+  "cases": [
+    {
+      "case_id": "JP_MFN_AD_VALOREM",
+      "destination_site_cd": "V101",
+      "import_country_code": "JP",
+      "cost_currency": "JPY",
+      "currency_scale": 0,
+      "fx_rate": "150",
+      "duty_rate": "0.05",
+      "vat_rate": "0.10",
+      "vat_recoverable": true,
+      "expected": {
+        "content_hash": "a157f710ca81ea967bb33e467392aec7560777af794df9275763e8d9f17d3f9b",
+        "customs_value_amount": "166500",
+        "gross_landed_cost_amount": "195308",
+        "recoverable_tax_amount": "17483",
+        "net_landed_cost_amount": "177825"
+      }
+    },
+    {
+      "case_id": "CN_MFN_AD_VALOREM",
+      "destination_site_cd": "V102",
+      "import_country_code": "CN",
+      "cost_currency": "CNY",
+      "currency_scale": 2,
+      "fx_rate": "7.2",
+      "duty_rate": "0.08",
+      "vat_rate": "0.13",
+      "vat_recoverable": false,
+      "expected": {
+        "content_hash": "44b76ac2fecce3d60ff20f62c375119c8b75163b16778dea880c5dc13d599072",
+        "customs_value_amount": "7992",
+        "gross_landed_cost_amount": "9897.44",
+        "recoverable_tax_amount": "0",
+        "net_landed_cost_amount": "9897.44"
+      }
+    },
+    {
+      "case_id": "SA_MFN_AD_VALOREM",
+      "destination_site_cd": "V103",
+      "import_country_code": "SA",
+      "cost_currency": "SAR",
+      "currency_scale": 2,
+      "fx_rate": "3.75",
+      "duty_rate": "0.05",
+      "vat_rate": "0.15",
+      "vat_recoverable": true,
+      "expected": {
+        "content_hash": "4ca2f253b013e0816cc6a5faed58d266dcdd6bc58a5c570e071bf1a8ca627386",
+        "customs_value_amount": "4162.5",
+        "gross_landed_cost_amount": "5101.22",
+        "recoverable_tax_amount": "655.59",
+        "net_landed_cost_amount": "4445.63"
+      }
+    },
+    {
+      "case_id": "AE_MFN_AD_VALOREM",
+      "destination_site_cd": "V104",
+      "import_country_code": "AE",
+      "cost_currency": "AED",
+      "currency_scale": 2,
+      "fx_rate": "3.67",
+      "duty_rate": "0.05",
+      "vat_rate": "0.05",
+      "vat_recoverable": true,
+      "expected": {
+        "content_hash": "3c00d7585b6165234256d156ef0f3c5130d53cdd139ef434cff33e63edf82f99",
+        "customs_value_amount": "4073.7",
+        "gross_landed_cost_amount": "4564.66",
+        "recoverable_tax_amount": "213.87",
+        "net_landed_cost_amount": "4350.79"
+      }
+    }
+  ]
+}

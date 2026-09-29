@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "landed_cost_assessment.schema.json",
+  "title": "Inventory Landed Cost Assessment v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_id", "contract_version", "grain", "judgment_at", "calculation_purpose", "calculation_status", "blocking_reason_codes", "source_revision_set_hash", "hs_code_version", "national_tariff_code", "manufacturing_origin_country_code", "export_country_code", "import_country_code", "preferential_eligibility_status", "tax_recoverability_status", "tariff_basis", "fixed_cost_allocation_basis", "cost_currency", "rounding_rule", "components", "customs_value_amount", "gross_landed_cost_amount", "recoverable_tax_amount", "net_landed_cost_amount", "operational_eligible", "content_hash"],
+  "properties": {
+    "contract_id": {"const": "io-landed-cost-assessment-v1"},
+    "contract_version": {"const": "1.0.0"},
+    "grain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["shipment_id", "shipment_line_id", "lane_id", "item_id", "valuation_date"],
+      "properties": {
+        "shipment_id": {"$ref": "#/$defs/identifier"},
+        "shipment_line_id": {"$ref": "#/$defs/identifier"},
+        "lane_id": {"$ref": "#/$defs/identifier"},
+        "item_id": {"type": "string", "minLength": 1, "maxLength": 160},
+        "valuation_date": {"type": "string", "format": "date"}
+      }
+    },
+    "judgment_at": {"type": "string", "format": "date-time"},
+    "calculation_purpose": {"enum": ["OPERATIONAL", "DEVELOPMENT_FIXTURE", "ACTUAL_REPLAY"]},
+    "calculation_status": {"enum": ["CALCULABLE", "UNVERIFIED_CLASSIFICATION", "UNVERIFIED_ORIGIN", "UNVERIFIED_TAX_RECOVERABILITY", "MISSING_EXCHANGE_RATE", "NOT_CALCULABLE"]},
+    "blocking_reason_codes": {"type": "array", "maxItems": 32, "uniqueItems": true, "items": {"$ref": "#/$defs/identifier"}},
+    "source_revision_set_hash": {"$ref": "#/$defs/hash"},
+    "hs_code_version": {"oneOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+    "national_tariff_code": {"oneOf": [{"$ref": "#/$defs/identifier"}, {"type": "null"}]},
+    "manufacturing_origin_country_code": {"oneOf": [{"$ref": "#/$defs/country"}, {"type": "null"}]},
+    "export_country_code": {"$ref": "#/$defs/country"},
+    "import_country_code": {"$ref": "#/$defs/country"},
+    "preferential_eligibility_status": {"enum": ["NOT_REQUESTED", "UNVERIFIED", "ELIGIBLE", "INELIGIBLE"]},
+    "tax_recoverability_status": {"enum": ["VERIFIED_RECOVERABLE", "VERIFIED_NONRECOVERABLE", "UNVERIFIED", "NOT_APPLICABLE"]},
+    "tariff_basis": {"type": ["string", "null"], "enum": ["MFN", "PREFERENTIAL", "BROKER_VERIFIED", "ACTUAL_DECLARATION_REPLAY", null]},
+    "fixed_cost_allocation_basis": {"enum": ["CUSTOMS_VALUE", "WEIGHT", "VOLUME", "QUANTITY"]},
+    "cost_currency": {"type": "string", "pattern": "^[A-Z]{3}$"},
+    "rounding_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["currency_scale", "mode", "application_stage", "rule_reference"],
+      "properties": {
+        "currency_scale": {"type": "integer", "minimum": 0, "maximum": 6},
+        "mode": {"enum": ["HALF_UP", "HALF_EVEN", "DOWN", "UP"]},
+        "application_stage": {"enum": ["COMPONENT", "LEGAL_RULE", "FINAL_TOTAL"]},
+        "rule_reference": {"type": "string", "minLength": 1, "maxLength": 512}
+      }
+    },
+    "components": {"type": "array", "maxItems": 17, "items": {"$ref": "#/$defs/component"}},
+    "customs_value_amount": {"$ref": "#/$defs/nullableDecimal"},
+    "gross_landed_cost_amount": {"$ref": "#/$defs/nullableDecimal"},
+    "recoverable_tax_amount": {"$ref": "#/$defs/nullableDecimal"},
+    "net_landed_cost_amount": {"$ref": "#/$defs/nullableDecimal"},
+    "operational_eligible": {"type": "boolean"},
+    "content_hash": {"$ref": "#/$defs/hash"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"calculation_status": {"const": "CALCULABLE"}}},
+      "then": {
+        "properties": {
+          "blocking_reason_codes": {"maxItems": 0},
+          "customs_value_amount": {"$ref": "#/$defs/decimal"},
+          "gross_landed_cost_amount": {"$ref": "#/$defs/decimal"},
+          "recoverable_tax_amount": {"$ref": "#/$defs/decimal"},
+          "net_landed_cost_amount": {"$ref": "#/$defs/decimal"}
+        }
+      },
+      "else": {
+        "properties": {
+          "blocking_reason_codes": {"minItems": 1},
+          "customs_value_amount": {"type": "null"},
+          "gross_landed_cost_amount": {"type": "null"},
+          "recoverable_tax_amount": {"type": "null"},
+          "net_landed_cost_amount": {"type": "null"},
+          "operational_eligible": {"const": false}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"},
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "country": {"type": "string", "pattern": "^[A-Z]{2}$"},
+    "decimal": {"type": "string", "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"},
+    "nullableDecimal": {"oneOf": [{"$ref": "#/$defs/decimal"}, {"type": "null"}]},
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component_type", "amount", "source_status", "source_reference", "zero_value_reason", "included_in_customs_value", "included_in_gross_landed_cost", "recoverable"],
+      "properties": {
+        "component_type": {"enum": ["TRANSACTION_VALUE", "ORIGIN_HANDLING", "INTERNATIONAL_FREIGHT", "INSURANCE", "PACKING", "ASSIST_VALUE", "ROYALTY", "CUSTOMS_DUTY_AD_VALOREM", "CUSTOMS_DUTY_SPECIFIC", "CUSTOMS_DUTY_OTHER", "IMPORT_VAT", "EXCISE_TAX", "BROKERAGE", "DESTINATION_HANDLING", "INLAND_FREIGHT", "STORAGE", "OTHER_NONRECOVERABLE"]},
+        "amount": {"$ref": "#/$defs/decimal"},
+        "source_status": {"enum": ["AUTHORITATIVE", "UNVERIFIED", "DEVELOPMENT_FIXTURE", "NOT_FOUND"]},
+        "source_reference": {"type": "string", "minLength": 1, "maxLength": 512},
+        "zero_value_reason": {"type": ["string", "null"], "minLength": 1, "maxLength": 512},
+        "included_in_customs_value": {"type": "boolean"},
+        "included_in_gross_landed_cost": {"type": "boolean"},
+        "recoverable": {"type": "boolean"}
+      }
+    }
+  }
+}

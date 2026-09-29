@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "trade_cost_source_collection_manifest.schema.json",
+  "title": "Trade Cost Source Collection Manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_id", "contract_version", "scope", "manifest_status", "collected_at", "entries", "approved_by", "approved_at", "content_hash"],
+  "properties": {
+    "contract_id": {"const": "io-trade-cost-source-collection-manifest-v1"},
+    "contract_version": {"const": "1.0.0"},
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["company_cd", "subs_cd", "origin_site_cd", "destination_site_cds"],
+      "properties": {
+        "company_cd": {"const": "DSE"},
+        "subs_cd": {"const": "C100"},
+        "origin_site_cd": {"const": "V100"},
+        "destination_site_cds": {"const": ["V101", "V102", "V103", "V104"]}
+      }
+    },
+    "manifest_status": {"enum": ["DRAFT", "APPROVED"]},
+    "collected_at": {"type": "string", "format": "date-time"},
+    "entries": {
+      "type": "array",
+      "minItems": 9,
+      "items": {"$ref": "#/$defs/entry"}
+    },
+    "approved_by": {"type": ["string", "null"], "minLength": 1, "maxLength": 512},
+    "approved_at": {"type": ["string", "null"], "format": "date-time"},
+    "content_hash": {"$ref": "#/$defs/hash"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"manifest_status": {"const": "APPROVED"}}},
+      "then": {
+        "properties": {
+          "approved_by": {"type": "string", "minLength": 1, "maxLength": 512},
+          "approved_at": {"type": "string", "format": "date-time"},
+          "entries": {
+            "items": {
+              "allOf": [
+                {"$ref": "#/$defs/entry"},
+                {
+                  "properties": {
+                    "assignment_status": {"const": "CONFIRMED"},
+                    "source_owner": {"type": "string", "minLength": 1, "maxLength": 512},
+                    "source_system": {"type": "string", "minLength": 1, "maxLength": 512},
+                    "collection_method": {"enum": ["DATABASE_READ", "BATCH_API", "FILE_UPLOAD", "BROKER_FILE", "MANUAL_CAPTURE"]},
+                    "collection_cadence": {"enum": ["DAILY", "WEEKLY", "MONTHLY", "ON_CHANGE", "PER_DECLARATION"]},
+                    "expected_freshness_hours": {"type": "integer", "minimum": 0, "maximum": 1000000},
+                    "raw_content_hash": {"$ref": "#/$defs/hash"},
+                    "evidence_reference": {"type": "string", "minLength": 1, "maxLength": 512},
+                    "license_review_status": {"enum": ["APPROVED", "NOT_REQUIRED"]}
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "approved_by": {"type": "null"},
+          "approved_at": {"type": "null"}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"},
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nullableText": {"type": ["string", "null"], "minLength": 1, "maxLength": 512},
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entry_id", "source_domain", "jurisdiction_country_codes", "assignment_status", "source_owner", "source_system", "collection_method", "collection_cadence", "expected_freshness_hours", "effective_from", "effective_to", "raw_content_hash", "evidence_reference", "license_review_status", "notes"],
+      "properties": {
+        "entry_id": {"$ref": "#/$defs/identifier"},
+        "source_domain": {"enum": ["CUSTOMS_FX", "CUSTOMS_TARIFF", "IMPORT_TAX_PROFILE", "ITEM_CLASSIFICATION", "ITEM_ORIGIN", "ITEM_PHYSICAL_ATTRIBUTE", "LANE_CHARGE", "PREFERENTIAL_ORIGIN_EVIDENCE", "PURCHASE_SHIPMENT"]},
+        "jurisdiction_country_codes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"enum": ["AE", "CN", "JP", "KR", "SA"]}
+        },
+        "assignment_status": {"enum": ["UNASSIGNED", "PROPOSED", "CONFIRMED"]},
+        "source_owner": {"$ref": "#/$defs/nullableText"},
+        "source_system": {"$ref": "#/$defs/nullableText"},
+        "collection_method": {"type": ["string", "null"], "enum": ["DATABASE_READ", "BATCH_API", "FILE_UPLOAD", "BROKER_FILE", "MANUAL_CAPTURE", null]},
+        "collection_cadence": {"type": ["string", "null"], "enum": ["DAILY", "WEEKLY", "MONTHLY", "ON_CHANGE", "PER_DECLARATION", null]},
+        "expected_freshness_hours": {"type": ["integer", "null"], "minimum": 0, "maximum": 1000000},
+        "effective_from": {"type": ["string", "null"], "format": "date"},
+        "effective_to": {"type": ["string", "null"], "format": "date"},
+        "raw_content_hash": {"oneOf": [{"$ref": "#/$defs/hash"}, {"type": "null"}]},
+        "evidence_reference": {"$ref": "#/$defs/nullableText"},
+        "license_review_status": {"enum": ["PENDING", "APPROVED", "NOT_REQUIRED"]},
+        "notes": {"type": "string", "minLength": 1, "maxLength": 512}
+      }
+    }
+  }
+}

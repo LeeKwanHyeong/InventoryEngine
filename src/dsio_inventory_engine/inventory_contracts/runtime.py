@@ -51,6 +51,7 @@ REQUIRED_INPUT_TYPES = {
 INPUT_TYPES = REQUIRED_INPUT_TYPES | {
     "INVENTORY_NETWORK",
     "INVENTORY_CLASSIFICATION",
+    "TRADE_COST_REVISION_SET",
 }
 CANONICAL_INPUT_BINDING_TYPES = {
     "DEMAND_FORECAST": ("forecast", "demand.forecast_snapshot", "1.0.0"),
@@ -250,6 +251,13 @@ def _input_binding(value: Any) -> dict[str, Any]:
             "INVENTORY_CLASSIFICATION_BINDING_INVALID",
         )
         _uuid(result["source_snapshot_id"])
+    if input_type == "TRADE_COST_REVISION_SET":
+        require(
+            result["source_contract_key"] == "inventory.trade_cost_revision_set"
+            and result["source_contract_version"] == "1.0.0",
+            "TRADE_COST_REVISION_SET_BINDING_INVALID",
+        )
+        _uuid(result["source_snapshot_id"])
     return result
 
 
@@ -310,7 +318,7 @@ def _claim(value: Any) -> dict[str, Any]:
         "RUNTIME_PLAN_KEY_BINDING_MISMATCH",
     )
     bindings = result["input_bindings"]
-    require(9 <= len(bindings) <= 11, "INPUT_BINDINGS_INVALID")
+    require(9 <= len(bindings) <= 12, "INPUT_BINDINGS_INVALID")
     by_type = {item["input_type"]: item for item in bindings}
     require(len(by_type) == len(bindings), "INPUT_BINDING_DUPLICATE")
     require(REQUIRED_INPUT_TYPES <= set(by_type), "INPUT_BINDING_INCOMPLETE")
@@ -505,7 +513,11 @@ def validate_canonical_runtime_binding(
 
     site_identity: dict[str, Any] = {
         "scope": claim["scope"],
-        "input_bindings": claim["input_bindings"],
+        "input_bindings": [
+            binding
+            for binding in claim["input_bindings"]
+            if binding["input_type"] != "TRADE_COST_REVISION_SET"
+        ],
     }
     if "INVENTORY_CLASSIFICATION" in by_type:
         site_identity["canonical_context_binding_hash"] = claim["canonical_context_binding"][
@@ -647,6 +659,17 @@ class InventoryRuntimeExecutionRequest:
                 dict(binding)
                 for binding in self.value["claim"]["input_bindings"]
                 if binding["input_type"] == "INVENTORY_CLASSIFICATION"
+            ),
+            None,
+        )
+
+    @property
+    def trade_cost_binding(self) -> dict[str, Any] | None:
+        return next(
+            (
+                dict(binding)
+                for binding in self.value["claim"]["input_bindings"]
+                if binding["input_type"] == "TRADE_COST_REVISION_SET"
             ),
             None,
         )

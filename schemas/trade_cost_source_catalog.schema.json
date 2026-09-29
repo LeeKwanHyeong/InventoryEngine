@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "trade_cost_source_catalog.schema.json",
+  "title": "Inventory Trade Cost Source Catalog v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_id", "contract_version", "scope", "audited_at", "fields", "content_hash"],
+  "properties": {
+    "contract_id": {"const": "io-trade-cost-source-catalog-v1"},
+    "contract_version": {"const": "1.0.0"},
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["company_cd", "subs_cd", "origin_site_cd", "destination_site_cds", "environment"],
+      "properties": {
+        "company_cd": {"$ref": "#/$defs/identifier"},
+        "subs_cd": {"$ref": "#/$defs/identifier"},
+        "origin_site_cd": {"$ref": "#/$defs/identifier"},
+        "destination_site_cds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/identifier"}
+        },
+        "environment": {"enum": ["DEVELOPMENT", "PRODUCTION"]}
+      }
+    },
+    "audited_at": {"type": "string", "format": "date-time"},
+    "fields": {
+      "type": "array",
+      "minItems": 13,
+      "maxItems": 13,
+      "items": {"$ref": "#/$defs/sourceField"}
+    },
+    "content_hash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"},
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "sourceField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field_name", "status", "source_reference", "source_revision", "source_as_of_date", "coverage_numerator", "coverage_denominator", "evidence_hash", "notes"],
+      "properties": {
+        "field_name": {
+          "enum": ["HS_CLASSIFICATION", "MANUFACTURING_ORIGIN", "SHIPPING_COUNTRY", "TRANSACTION_VALUE", "TRANSACTION_CURRENCY", "QUANTITY_UOM", "WEIGHT_VOLUME", "INCOTERMS_INSURANCE", "INTERNATIONAL_FREIGHT", "INLAND_FREIGHT", "CUSTOMS_FX_RATE", "VAT_RECOVERABILITY", "PREFERENTIAL_ORIGIN_CERTIFICATE"]
+        },
+        "status": {"enum": ["AUTHORITATIVE", "UNVERIFIED", "DEVELOPMENT_FIXTURE", "NOT_FOUND"]},
+        "source_reference": {"type": ["string", "null"], "minLength": 1, "maxLength": 512},
+        "source_revision": {"type": ["string", "null"], "minLength": 1, "maxLength": 512},
+        "source_as_of_date": {"type": ["string", "null"], "format": "date"},
+        "coverage_numerator": {"type": "integer", "minimum": 0, "maximum": 1000000},
+        "coverage_denominator": {"type": "integer", "minimum": 0, "maximum": 1000000},
+        "evidence_hash": {"oneOf": [{"$ref": "#/$defs/hash"}, {"type": "null"}]},
+        "notes": {"type": "string", "minLength": 1, "maxLength": 512}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"enum": ["AUTHORITATIVE", "DEVELOPMENT_FIXTURE"]}}},
+          "then": {
+            "properties": {
+              "source_reference": {"type": "string"},
+              "source_revision": {"type": "string"},
+              "source_as_of_date": {"type": "string", "format": "date"},
+              "evidence_hash": {"$ref": "#/$defs/hash"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"status": {"const": "NOT_FOUND"}}},
+          "then": {"properties": {"coverage_numerator": {"const": 0}}}
+        }
+      ]
+    }
+  }
+}
