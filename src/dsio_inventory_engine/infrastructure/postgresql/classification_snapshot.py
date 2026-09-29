@@ -852,8 +852,8 @@ class PostgresClassificationPublisher:
                     snapshot["source_relation"],
                     snapshot["content_hash"],
                     snapshot["as_of_yyyyww"],
-                    snapshot["window_start"],
-                    snapshot["window_end_exclusive"],
+                    _database_date(snapshot["window_start"]),
+                    _database_date(snapshot["window_end_exclusive"]),
                     snapshot["segmentation_type"],
                     snapshot["abc_basis"],
                     snapshot["abc_lookback_weeks"],
@@ -960,8 +960,8 @@ class PostgresClassificationPublisher:
                     snapshot_id,
                     axis,
                     snapshot["axis_windows"][axis]["lookback_weeks"],
-                    snapshot["axis_windows"][axis]["window_start"],
-                    snapshot["axis_windows"][axis]["window_end_exclusive"],
+                    _database_date(snapshot["axis_windows"][axis]["window_start"]),
+                    _database_date(snapshot["axis_windows"][axis]["window_end_exclusive"]),
                 )
                 for axis in V2_WINDOW_AXES
                 if axis in snapshot["axis_windows"]
@@ -995,6 +995,16 @@ class PostgresClassificationPublisher:
                 INSERT_ITEM_POLICY_REASON_V2_SQL,
                 policy_reason_rows,
             )
+
+
+def _database_date(value: Any) -> date:
+    """Convert the canonical ISO date contract to asyncpg's date value."""
+
+    require(isinstance(value, str), "CLASSIFICATION_DATE_INVALID")
+    try:
+        return date.fromisoformat(value)
+    except ValueError as exc:
+        raise InventoryInputError("CLASSIFICATION_DATE_INVALID") from exc
 
 
 def _validate_publishable_snapshot(snapshot: Mapping[str, Any]) -> str:

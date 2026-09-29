@@ -48,8 +48,13 @@ def admit_effective_item_policy(
         policy = validate_effective_item_policy(item, config_hash=config_hash)
     require(policy["effective_strategy"] is not None, "ITEM_POLICY_UNCLASSIFIED")
     bound_strategy = descriptor(dict(strategy_descriptor))
+    v2_deep_rl_shadow = (
+        policy_version == EFFECTIVE_POLICY_V2_CONTRACT_VERSION
+        and purpose == "SHADOW"
+        and bound_strategy["strategy_type"] == "DEEP_RL"
+    )
     require(
-        policy["effective_strategy"] == bound_strategy["strategy_type"],
+        policy["effective_strategy"] == bound_strategy["strategy_type"] or v2_deep_rl_shadow,
         "ITEM_POLICY_STRATEGY_MISMATCH",
     )
     if purpose == "OPERATIONAL":
@@ -110,8 +115,12 @@ def admit_effective_item_policy(
                 "evidence_storage_allowed": policy["evidence_storage_allowed"],
                 "order_execution_allowed": policy["order_execution_allowed"],
                 "no_order_gate": policy["no_order_gate"],
-                "automatic_publish_allowed": policy["automatic_publish_allowed"],
-                "automatic_order_allowed": policy["automatic_order_allowed"],
+                "automatic_publish_allowed": (
+                    policy["automatic_publish_allowed"] if purpose == "OPERATIONAL" else False
+                ),
+                "automatic_order_allowed": (
+                    policy["automatic_order_allowed"] if purpose == "OPERATIONAL" else False
+                ),
             }
         )
     return admitted

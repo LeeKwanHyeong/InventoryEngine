@@ -6,10 +6,15 @@ Canonical v1 remains unchanged. This extension is development-only until Run bin
 """
 
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import Decimal, localcontext
 from typing import Any, Callable, Mapping, Protocol
 
-from .canonical import CanonicalInputRequest, read_canonical_envelope
+from .canonical import (
+    CONTEXT_FIELDS,
+    ROW_FIELDS,
+    CanonicalInputRequest,
+    read_canonical_envelope,
+)
 from .effective_policy_v2 import (
     EFFECTIVE_POLICY_V2_FIELDS,
     EFFECTIVE_POLICY_V2_CONTRACT_VERSION,
@@ -24,12 +29,14 @@ from .values import (
     digest,
     hash_value,
     identifier,
+    integer,
     item_identifier,
     optional,
     read_json,
     records,
     require,
     shape,
+    yyyyww,
 )
 
 STRATEGY_TYPES = ("MATHEMATICAL", "PREDICTIVE_ML", "DEEP_RL")
@@ -163,11 +170,230 @@ def execution_config(value: dict) -> dict:
     return shape(value, fields)
 
 
+def replenishment_config_content_hash(execution: dict) -> str:
+    """Hash the Run policy/config surface without circular canonical bindings.
+
+    The canonical input hash is verified independently against the Runtime Claim,
+    and the mathematical policy snapshot is an explicit Strategy Plan binding.
+    Every remaining execution control is sealed here.
+    """
+
+    normalized = execution_config(execution)
+    return digest(
+        {
+            key: value
+            for key, value in normalized.items()
+            if key not in {"canonical_input_hash", "strategy_input_binding"}
+        }
+    )
+
+
 POLICY_FIELDS = {
     "safety_stock_qty": optional(decimal_string),
     "rop_qty": optional(decimal_string),
     "target_inventory_qty": optional(decimal_string),
 }
+
+OBSERVATION_BUCKET_FIELDS = {
+    "yyyyww": yyyyww,
+    "seq": integer,
+    "start_date": day,
+    "end_date": day,
+    "base_month": identifier,
+}
+OBSERVATION_DEMAND_FIELDS = {
+    "item_id": item_identifier,
+    "uom": identifier,
+    "yyyyww": yyyyww,
+    "gross_forecast_qty": optional(decimal_string),
+    "forecast_consumed_qty": optional(decimal_string),
+    "net_forecast_qty": decimal_string,
+    "confirmed_customer_order_qty": decimal_string,
+    "forecast_netting_mode": choice("SAME_BUCKET_CONSUMPTION", "UPSTREAM_NETTED"),
+    "source_snapshot_id": identifier,
+    "source_content_hash": hash_value,
+}
+OBSERVATION_STATE_FIELDS = {
+    "available_qty": decimal_string,
+    "reserved_qty": decimal_string,
+    "on_hand_qty": decimal_string,
+    "backorder_qty": decimal_string,
+    "inventory_position_qty": lambda value: decimal_string(value, signed=True),
+}
+OBSERVATION_PENDING_SUPPLY_FIELDS = {
+    "supply_id": identifier,
+    "supply_kind": choice("CONFIRMED", "RECOMMENDED"),
+    "due_date": day,
+    "receipt_bucket": yyyyww,
+    "quantity": decimal_string,
+}
+_OBSERVATION_POLICY_V2_FIELDS = {
+    "classification_effective_policy_hash": hash_value,
+    "classification_config_hash": hash_value,
+    "source_approved_service_level": decimal_string,
+    "effective_review_cycle_weeks": integer,
+}
+_OBSERVATION_POLICY_LEAD_TIME_FIELDS = {
+    "effective_protection_lead_time_basis": choice("P50", "P90"),
+    "effective_protection_lead_time_days": integer,
+}
+
+
+def _observation_quantity_rule(value: Any) -> dict[str, Any]:
+    require(type(value) is dict, "OBSERVATION_QUANTITY_RULE_INVALID")
+    common = {
+        "uom": identifier,
+        "tolerance_qty": decimal_string,
+        "approval_reference": identifier,
+    }
+    fields = (
+        {**common, "scale": integer}
+        if "scale" in value
+        else {**common, "planning_scale": integer, "physical_scale": integer}
+    )
+    result = shape(value, fields)
+    planning = result.get("planning_scale", result.get("scale"))
+    physical = result.get("physical_scale", result.get("scale"))
+    require(0 <= physical <= planning <= 6, "OBSERVATION_QUANTITY_RULE_INVALID")
+    return result
+
+
+def _observation_policy(value: Any) -> dict[str, Any]:
+    require(type(value) is dict, "OBSERVATION_POLICY_INVALID")
+    base = ROW_FIELDS["policies"]
+    extra_keys = set(value) - set(base)
+    allowed_extras = (
+        set() | set(_OBSERVATION_POLICY_V2_FIELDS) | set(_OBSERVATION_POLICY_LEAD_TIME_FIELDS)
+    )
+    require(not (extra_keys - allowed_extras), "OBSERVATION_POLICY_INVALID")
+    if extra_keys:
+        require(
+            set(_OBSERVATION_POLICY_V2_FIELDS) <= extra_keys
+            and (
+                not (extra_keys & set(_OBSERVATION_POLICY_LEAD_TIME_FIELDS))
+                or set(_OBSERVATION_POLICY_LEAD_TIME_FIELDS) <= extra_keys
+            ),
+            "OBSERVATION_POLICY_INVALID",
+        )
+    fields = {
+        **base,
+        **(
+            {
+                key: _OBSERVATION_POLICY_V2_FIELDS[key]
+                for key in extra_keys
+                if key in _OBSERVATION_POLICY_V2_FIELDS
+            }
+        ),
+        **(
+            {
+                key: _OBSERVATION_POLICY_LEAD_TIME_FIELDS[key]
+                for key in extra_keys
+                if key in _OBSERVATION_POLICY_LEAD_TIME_FIELDS
+            }
+        ),
+    }
+    return shape(value, fields)
+
+
+def _observation_document(value: Any) -> dict[str, Any]:
+    require(type(value) is dict, "OBSERVATION_CONTRACT_INVALID")
+    base_fields = {
+        "contract_id": choice("io-replenishment-observation-v1"),
+        "decision_id": identifier,
+        "input_content_hash": hash_value,
+        "context": lambda item: shape(item, CONTEXT_FIELDS),
+        "item_id": item_identifier,
+        "uom": identifier,
+        "decision_date": day,
+        "bucket": lambda item: shape(item, OBSERVATION_BUCKET_FIELDS),
+        "calendar": lambda item: records(item, OBSERVATION_BUCKET_FIELDS, limit=520),
+        "future_demand": lambda item: records(item, OBSERVATION_DEMAND_FIELDS, limit=520),
+        "policy": _observation_policy,
+        "policy_schedule": lambda item: _observation_policies(item),
+        "control": lambda item: shape(item, CONTROL_FIELDS),
+        "quantity_rule": _observation_quantity_rule,
+        "state": lambda item: shape(item, OBSERVATION_STATE_FIELDS),
+        "pending_supply": lambda item: records(
+            item, OBSERVATION_PENDING_SUPPLY_FIELDS, limit=10_000
+        ),
+        "strategy": descriptor,
+        "approval_reference": identifier,
+        "allowed_action_types": action_types,
+        "capacity_mode": choice("CONSERVATIVE_NO_DEMAND_CREDIT"),
+    }
+    if "strategy_input_binding" in value:
+        base_fields["strategy_input_binding"] = lambda item: shape(
+            item, STRATEGY_INPUT_BINDING_FIELDS
+        )
+    result = shape(value, base_fields)
+    _validate_observation_semantics(result)
+    return result
+
+
+def _observation_policies(value: Any) -> list[dict[str, Any]]:
+    require(type(value) is list and 0 < len(value) <= 520, "OBSERVATION_POLICY_SCHEDULE_INVALID")
+    return [_observation_policy(row) for row in value]
+
+
+def _validate_observation_semantics(value: Mapping[str, Any]) -> None:
+    calendar = value["calendar"]
+    demands = value["future_demand"]
+    require(
+        calendar
+        and calendar[0] == value["bucket"]
+        and value["decision_date"] == value["bucket"]["start_date"],
+        "OBSERVATION_BUCKET_BINDING_MISMATCH",
+    )
+    require(
+        len(calendar) == len(demands)
+        and all(
+            demand["item_id"] == value["item_id"]
+            and demand["uom"] == value["uom"]
+            and demand["yyyyww"] == bucket["yyyyww"]
+            for demand, bucket in zip(demands, calendar, strict=True)
+        ),
+        "OBSERVATION_DEMAND_BINDING_MISMATCH",
+    )
+    require(
+        value["control"]["item_id"] == value["item_id"]
+        and value["control"]["uom"] == value["uom"]
+        and value["quantity_rule"]["uom"] == value["uom"],
+        "OBSERVATION_ITEM_BINDING_MISMATCH",
+    )
+    policy = value["policy"]
+    applicable = [
+        row
+        for row in value["policy_schedule"]
+        if row["effective_from"] <= value["decision_date"] < row["effective_to"]
+    ]
+    require(
+        len(applicable) == 1
+        and applicable[0] == policy
+        and policy["item_id"] == value["item_id"]
+        and policy["uom"] == value["uom"]
+        and all(
+            policy[key] == value["context"][key] for key in ("company_cd", "subs_cd", "site_cd")
+        ),
+        "OBSERVATION_POLICY_BINDING_MISMATCH",
+    )
+    require(
+        len({row["supply_id"] for row in value["pending_supply"]}) == len(value["pending_supply"]),
+        "OBSERVATION_PENDING_SUPPLY_DUPLICATE",
+    )
+    with localcontext() as context:
+        context.prec = 40
+        state = value["state"]
+        available = Decimal(state["available_qty"])
+        reserved = Decimal(state["reserved_qty"])
+        backorder = Decimal(state["backorder_qty"])
+        pending = sum((Decimal(row["quantity"]) for row in value["pending_supply"]), Decimal(0))
+        require(
+            Decimal(state["on_hand_qty"]) == available + reserved
+            and Decimal(state["inventory_position_qty"]) == available + pending - backorder,
+            "OBSERVATION_STATE_CONSERVATION_INVALID",
+        )
+
+
 PROPOSAL_FIELDS: dict[str, Callable[..., Any]] = {
     "contract_id": choice("io-replenishment-decision-v1"),
     "decision_id": identifier,
@@ -273,6 +499,12 @@ class ReplenishmentObservation:
     """Engine-produced view, detached from mutable simulation state on every read."""
 
     document_json: str
+
+    @classmethod
+    def from_dict(cls, value: dict) -> "ReplenishmentObservation":
+        """Normalize the complete decision-time view as a closed contract."""
+
+        return cls(canonical_json(_observation_document(value)))
 
     def to_dict(self) -> dict:
         return read_json(self.document_json)

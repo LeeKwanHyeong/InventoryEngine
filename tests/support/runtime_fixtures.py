@@ -139,6 +139,8 @@ def runtime_dispatch_v2(
     effective_policy_content_hash: str,
     expected_automatic_publish_allowed: bool = False,
     expected_automatic_order_allowed: bool = False,
+    mathematical_strategy_input_binding: dict | None = None,
+    replenishment_config_content_hash: str = "0" * 64,
 ) -> dict:
     value = runtime_dispatch()
     value["claim"]["config_hash"] = config_hash
@@ -147,6 +149,8 @@ def runtime_dispatch_v2(
     value["claim"]["strategy_execution_plan"] = runtime_strategy_execution_plan(
         config_hash=config_hash,
         effective_policy_content_hash=effective_policy_content_hash,
+        mathematical_strategy_input_binding=mathematical_strategy_input_binding,
+        replenishment_config_content_hash=replenishment_config_content_hash,
     )
     policy = next(
         row for row in value["claim"]["input_bindings"] if row["input_type"] == "INVENTORY_POLICY"
@@ -170,21 +174,40 @@ def runtime_strategy_execution_plan(
     *,
     config_hash: str,
     effective_policy_content_hash: str,
+    mathematical_strategy_input_binding: dict | None = None,
+    replenishment_config_content_hash: str = "0" * 64,
 ) -> dict:
     """Literal V1 strategy plan used on the Platform/Runtime wire."""
 
     body = {
         "contract_id": "inventory-strategy-execution-plan-v1",
-        "contract_version": "1.0.0",
+        "contract_version": "1.1.0",
         "strategy_execution_plan_id": "IO-PLAN-1",
         "classification_config_hash": config_hash,
         "effective_policy_content_hash": effective_policy_content_hash,
-        "base_scenario_content_hash": "6" * 64,
+        "base_scenario_contract_key": "inventory.scenario.base",
+        "base_scenario_contract_version": "1.0.0",
+        "base_scenario_content_hash": (
+            "e385b25e899b156c69004e069ee46dbefe1d5dc29930149dd7903f2b2197f472"
+        ),
+        "psi_simulator": {
+            "implementation_id": "inventory.psi.weekly_roll_forward",
+            "version": "1.0.0",
+            "implementation_content_hash": "5" * 64,
+        },
         "operational_strategy": {
             "strategy_type": "MATHEMATICAL",
-            "implementation_id": "math-policy",
-            "version": "2.0.0",
+            "implementation_id": "historical-normal-r-s",
+            "version": "1.0.0",
             "implementation_content_hash": "d" * 64,
+            "replenishment_config_content_hash": replenishment_config_content_hash,
+            "strategy_input_binding": mathematical_strategy_input_binding
+            or {
+                "contract_id": "io-mathematical-policy-input-v1",
+                "contract_version": "1.0.0",
+                "snapshot_id": "MATH-POLICY-INPUT-1",
+                "content_hash": "1" * 64,
+            },
         },
         "shadow_challenger_bindings": [
             {
@@ -265,7 +288,14 @@ def reseal_runtime_site_binding(value: dict) -> dict:
     by_type = {row["input_type"]: row for row in claim["input_bindings"]}
     site_identity = {
         "scope": claim["scope"],
-        "input_bindings": sorted(claim["input_bindings"], key=lambda row: row["input_type"]),
+        "input_bindings": sorted(
+            (
+                row
+                for row in claim["input_bindings"]
+                if row["input_type"] != "TRADE_COST_REVISION_SET"
+            ),
+            key=lambda row: row["input_type"],
+        ),
     }
     if "INVENTORY_CLASSIFICATION" in by_type:
         site_identity["canonical_context_binding_hash"] = claim["canonical_context_binding"][

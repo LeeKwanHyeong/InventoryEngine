@@ -13,6 +13,8 @@ from dsio_inventory_engine.infrastructure.http.platform_lifecycle import (
 from dsio_inventory_engine.inventory_contracts.canonical import CanonicalInputRequest
 from dsio_inventory_engine.inventory_contracts.result_bundle import (
     derive_result_bundle_id,
+    derive_psi_artifact_references,
+    derive_psi_child_result_id,
     seal_inventory_result_bundle,
 )
 from dsio_inventory_engine.inventory_contracts.runtime import (
@@ -86,20 +88,32 @@ def _runtime_request_v2(
     )
 
 
-def _actions(child_id: str) -> dict:
+def _actions(
+    child_id: str,
+    *,
+    engine_run_id: str,
+    attempt_no: int,
+) -> dict:
+    references = derive_psi_artifact_references(
+        engine_run_id=engine_run_id,
+        attempt_no=attempt_no,
+        child_result_id=child_id,
+    )
     return {
-        "raw_action_reference": f"artifact:{child_id}:raw",
+        "raw_action_reference": references["raw_action"],
         "raw_action_content_hash": "1" * 64,
-        "constrained_action_reference": f"artifact:{child_id}:constrained",
+        "constrained_action_reference": references["constrained_action"],
         "constrained_action_content_hash": "2" * 64,
-        "adjustment_reasons_reference": f"artifact:{child_id}:adjustments",
+        "adjustment_reasons_reference": references["adjustment_reasons"],
         "adjustment_reasons_content_hash": "3" * 64,
     }
 
 
 def _successful_child(
-    child_id: str,
     *,
+    engine_run_id: str,
+    attempt_no: int,
+    canonical_input_hash: str,
     result_kind: str,
     execution_role: str,
     strategy_type: str,
@@ -109,6 +123,23 @@ def _successful_child(
     model_content_hash: str | None = None,
 ) -> dict:
     no_strategy = strategy_type == "NONE"
+    child_id = derive_psi_child_result_id(
+        engine_run_id=engine_run_id,
+        attempt_no=attempt_no,
+        canonical_input_hash=canonical_input_hash,
+        result_kind=result_kind,
+        execution_role=execution_role,
+        strategy_type=strategy_type,
+        scenario_id=scenario_id,
+        scenario_content_hash=scenario_content_hash,
+        challenger_id=challenger_id,
+        model_content_hash=model_content_hash,
+    )
+    references = derive_psi_artifact_references(
+        engine_run_id=engine_run_id,
+        attempt_no=attempt_no,
+        child_result_id=child_id,
+    )
     return {
         "child_result_id": child_id,
         "result_kind": result_kind,
@@ -119,7 +150,7 @@ def _successful_child(
         "challenger_id": challenger_id,
         "model_content_hash": model_content_hash,
         "status": "SUCCEEDED",
-        "artifact_reference": f"artifact:{child_id}",
+        "artifact_reference": references["psi"],
         "artifact_contract_key": "inventory.psi_result",
         "artifact_contract_version": "1.0.0",
         "child_content_hash": "4" * 64,
@@ -135,14 +166,18 @@ def _successful_child(
                 "adjustment_reasons_content_hash": None,
             }
             if no_strategy
-            else _actions(child_id)
+            else _actions(
+                child_id,
+                engine_run_id=engine_run_id,
+                attempt_no=attempt_no,
+            )
         ),
     }
 
 
-def _comparison(candidate_id: str) -> dict:
+def _comparison(candidate_id: str, *, baseline_id: str) -> dict:
     return {
-        "baseline_child_result_id": "BASELINE-1",
+        "baseline_child_result_id": baseline_id,
         "candidate_child_result_id": candidate_id,
         "cost_delta": {
             "status": "NOT_AVAILABLE",
@@ -164,9 +199,12 @@ def _sealed_runtime_bundle(
     plan = request.strategy_execution_plan
     assert plan is not None
     claim = request.value["claim"]
+    attempt_no = request.value["attempt_no"]
     children = [
         _successful_child(
-            "BASELINE-1",
+            engine_run_id=request.engine_run_id,
+            attempt_no=attempt_no,
+            canonical_input_hash=canonical_input_hash,
             result_kind="BASELINE_PSI",
             execution_role="EVIDENCE_ONLY",
             strategy_type="NONE",
@@ -174,7 +212,9 @@ def _sealed_runtime_bundle(
             scenario_content_hash=plan["base_scenario_content_hash"],
         ),
         _successful_child(
-            "MATH-1",
+            engine_run_id=request.engine_run_id,
+            attempt_no=attempt_no,
+            canonical_input_hash=canonical_input_hash,
             result_kind="RECOMMENDED_PSI",
             execution_role="OPERATIONAL",
             strategy_type="MATHEMATICAL",
@@ -185,7 +225,9 @@ def _sealed_runtime_bundle(
     for challenger in plan["shadow_challenger_bindings"]:
         children.append(
             _successful_child(
-                f"PPO-{challenger['challenger_id']}",
+                engine_run_id=request.engine_run_id,
+                attempt_no=attempt_no,
+                canonical_input_hash=canonical_input_hash,
                 result_kind="RECOMMENDED_PSI",
                 execution_role="SHADOW",
                 strategy_type="DEEP_RL",
@@ -198,7 +240,9 @@ def _sealed_runtime_bundle(
     for scenario in plan["stress_scenario_bindings"]:
         children.append(
             _successful_child(
-                f"STRESS-{scenario['scenario_id']}",
+                engine_run_id=request.engine_run_id,
+                attempt_no=attempt_no,
+                canonical_input_hash=canonical_input_hash,
                 result_kind="STRESS_PSI",
                 execution_role="EVIDENCE_ONLY",
                 strategy_type="MATHEMATICAL",
@@ -206,6 +250,8 @@ def _sealed_runtime_bundle(
                 scenario_content_hash=scenario["scenario_content_hash"],
             )
         )
+    baseline_id = children[0]["child_result_id"]
+    mathematical_id = children[1]["child_result_id"]
     body = {
         "contract_id": "inventory-result-bundle-v1",
         "contract_version": "1.0.0",
@@ -231,8 +277,10 @@ def _sealed_runtime_bundle(
         "effective_policy_content_hash": plan["effective_policy_content_hash"],
         "cost_profile_content_hash": None,
         "result_children": children,
-        "effective_child_result_id": "MATH-1",
-        "comparisons": [_comparison(child["child_result_id"]) for child in children[1:]],
+        "effective_child_result_id": mathematical_id,
+        "comparisons": [
+            _comparison(child["child_result_id"], baseline_id=baseline_id) for child in children[1:]
+        ],
         "automatic_publish_allowed": automatic_publish_allowed,
         "automatic_order_allowed": automatic_order_allowed,
     }

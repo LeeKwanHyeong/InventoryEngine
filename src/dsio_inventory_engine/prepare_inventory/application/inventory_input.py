@@ -23,7 +23,24 @@ class PreparedInventoryInput:
     document_json: str
 
     def to_dict(self) -> dict:
-        return json.loads(self.document_json)
+        value = json.loads(self.document_json)
+        require(
+            type(value) is dict and type(value.get("manifest")) is dict,
+            "PREPARED_INPUT_INVALID",
+        )
+        manifest = value["manifest"]
+        unsigned_manifest = {
+            key: row for key, row in manifest.items() if key != "prepared_content_hash"
+        }
+        unsigned_document = {
+            "manifest": unsigned_manifest,
+            **{key: row for key, row in value.items() if key != "manifest"},
+        }
+        require(
+            manifest.get("prepared_content_hash") == digest(unsigned_document),
+            "PREPARED_INPUT_CONTENT_HASH_MISMATCH",
+        )
+        return value
 
 
 class PrepareInventoryInputUseCase:
@@ -31,41 +48,82 @@ class PrepareInventoryInputUseCase:
         self.deployment = deployment
 
     def execute(self, request: CanonicalInputRequest) -> PreparedInventoryInput:
-        # Revalidate even if a caller constructed the dataclass directly.
-        request = CanonicalInputRequest.from_dict(request.to_dict())
-        data = request.to_dict()
-        with localcontext() as ctx:
-            ctx.prec = 40
-            verify_snapshots(data, self.deployment)
-            calendar = validate_calendar(data)
-            master, rules = validate_universe(data, calendar, self.deployment)
-            reconciliation = verify_cutoff(data, master, rules, self.deployment)
-            demands = prepare_demand(data)
-            receipt_decisions = prepare_receipts(data, calendar, self.deployment)
-        content = {
-            "context": data["context"],
-            "calendar": calendar,
-            "master": [master[item] for item in sorted(master)],
-            "positions": data["snapshots"]["inventory"]["rows"],
-            "policies": data["snapshots"]["policies"]["rows"],
-            "demands": demands,
-            "receipt_decisions": receipt_decisions,
-            "reconciliation": reconciliation,
-            "canonical_snapshots": data["snapshots"],
-        }
-        manifest = {
-            "engine_run_id": data["context"]["engine_run_id"],
-            "input_content_hash": request.input_hash,
-            "input_bindings": data["input_bindings"],
-            "configuration_revision": data["context"]["configuration_revision"],
-            "quantity_rules": data["quantity_rules"],
-            "deployment_environment": self.deployment.environment,
-            "input_admission_status": "INPUT_SEALS_VERIFIED_LOCALLY",
-            "persistence_status": "PREPARED_IN_MEMORY",
-            "reconciliation_hash": digest(reconciliation),
-            "receipt_decisions_hash": digest(receipt_decisions),
-        }
-        return PreparedInventoryInput(canonical_json({"manifest": manifest, **content}))
+        return PreparedInventoryInput(
+            canonical_json(_build_prepared_document(request, self.deployment))
+        )
+
+
+def validate_prepared_projection(
+    request: CanonicalInputRequest,
+    prepared_input: PreparedInventoryInput,
+    deployment: DeploymentScope,
+) -> PreparedInventoryInput:
+    """Verify that a base Prepared input is the exact Canonical projection.
+
+    ``prepared_input`` is an internal capability passed between the PSI child
+    use cases.  Its self-seal proves only that its bytes are internally
+    consistent.  The Platform entry point must additionally call this
+    validator before any base child executes so a caller cannot change a
+    derived row and simply reseal the document.
+
+    Stress worlds are intentionally outside this validator: they are derived
+    from an already verified base projection by a Plan-bound trusted runner and
+    are always evidence-only.
+    """
+
+    actual = prepared_input.to_dict()
+    expected = _build_prepared_document(request, deployment)
+    require(actual == expected, "PREPARED_INPUT_PROJECTION_MISMATCH")
+    # Never return the caller-owned object.  A hostile subclass can make
+    # ``to_dict`` return different bytes after validation.  Reconstructing the
+    # base type from our expected projection makes the validated snapshot the
+    # sole capability passed to all PSI children.
+    return PreparedInventoryInput(canonical_json(expected))
+
+
+def _build_prepared_document(
+    request: CanonicalInputRequest,
+    deployment: DeploymentScope,
+) -> dict:
+    """Build the deterministic, sealed in-memory projection of Canonical input."""
+
+    # Revalidate even if a caller constructed the dataclass directly.
+    request = CanonicalInputRequest.from_dict(request.to_dict())
+    data = request.to_dict()
+    with localcontext() as ctx:
+        ctx.prec = 40
+        verify_snapshots(data, deployment)
+        calendar = validate_calendar(data)
+        master, rules = validate_universe(data, calendar, deployment)
+        reconciliation = verify_cutoff(data, master, rules, deployment)
+        demands = prepare_demand(data)
+        receipt_decisions = prepare_receipts(data, calendar, deployment)
+    content = {
+        "context": data["context"],
+        "calendar": calendar,
+        "master": [master[item] for item in sorted(master)],
+        "positions": data["snapshots"]["inventory"]["rows"],
+        "policies": data["snapshots"]["policies"]["rows"],
+        "demands": demands,
+        "receipt_decisions": receipt_decisions,
+        "reconciliation": reconciliation,
+        "canonical_snapshots": data["snapshots"],
+    }
+    manifest = {
+        "engine_run_id": data["context"]["engine_run_id"],
+        "input_content_hash": request.input_hash,
+        "input_bindings": data["input_bindings"],
+        "configuration_revision": data["context"]["configuration_revision"],
+        "quantity_rules": data["quantity_rules"],
+        "deployment_environment": deployment.environment,
+        "input_admission_status": "INPUT_SEALS_VERIFIED_LOCALLY",
+        "persistence_status": "PREPARED_IN_MEMORY",
+        "reconciliation_hash": digest(reconciliation),
+        "receipt_decisions_hash": digest(receipt_decisions),
+    }
+    unsigned_document = {"manifest": manifest, **content}
+    manifest = {**manifest, "prepared_content_hash": digest(unsigned_document)}
+    return {"manifest": manifest, **content}
 
 
 def prepare_demand(data: dict) -> list[dict]:

@@ -4,6 +4,7 @@ import hashlib
 import json
 import unittest
 import uuid
+from datetime import date
 from unittest.mock import AsyncMock
 
 from dsio_inventory_engine.classify_inventory.application import SNAPSHOT_NAMESPACE
@@ -344,6 +345,11 @@ class PostgresClassificationPublisherTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(segment_call.args[1]), 9)
         self.assertEqual(len(item_call.args[1]), 1)
         self.assertEqual(len(window_call.args[1]), 4)
+        insert_header_call = connection.execute.await_args_list[2]
+        self.assertEqual(insert_header_call.args[18], date(2025, 1, 6))
+        self.assertEqual(insert_header_call.args[19], date(2026, 1, 5))
+        self.assertTrue(all(isinstance(row[3], date) for row in window_call.args[1]))
+        self.assertTrue(all(isinstance(row[4], date) for row in window_call.args[1]))
         self.assertEqual(len(axis_call.args[1]), 7)
         axis_rows = {row[2]: row for row in axis_call.args[1]}
         self.assertEqual(axis_rows["FSN"][10], '{"order_action":"REVIEW"}')

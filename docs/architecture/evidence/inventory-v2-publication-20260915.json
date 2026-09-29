@@ -1,0 +1,101 @@
+{
+  "evidence_type": "inventory_v2_development_publication",
+  "recorded_at": "2026-09-15",
+  "environment": "development_postgresql",
+  "scope": {
+    "tenant_id": "default",
+    "project_id": "9ed62f41",
+    "company_cd": "DSE",
+    "subs_cd": "C100",
+    "plant_cd": "V100",
+    "site_cd": "V100"
+  },
+  "configuration": {
+    "schema_version": "2.0.0",
+    "config_revision_id": "d4be4ad6-9e2e-47ce-84fa-d0c0b870fa4b",
+    "revision_no": 2,
+    "status": "published",
+    "active": true,
+    "config_hash": "48ad9893f8efca139a9c2f81ddefa49f13428795c929c0d3913ca529b0a4e77e"
+  },
+  "ved_assignment": {
+    "assignment_snapshot_id": "c3ab376d-9847-5355-884a-ec089c71bbe6",
+    "status": "approved",
+    "item_count": 7000,
+    "unassigned_item_count": 0,
+    "content_hash": "d7bf07706cc392119de970aa7877620b4c1c4f6f4408ae8c06154ad2f559608f",
+    "source_semantics": "DEVELOPMENT_SYNTHETIC_NOT_BUSINESS_CRITICALITY"
+  },
+  "actual_close": {
+    "sealed_week_count": 26,
+    "window_start_yyyyww": "202528",
+    "window_end_yyyyww": "202601",
+    "history_hash": "58b5a91916db854ec195fa022ece914a5954217990f408024afcd42abfcf85ef"
+  },
+  "classification_snapshot": {
+    "classification_snapshot_id": "e54e5649-ad2b-578c-b1fa-2e5603446895",
+    "snapshot_revision": 2,
+    "status": "approved",
+    "content_hash": "54084553f1d444aa698de65847a9097e7f58bca91a80eb61efdd5c7789b4347d",
+    "effective_policy_content_hash": "4ee176f6868dcdd5e45f116c67fd1ad3254c1528703a333148e564b1887b2049",
+    "eligible_sku_count": 7000,
+    "classified_sku_count": 2300,
+    "unclassified_sku_count": 4700,
+    "unclassified_reasons": {
+      "INSUFFICIENT_DEMAND_HISTORY": 4700
+    },
+    "physical_row_counts": {
+      "header": 1,
+      "items": 7000,
+      "item_axes": 49000,
+      "axis_windows": 3,
+      "item_policy_reasons": 26610
+    },
+    "automatic_gate_counts": {
+      "ALLOW": 2296,
+      "REVIEW": 4,
+      "BLOCK": 4700
+    },
+    "axis_status_counts": {
+      "ABC.CLASSIFIED": 2300,
+      "ABC.UNCLASSIFIED": 4700,
+      "XYZ.CLASSIFIED": 2300,
+      "XYZ.UNCLASSIFIED": 4700,
+      "VED.CLASSIFIED": 7000,
+      "FSN.CLASSIFIED": 2300,
+      "FSN.UNVERIFIED": 4700,
+      "SDE.NOT_APPLICABLE": 7000,
+      "HML.NOT_APPLICABLE": 7000,
+      "PLC.SYNTHETIC": 7000
+    }
+  },
+  "replay_verification": {
+    "publication_status": "exact_replay",
+    "database_writes": false,
+    "same_snapshot_id": true,
+    "same_content_hash": true,
+    "same_effective_policy_content_hash": true
+  },
+  "simulation_registry": {
+    "source_type": "DEVELOPMENT_SYNTHETIC",
+    "approval_reference": "DEV-SIMULATION-REGISTRY-APPROVAL-20260915",
+    "cost_profile_content_hash": "840da9f8e8443197aaf9036b8a8dd68c94609cf4612b150b82360ac19fd0319b",
+    "stress_scenarios": {
+      "CONFIRMED_RECEIPT_DELAY_7_DAYS": "d4f3456c69b11761ae02bc5cbb084bfde5443512cab2aba9b255c4629a67d72f",
+      "DEMAND_SURGE_20_PERCENT": "0080e25b529addc1fbdb4e9729e711cae03ad7d144e9b6948576558d1ba8558d"
+    }
+  },
+  "verification": {
+    "inventory_engine": "523 passed, 21 skipped, 541 subtests passed",
+    "dsai_platform_inventory_related": "226 passed",
+    "ruff": "passed",
+    "json_schema": "passed"
+  },
+  "limitations": [
+    "VED values are development-only and do not represent business criticality.",
+    "PLC is synthetic and SHADOW_ONLY.",
+    "SDE and HML are disabled because authoritative sources are not bound.",
+    "The cost profile is synthetic and must not be used for operational economic decisions.",
+    "Migration 074, actual Run Claim writes, and shared Runtime deployment were not performed."
+  ]
+}

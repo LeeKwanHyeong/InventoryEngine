@@ -23,16 +23,29 @@ from dsio_inventory_engine.inventory_contracts.effective_policy_v2 import (
 )
 from dsio_inventory_engine.inventory_contracts.mathematical import MathematicalPolicyRequest
 from dsio_inventory_engine.inventory_contracts.network import DeploymentScope
-from dsio_inventory_engine.inventory_contracts.replenishment import RecommendationRequest
+from dsio_inventory_engine.inventory_contracts.replenishment import (
+    RecommendationRequest,
+    replenishment_config_content_hash,
+)
+from dsio_inventory_engine.inventory_contracts.result_bundle import seal_strategy_execution_plan
 from dsio_inventory_engine.inventory_contracts.runtime import (
     InventoryRuntimeExecutionRequest,
     seal_canonical_context_binding,
     validate_canonical_runtime_binding,
 )
-from dsio_inventory_engine.inventory_contracts.values import InventoryInputError, digest
-from dsio_inventory_engine.learned.application import RunLearnedPsiUseCase
+from dsio_inventory_engine.inventory_contracts.values import (
+    InventoryInputError,
+    canonical_json,
+    digest,
+)
+from dsio_inventory_engine.learned.application import RunLearnedPsiUseCase, compile_strategy
+from dsio_inventory_engine.prepare_inventory.application.inventory_input import (
+    PreparedInventoryInput,
+    PrepareInventoryInputUseCase,
+)
 from dsio_inventory_engine.recommend_replenishment.application.mathematical import (
     RunMathematicalReplenishmentUseCase,
+    prepare_mathematical_strategy,
 )
 from dsio_inventory_engine.recommend_replenishment.application.run import (
     RunRecommendedPsiUseCase,
@@ -193,11 +206,14 @@ def _requests(
         configuration_revision=CONFIG_REVISION_ID,
     )
     mathematical = MathematicalPolicyRequest.from_dict(reseal_math(data))
+    normalized_execution = mathematical.to_dict()["recommendation"]["execution"]
     runtime_data = runtime_dispatch_v2(
         config_hash=CONFIG_HASH,
         effective_policy_content_hash=policy_hash,
         expected_automatic_publish_allowed=policy["automatic_publish_allowed"],
         expected_automatic_order_allowed=policy["automatic_order_allowed"],
+        mathematical_strategy_input_binding=normalized_execution["strategy_input_binding"],
+        replenishment_config_content_hash=replenishment_config_content_hash(normalized_execution),
     )
     runtime_data = bind_runtime_dispatch_to_canonical(
         runtime_data,
@@ -217,6 +233,34 @@ def _replace_canonical(
     return MathematicalPolicyRequest.from_dict(reseal_math(changed))
 
 
+def _bind_platform_ppo_runtime(
+    runtime: InventoryRuntimeExecutionRequest,
+    model,
+    *,
+    approval_reference: str,
+) -> InventoryRuntimeExecutionRequest:
+    runtime_data = runtime.to_dict()
+    plan = {
+        key: copy.deepcopy(value)
+        for key, value in runtime.strategy_execution_plan.items()
+        if key != "content_hash"
+    }
+    plan["shadow_challenger_bindings"] = [
+        {
+            "challenger_id": "ppo-shadow-1",
+            "strategy_type": "DEEP_RL",
+            "algorithm": "PPO",
+            "implementation_id": model.descriptor["implementation_id"],
+            "version": model.descriptor["version"],
+            "implementation_content_hash": "e" * 64,
+            "model": model.reference,
+            "approval_reference": approval_reference,
+        }
+    ]
+    runtime_data["claim"]["strategy_execution_plan"] = seal_strategy_execution_plan(plan)
+    return InventoryRuntimeExecutionRequest.from_dict(reseal_runtime_site_binding(runtime_data))
+
+
 def _tamper_claim_binding(
     runtime: InventoryRuntimeExecutionRequest,
     *,
@@ -230,6 +274,26 @@ def _tamper_claim_binding(
     )
     binding[field] = replacement
     return InventoryRuntimeExecutionRequest.from_dict(reseal_runtime_site_binding(changed))
+
+
+def _resealed_prepared_with_position_tampering(
+    mathematical: MathematicalPolicyRequest,
+) -> PreparedInventoryInput:
+    canonical = CanonicalInputRequest.from_dict(
+        mathematical.to_dict()["recommendation"]["canonical_input"]
+    )
+    prepared = PrepareInventoryInputUseCase(DEPLOYMENT).execute(canonical).to_dict()
+    prepared["positions"][0]["available_qty"] = "999"
+    unsigned_manifest = {
+        key: value for key, value in prepared["manifest"].items() if key != "prepared_content_hash"
+    }
+    prepared["manifest"]["prepared_content_hash"] = digest(
+        {
+            "manifest": unsigned_manifest,
+            **{key: value for key, value in prepared.items() if key != "manifest"},
+        }
+    )
+    return PreparedInventoryInput(canonical_json(prepared))
 
 
 class RuntimeEffectivePolicyV2Tests(unittest.TestCase):
@@ -263,6 +327,38 @@ class RuntimeEffectivePolicyV2Tests(unittest.TestCase):
         self.assertTrue(admission["recommendation_calculation_allowed"])
         self.assertTrue(admission["evidence_storage_allowed"])
         self.assertEqual(admission["effective_order_action"], "REVIEW")
+
+    def test_platform_bound_mathematical_rejects_resealed_prepared_tampering(self) -> None:
+        request, runtime = _requests(p90_days="7")
+
+        with self.assertRaisesRegex(
+            InventoryInputError,
+            "PREPARED_INPUT_PROJECTION_MISMATCH",
+        ):
+            RunMathematicalReplenishmentUseCase(DEPLOYMENT).execute(
+                request,
+                runtime_request=runtime,
+                prepared_input=_resealed_prepared_with_position_tampering(request),
+            )
+
+    def test_platform_bound_recommended_rejects_resealed_prepared_tampering(self) -> None:
+        request, runtime = _requests(p90_days="7")
+        recommendation, _prepared, _report, strategy = prepare_mathematical_strategy(
+            request,
+            DEPLOYMENT,
+            runtime_request=runtime,
+        )
+
+        with self.assertRaisesRegex(
+            InventoryInputError,
+            "PREPARED_INPUT_PROJECTION_MISMATCH",
+        ):
+            RunRecommendedPsiUseCase(DEPLOYMENT).execute(
+                recommendation,
+                strategy,
+                runtime_request=runtime,
+                prepared_input=_resealed_prepared_with_position_tampering(request),
+            )
 
     def test_sde_service_level_and_review_cycle_override_source_policy(self) -> None:
         request, runtime = _requests()
@@ -845,6 +941,245 @@ class RuntimeEffectivePolicyV2Tests(unittest.TestCase):
                     result["effective_policy_admission_evidence"][0]["model_approval_reference"],
                     f"APPROVED-{family}",
                 )
+
+    def test_platform_bound_ppo_shadow_reuses_operational_math_policy_without_auto_gates(
+        self,
+    ) -> None:
+        request, runtime = _requests(action="ALLOW", approval="AUTO", p90_days="7")
+        data = request.to_dict()
+        data["recommendation"]["execution"]["execution_purpose"] = "SHADOW"
+        anchor = MathematicalPolicyRequest.from_dict(reseal_math(data))
+        model = model_fixture(anchor.to_dict(), "DEEP_RL")
+        approval = {
+            "approval_reference": "APPROVED-DEEP-RL",
+            "status": "APPROVED",
+            **model.reference,
+        }
+        runtime = _bind_platform_ppo_runtime(
+            runtime,
+            model,
+            approval_reference=approval["approval_reference"],
+        )
+
+        result = RunLearnedPsiUseCase(DEPLOYMENT).execute(
+            inference_request(
+                anchor.to_dict(),
+                model,
+                model_approval=approval,
+            ),
+            runtime_request=runtime,
+            challenger_id="ppo-shadow-1",
+            implementation_content_hash="e" * 64,
+        )
+
+        self.assertEqual(result["strategy"]["strategy_type"], "DEEP_RL")
+        self.assertFalse(result["automatic_publish_allowed"])
+        self.assertFalse(result["automatic_order_allowed"])
+        admission = result["effective_policy_admission_evidence"][0]
+        self.assertEqual(admission["effective_strategy"], "MATHEMATICAL")
+        self.assertFalse(admission["automatic_publish_allowed"])
+        self.assertFalse(admission["automatic_order_allowed"])
+
+    def test_platform_bound_ppo_shadow_rejects_resealed_order_date_tampering(self) -> None:
+        request, runtime = _requests(action="ALLOW", approval="AUTO", p90_days="7")
+        data = request.to_dict()
+        execution = data["recommendation"]["execution"]
+        execution["execution_purpose"] = "SHADOW"
+        execution["item_controls"][0]["order_dates"] = execution["item_controls"][0]["order_dates"][
+            :-1
+        ]
+        anchor = MathematicalPolicyRequest.from_dict(reseal_math(data))
+        model = model_fixture(anchor.to_dict(), "DEEP_RL")
+        approval = {
+            "approval_reference": "APPROVED-DEEP-RL",
+            "status": "APPROVED",
+            **model.reference,
+        }
+        runtime = _bind_platform_ppo_runtime(
+            runtime,
+            model,
+            approval_reference=approval["approval_reference"],
+        )
+
+        with self.assertRaisesRegex(InventoryInputError, "MATHEMATICAL_EXECUTION_BINDING_MISMATCH"):
+            RunLearnedPsiUseCase(DEPLOYMENT).execute(
+                inference_request(
+                    anchor.to_dict(),
+                    model,
+                    model_approval=approval,
+                ),
+                runtime_request=runtime,
+                challenger_id="ppo-shadow-1",
+                implementation_content_hash="e" * 64,
+            )
+
+    def test_platform_bound_ppo_shadow_rejects_resealed_prepared_input_tampering(
+        self,
+    ) -> None:
+        request, runtime = _requests(action="ALLOW", approval="AUTO", p90_days="7")
+        data = request.to_dict()
+        data["recommendation"]["execution"]["execution_purpose"] = "SHADOW"
+        anchor = MathematicalPolicyRequest.from_dict(reseal_math(data))
+        model = model_fixture(anchor.to_dict(), "DEEP_RL")
+        approval = {
+            "approval_reference": "APPROVED-DEEP-RL",
+            "status": "APPROVED",
+            **model.reference,
+        }
+        runtime = _bind_platform_ppo_runtime(
+            runtime,
+            model,
+            approval_reference=approval["approval_reference"],
+        )
+        canonical = CanonicalInputRequest.from_dict(
+            anchor.to_dict()["recommendation"]["canonical_input"]
+        )
+        prepared = PrepareInventoryInputUseCase(DEPLOYMENT).execute(canonical).to_dict()
+        prepared["positions"][0]["available_qty"] = "999"
+        unsigned_manifest = {
+            key: value
+            for key, value in prepared["manifest"].items()
+            if key != "prepared_content_hash"
+        }
+        prepared["manifest"]["prepared_content_hash"] = digest(
+            {
+                "manifest": unsigned_manifest,
+                **{key: value for key, value in prepared.items() if key != "manifest"},
+            }
+        )
+
+        with self.assertRaisesRegex(
+            InventoryInputError,
+            "PREPARED_INPUT_PROJECTION_MISMATCH",
+        ):
+            RunLearnedPsiUseCase(DEPLOYMENT).execute(
+                inference_request(
+                    anchor.to_dict(),
+                    model,
+                    model_approval=approval,
+                ),
+                runtime_request=runtime,
+                prepared_input=PreparedInventoryInput(canonical_json(prepared)),
+                challenger_id="ppo-shadow-1",
+                implementation_content_hash="e" * 64,
+            )
+
+    def test_platform_bound_ppo_shadow_rejects_resealed_math_anchor_tampering(self) -> None:
+        for case in ("POLICY", "HISTORY", "BINDING"):
+            with self.subTest(case=case):
+                request, runtime = _requests(action="ALLOW", approval="AUTO", p90_days="7")
+                data = request.to_dict()
+                data["recommendation"]["execution"]["execution_purpose"] = "SHADOW"
+                if case == "POLICY":
+                    data["policy_input"]["profile"]["allow_legacy_fallback"] = True
+                elif case == "HISTORY":
+                    data["policy_input"]["history"][0]["demand_qty"] = "123"
+                else:
+                    data["policy_input"]["snapshot_id"] = "MATH-INPUT-RESEALED-TAMPER"
+                anchor = MathematicalPolicyRequest.from_dict(reseal_math(data))
+                model = model_fixture(anchor.to_dict(), "DEEP_RL")
+                approval = {
+                    "approval_reference": "APPROVED-DEEP-RL",
+                    "status": "APPROVED",
+                    **model.reference,
+                }
+                runtime = _bind_platform_ppo_runtime(
+                    runtime,
+                    model,
+                    approval_reference=approval["approval_reference"],
+                )
+
+                with self.assertRaisesRegex(
+                    InventoryInputError, "MATHEMATICAL_STRATEGY_INPUT_BINDING_MISMATCH"
+                ):
+                    RunLearnedPsiUseCase(DEPLOYMENT).execute(
+                        inference_request(
+                            anchor.to_dict(),
+                            model,
+                            model_approval=approval,
+                        ),
+                        runtime_request=runtime,
+                        challenger_id="ppo-shadow-1",
+                        implementation_content_hash="e" * 64,
+                    )
+
+    def test_platform_bound_ppo_rejects_a_training_predictor_override(self) -> None:
+        request, runtime = _requests(action="ALLOW", approval="AUTO", p90_days="7")
+        data = request.to_dict()
+        data["recommendation"]["execution"]["execution_purpose"] = "SHADOW"
+        anchor = MathematicalPolicyRequest.from_dict(reseal_math(data))
+        model = model_fixture(anchor.to_dict(), "DEEP_RL")
+        approval = {
+            "approval_reference": "APPROVED-DEEP-RL",
+            "status": "APPROVED",
+            **model.reference,
+        }
+        runtime = _bind_platform_ppo_runtime(
+            runtime,
+            model,
+            approval_reference=approval["approval_reference"],
+        )
+
+        with self.assertRaisesRegex(
+            InventoryInputError, "PLATFORM_BOUND_TRAINING_PREDICTOR_FORBIDDEN"
+        ):
+            compile_strategy(
+                anchor,
+                model,
+                DEPLOYMENT,
+                training_predictor=lambda _features: 0,
+                model_approval=approval,
+                runtime_request=runtime,
+                challenger_id="ppo-shadow-1",
+                implementation_content_hash="e" * 64,
+            )
+
+    def test_platform_bound_ppo_shadow_rejects_a_model_not_claimed_by_the_plan(self) -> None:
+        request, runtime = _requests(action="ALLOW", approval="AUTO", p90_days="7")
+        data = request.to_dict()
+        data["recommendation"]["execution"]["execution_purpose"] = "SHADOW"
+        anchor = MathematicalPolicyRequest.from_dict(reseal_math(data))
+        model = model_fixture(anchor.to_dict(), "DEEP_RL")
+        approval = {
+            "approval_reference": "APPROVED-DEEP-RL",
+            "status": "APPROVED",
+            **model.reference,
+        }
+
+        with self.assertRaisesRegex(
+            InventoryInputError, "PLATFORM_SHADOW_CHALLENGER_BINDING_MISMATCH"
+        ):
+            RunLearnedPsiUseCase(DEPLOYMENT).execute(
+                inference_request(
+                    anchor.to_dict(),
+                    model,
+                    model_approval=approval,
+                ),
+                runtime_request=runtime,
+                challenger_id="ppo-shadow-1",
+                implementation_content_hash="e" * 64,
+            )
+
+    def test_platform_bound_learned_shadow_requires_runtime_binding(self) -> None:
+        request, _runtime = _requests()
+        data = request.to_dict()
+        data["recommendation"]["execution"]["execution_purpose"] = "SHADOW"
+        anchor = MathematicalPolicyRequest.from_dict(reseal_math(data))
+        model = model_fixture(anchor.to_dict(), "DEEP_RL")
+        approval = {
+            "approval_reference": "APPROVED-DEEP-RL",
+            "status": "APPROVED",
+            **model.reference,
+        }
+
+        with self.assertRaisesRegex(InventoryInputError, "RUNTIME_EXECUTION_BINDING_REQUIRED"):
+            RunLearnedPsiUseCase(DEPLOYMENT).execute(
+                inference_request(
+                    anchor.to_dict(),
+                    model,
+                    model_approval=approval,
+                )
+            )
 
 
 if __name__ == "__main__":

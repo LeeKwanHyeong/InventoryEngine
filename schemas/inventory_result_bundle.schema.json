@@ -35,7 +35,8 @@
     },
     "signedDecimal": {
       "type": "string",
-      "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]{1,6})?$"
+      "maxLength": 29,
+      "pattern": "^-?(?:(?:0|[1-9][0-9]{0,19}|1[0-9]{20})(?:\\.[0-9]{1,6})?|200000000000000000000(?:\\.0{1,6})?)$"
     },
     "model": {
       "type": "object",
@@ -47,6 +48,17 @@
         "content_hash": { "$ref": "#/$defs/hash" }
       }
     },
+    "mathematicalStrategyInputBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_id", "contract_version", "snapshot_id", "content_hash"],
+      "properties": {
+        "contract_id": { "const": "io-mathematical-policy-input-v1" },
+        "contract_version": { "const": "1.0.0" },
+        "snapshot_id": { "$ref": "#/$defs/id" },
+        "content_hash": { "$ref": "#/$defs/hash" }
+      }
+    },
     "operationalStrategy": {
       "type": "object",
       "additionalProperties": false,
@@ -54,12 +66,28 @@
         "strategy_type",
         "implementation_id",
         "version",
-        "implementation_content_hash"
+        "implementation_content_hash",
+        "replenishment_config_content_hash",
+        "strategy_input_binding"
       ],
       "properties": {
         "strategy_type": { "const": "MATHEMATICAL" },
-        "implementation_id": { "$ref": "#/$defs/id" },
-        "version": { "$ref": "#/$defs/id" },
+        "implementation_id": { "const": "historical-normal-r-s" },
+        "version": { "const": "1.0.0" },
+        "implementation_content_hash": { "$ref": "#/$defs/hash" },
+        "replenishment_config_content_hash": { "$ref": "#/$defs/hash" },
+        "strategy_input_binding": {
+          "$ref": "#/$defs/mathematicalStrategyInputBinding"
+        }
+      }
+    },
+    "psiSimulator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["implementation_id", "version", "implementation_content_hash"],
+      "properties": {
+        "implementation_id": { "const": "inventory.psi.weekly_roll_forward" },
+        "version": { "const": "1.0.0" },
         "implementation_content_hash": { "$ref": "#/$defs/hash" }
       }
     },
@@ -84,7 +112,7 @@
         "version": { "$ref": "#/$defs/id" },
         "implementation_content_hash": { "$ref": "#/$defs/hash" },
         "model": { "$ref": "#/$defs/model" },
-        "approval_reference": { "$ref": "#/$defs/reference" }
+        "approval_reference": { "$ref": "#/$defs/id" }
       }
     },
     "stressScenario": {
@@ -95,14 +123,50 @@
         "scenario_type",
         "scenario_contract_key",
         "scenario_contract_version",
-        "scenario_content_hash"
+        "scenario_payload_content_hash",
+        "deterministic_seed",
+        "scenario_content_hash",
+        "runner_implementation_id",
+        "runner_implementation_version",
+        "runner_implementation_content_hash"
       ],
       "properties": {
         "scenario_id": { "$ref": "#/$defs/id" },
         "scenario_type": { "const": "STRESS" },
         "scenario_contract_key": { "$ref": "#/$defs/id" },
         "scenario_contract_version": { "$ref": "#/$defs/version" },
-        "scenario_content_hash": { "$ref": "#/$defs/hash" }
+        "scenario_payload_content_hash": { "$ref": "#/$defs/hash" },
+        "deterministic_seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9223372036854775807
+        },
+        "scenario_content_hash": { "$ref": "#/$defs/hash" },
+        "runner_implementation_id": { "$ref": "#/$defs/id" },
+        "runner_implementation_version": { "$ref": "#/$defs/id" },
+        "runner_implementation_content_hash": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "costProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cost_profile_id",
+        "profile_contract_key",
+        "profile_contract_version",
+        "profile_payload_content_hash",
+        "profile_content_hash",
+        "source_type",
+        "approval_reference"
+      ],
+      "properties": {
+        "cost_profile_id": { "$ref": "#/$defs/id" },
+        "profile_contract_key": { "const": "inventory.cost_profile" },
+        "profile_contract_version": { "$ref": "#/$defs/version" },
+        "profile_payload_content_hash": { "$ref": "#/$defs/hash" },
+        "profile_content_hash": { "$ref": "#/$defs/hash" },
+        "source_type": { "enum": ["DEVELOPMENT_SYNTHETIC", "AUTHORIZED_SOURCE"] },
+        "approval_reference": { "$ref": "#/$defs/id" }
       }
     },
     "strategyExecutionPlan": {
@@ -114,21 +178,30 @@
         "strategy_execution_plan_id",
         "classification_config_hash",
         "effective_policy_content_hash",
+        "base_scenario_contract_key",
+        "base_scenario_contract_version",
         "base_scenario_content_hash",
+        "psi_simulator",
         "operational_strategy",
         "shadow_challenger_bindings",
         "stress_scenario_bindings",
+        "cost_profile_binding",
         "result_bundle_contract_key",
         "result_bundle_contract_version",
         "content_hash"
       ],
       "properties": {
         "contract_id": { "const": "inventory-strategy-execution-plan-v1" },
-        "contract_version": { "const": "1.0.0" },
+        "contract_version": { "const": "1.1.0" },
         "strategy_execution_plan_id": { "$ref": "#/$defs/id" },
         "classification_config_hash": { "$ref": "#/$defs/hash" },
         "effective_policy_content_hash": { "$ref": "#/$defs/hash" },
-        "base_scenario_content_hash": { "$ref": "#/$defs/hash" },
+        "base_scenario_contract_key": { "const": "inventory.scenario.base" },
+        "base_scenario_contract_version": { "const": "1.0.0" },
+        "base_scenario_content_hash": {
+          "const": "e385b25e899b156c69004e069ee46dbefe1d5dc29930149dd7903f2b2197f472"
+        },
+        "psi_simulator": { "$ref": "#/$defs/psiSimulator" },
         "operational_strategy": { "$ref": "#/$defs/operationalStrategy" },
         "shadow_challenger_bindings": {
           "type": "array",
@@ -139,6 +212,12 @@
           "type": "array",
           "maxItems": 64,
           "items": { "$ref": "#/$defs/stressScenario" }
+        },
+        "cost_profile_binding": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/costProfile" }
+          ]
         },
         "result_bundle_contract_key": { "const": "inventory.result_bundle" },
         "result_bundle_contract_version": { "const": "1.0.0" },
@@ -175,7 +254,29 @@
         "adjustment_reasons_content_hash": {
           "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/hash" }]
         }
-      }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "raw_action_reference": { "type": "null" },
+            "raw_action_content_hash": { "type": "null" },
+            "constrained_action_reference": { "type": "null" },
+            "constrained_action_content_hash": { "type": "null" },
+            "adjustment_reasons_reference": { "type": "null" },
+            "adjustment_reasons_content_hash": { "type": "null" }
+          }
+        },
+        {
+          "properties": {
+            "raw_action_reference": { "$ref": "#/$defs/reference" },
+            "raw_action_content_hash": { "$ref": "#/$defs/hash" },
+            "constrained_action_reference": { "$ref": "#/$defs/reference" },
+            "constrained_action_content_hash": { "$ref": "#/$defs/hash" },
+            "adjustment_reasons_reference": { "$ref": "#/$defs/reference" },
+            "adjustment_reasons_content_hash": { "$ref": "#/$defs/hash" }
+          }
+        }
+      ]
     },
     "childResult": {
       "type": "object",
@@ -237,7 +338,152 @@
           "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/id" }]
         },
         "action_evidence": { "$ref": "#/$defs/actionEvidence" }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "status": { "const": "SUCCEEDED" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "artifact_reference": { "$ref": "#/$defs/reference" },
+              "artifact_contract_key": { "const": "inventory.psi_result" },
+              "artifact_contract_version": { "const": "1.0.0" },
+              "child_content_hash": { "$ref": "#/$defs/hash" },
+              "row_count": { "type": "integer", "minimum": 1, "maximum": 100000000 },
+              "failure_reason_code": { "type": "null" }
+            }
+          },
+          "else": {
+            "properties": {
+              "artifact_reference": { "type": "null" },
+              "artifact_contract_key": { "type": "null" },
+              "artifact_contract_version": { "type": "null" },
+              "child_content_hash": { "type": "null" },
+              "row_count": { "type": "null" },
+              "failure_reason_code": { "$ref": "#/$defs/id" },
+              "action_evidence": {
+                "properties": { "raw_action_reference": { "type": "null" } }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "strategy_type": { "const": "DEEP_RL" } },
+            "required": ["strategy_type"]
+          },
+          "then": {
+            "properties": {
+              "challenger_id": { "$ref": "#/$defs/id" },
+              "model_content_hash": { "$ref": "#/$defs/hash" }
+            }
+          },
+          "else": {
+            "properties": {
+              "challenger_id": { "type": "null" },
+              "model_content_hash": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": { "const": "SUCCEEDED" },
+              "strategy_type": { "not": { "const": "NONE" } }
+            },
+            "required": ["status", "strategy_type"]
+          },
+          "then": {
+            "properties": {
+              "action_evidence": {
+                "properties": {
+                  "raw_action_reference": { "$ref": "#/$defs/reference" }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "strategy_type": { "const": "NONE" } },
+            "required": ["strategy_type"]
+          },
+          "then": {
+            "properties": {
+              "action_evidence": {
+                "properties": { "raw_action_reference": { "type": "null" } }
+              }
+            }
+          }
+        },
+        {
+          "oneOf": [
+            {
+              "properties": {
+                "result_kind": { "const": "BASELINE_PSI" },
+                "execution_role": { "const": "EVIDENCE_ONLY" },
+                "strategy_type": { "const": "NONE" },
+                "scenario_id": { "const": "BASE" },
+                "status": { "const": "SUCCEEDED" }
+              }
+            },
+            {
+              "properties": {
+                "result_kind": { "const": "RECOMMENDED_PSI" },
+                "execution_role": { "const": "OPERATIONAL" },
+                "strategy_type": { "const": "MATHEMATICAL" },
+                "scenario_id": { "const": "BASE" },
+                "status": { "const": "SUCCEEDED" }
+              }
+            },
+            {
+              "properties": {
+                "result_kind": { "const": "RECOMMENDED_PSI" },
+                "execution_role": { "const": "SHADOW" },
+                "strategy_type": { "const": "DEEP_RL" },
+                "scenario_id": { "const": "BASE" },
+                "status": { "enum": ["SUCCEEDED", "FAILED"] }
+              }
+            },
+            {
+              "properties": {
+                "result_kind": { "const": "STRESS_PSI" },
+                "execution_role": { "const": "EVIDENCE_ONLY" },
+                "strategy_type": { "const": "MATHEMATICAL" },
+                "scenario_id": { "not": { "const": "BASE" } }
+              },
+              "allOf": [
+                {
+                  "if": {
+                    "properties": { "status": { "const": "SKIPPED" } },
+                    "required": ["status"]
+                  },
+                  "then": {
+                    "properties": {
+                      "failure_reason_code": { "const": "STRESS_SCENARIO_UNAVAILABLE" }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": { "status": { "const": "FAILED" } },
+                    "required": ["status"]
+                  },
+                  "then": {
+                    "properties": {
+                      "failure_reason_code": {
+                        "not": { "const": "STRESS_SCENARIO_UNAVAILABLE" }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
     },
     "metricDelta": {
       "type": "object",
@@ -261,7 +507,34 @@
             }
           ]
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "status": { "const": "AVAILABLE" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "value": { "$ref": "#/$defs/signedDecimal" },
+              "reason_code": { "type": "null" }
+            }
+          },
+          "else": {
+            "properties": {
+              "value": { "type": "null" },
+              "reason_code": {
+                "enum": [
+                  "COST_PROFILE_NOT_BOUND",
+                  "CANDIDATE_RESULT_FAILED",
+                  "CANDIDATE_RESULT_SKIPPED",
+                  "NO_DEMAND_IN_HORIZON"
+                ]
+              }
+            }
+          }
+        }
+      ]
     },
     "comparison": {
       "type": "object",
@@ -345,7 +618,9 @@
         "strategy_execution_plan_content_hash": { "$ref": "#/$defs/hash" },
         "classification_config_hash": { "$ref": "#/$defs/hash" },
         "effective_policy_content_hash": { "$ref": "#/$defs/hash" },
-        "cost_profile_content_hash": { "type": "null" },
+        "cost_profile_content_hash": {
+          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/hash" }]
+        },
         "result_children": {
           "type": "array",
           "minItems": 2,
@@ -361,7 +636,18 @@
         "automatic_publish_allowed": { "type": "boolean" },
         "automatic_order_allowed": { "type": "boolean" },
         "content_hash": { "$ref": "#/$defs/hash" }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "automatic_order_allowed": { "const": true } },
+            "required": ["automatic_order_allowed"]
+          },
+          "then": {
+            "properties": { "automatic_publish_allowed": { "const": true } }
+          }
+        }
+      ]
     }
   }
 }

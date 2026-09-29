@@ -25,7 +25,9 @@ from dsio_inventory_engine.inventory_contracts.values import (
     require,
 )
 from dsio_inventory_engine.prepare_inventory.application.inventory_input import (
+    PreparedInventoryInput,
     PrepareInventoryInputUseCase,
+    validate_prepared_projection,
 )
 from .math_input import validate_math_input
 from .math_policy import build_policy_report
@@ -100,17 +102,38 @@ class RunMathematicalReplenishmentUseCase:
         request: MathematicalPolicyRequest,
         *,
         runtime_request: InventoryRuntimeExecutionRequest | None = None,
+        prepared_input: PreparedInventoryInput | None = None,
     ) -> dict:
+        require(self.deployment.environment == "DEVELOPMENT", "LOCAL_RECOMMENDATION_ONLY")
+        normalized = MathematicalPolicyRequest.from_dict(request.to_dict())
+        canonical_input = CanonicalInputRequest.from_dict(
+            normalized.to_dict()["recommendation"]["canonical_input"]
+        )
+        shared_prepared = prepared_input or PrepareInventoryInputUseCase(self.deployment).execute(
+            canonical_input
+        )
+        execution = normalized.to_dict()["recommendation"]["execution"]
+        if (
+            execution["contract_version"] == "2.0.0"
+            and execution["execution_mode"] == "PLATFORM_BOUND"
+        ):
+            shared_prepared = validate_prepared_projection(
+                canonical_input,
+                shared_prepared,
+                self.deployment,
+            )
         recommendation, _, report, strategy = prepare_mathematical_strategy(
-            request,
+            normalized,
             self.deployment,
             runtime_request=runtime_request,
+            prepared_input=shared_prepared,
         )
-        data = MathematicalPolicyRequest.from_dict(request.to_dict()).to_dict()
+        data = normalized.to_dict()
         result = RunRecommendedPsiUseCase(self.deployment).execute(
             recommendation,
             strategy,
             runtime_request=runtime_request,
+            prepared_input=shared_prepared,
         )
         excluded = sum(
             r["effective_policy_source"] == "EXCLUDED" for r in report["policy_evidence"]
@@ -134,6 +157,7 @@ def prepare_mathematical_strategy(
     deployment: DeploymentScope,
     *,
     runtime_request: InventoryRuntimeExecutionRequest | None = None,
+    prepared_input: PreparedInventoryInput | None = None,
 ) -> tuple[RecommendationRequest, dict, dict, MathematicalStrategy]:
     """Single production admission/calculation path; no simulated future PSI needed."""
     request = MathematicalPolicyRequest.from_dict(request.to_dict())
@@ -141,7 +165,13 @@ def prepare_mathematical_strategy(
     data = request.to_dict()
     recommendation = RecommendationRequest.from_dict(data["recommendation"])
     canonical_input = CanonicalInputRequest.from_dict(data["recommendation"]["canonical_input"])
-    prepared = PrepareInventoryInputUseCase(deployment).execute(canonical_input).to_dict()
+    prepared = (
+        prepared_input or PrepareInventoryInputUseCase(deployment).execute(canonical_input)
+    ).to_dict()
+    require(
+        prepared["manifest"]["input_content_hash"] == canonical_input.input_hash,
+        "PREPARED_INPUT_BINDING_MISMATCH",
+    )
     apply_effective_policy_controls(
         prepared,
         data["recommendation"]["execution"],

@@ -4,8 +4,9 @@ from decimal import Decimal, localcontext
 
 from dsio_inventory_engine.inventory_contracts.canonical import CanonicalInputRequest
 from dsio_inventory_engine.inventory_contracts.network import DeploymentScope
-from dsio_inventory_engine.inventory_contracts.values import digest
+from dsio_inventory_engine.inventory_contracts.values import digest, require
 from dsio_inventory_engine.prepare_inventory.application.inventory_input import (
+    PreparedInventoryInput,
     PrepareInventoryInputUseCase,
 )
 from .step import InventoryState, advance_bucket
@@ -15,8 +16,18 @@ class RunPsiSimulationUseCase:
     def __init__(self, deployment: DeploymentScope):
         self.prepare = PrepareInventoryInputUseCase(deployment)
 
-    def execute(self, request: CanonicalInputRequest) -> dict:
-        prepared = self.prepare.execute(request).to_dict()
+    def execute(
+        self,
+        request: CanonicalInputRequest,
+        *,
+        prepared_input: PreparedInventoryInput | None = None,
+    ) -> dict:
+        request = CanonicalInputRequest.from_dict(request.to_dict())
+        prepared = (prepared_input or self.prepare.execute(request)).to_dict()
+        require(
+            prepared["manifest"]["input_content_hash"] == request.input_hash,
+            "PREPARED_INPUT_BINDING_MISMATCH",
+        )
         with localcontext() as ctx:
             ctx.prec = 40
             rows = _roll_forward(prepared)

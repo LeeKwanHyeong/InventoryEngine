@@ -8,27 +8,47 @@ approved PPO challengers and stress simulations to remain immutable evidence.
 from __future__ import annotations
 
 import re
+from decimal import Decimal, InvalidOperation
 from typing import Any, Mapping
 
 from .values import (
+    InventoryInputError,
     boolean,
     choice,
-    decimal_string,
     digest,
     hash_value,
     identifier,
     integer,
     optional,
+    quantity_text,
     require,
     shape,
 )
 
 
 STRATEGY_EXECUTION_PLAN_CONTRACT_ID = "inventory-strategy-execution-plan-v1"
-STRATEGY_EXECUTION_PLAN_CONTRACT_VERSION = "1.0.0"
+STRATEGY_EXECUTION_PLAN_CONTRACT_VERSION = "1.1.0"
 RESULT_BUNDLE_CONTRACT_ID = "inventory-result-bundle-v1"
 RESULT_BUNDLE_CONTRACT_VERSION = "1.0.0"
 RESULT_BUNDLE_SOURCE_CONTRACT_KEY = "inventory.result_bundle"
+PSI_CHILD_IDENTITY_CONTRACT_ID = "inventory-psi-child-identity-v1"
+PSI_RESULT_ARTIFACT_CONTRACT_KEY = "inventory.psi_result"
+PSI_RESULT_ARTIFACT_CONTRACT_VERSION = "1.0.0"
+BASE_SCENARIO_CONTRACT_KEY = "inventory.scenario.base"
+BASE_SCENARIO_CONTRACT_VERSION = "1.0.0"
+BASE_SCENARIO_DESCRIPTOR = {
+    "contract_key": BASE_SCENARIO_CONTRACT_KEY,
+    "contract_version": BASE_SCENARIO_CONTRACT_VERSION,
+    "scenario_id": "BASE",
+    "calendar_source": "CANONICAL_PINNED_BUSINESS_CALENDAR",
+    "initial_state_source": "CANONICAL_SEALED_BOH",
+    "demand_source": "CONFIRMED_CUSTOMER_ORDER_PLUS_NET_FORECAST",
+    "committed_supply_source": "CONFIRMED_SUPPLIER_RECEIPTS_ONLY",
+}
+BASE_SCENARIO_CONTENT_HASH = digest(BASE_SCENARIO_DESCRIPTOR)
+PSI_SIMULATOR_IMPLEMENTATION_ID = "inventory.psi.weekly_roll_forward"
+PSI_SIMULATOR_IMPLEMENTATION_VERSION = "1.0.0"
+_MAX_AGGREGATE_METRIC_QUANTITY = Decimal("200000000000000000000")
 
 RESULT_KINDS = ("BASELINE_PSI", "RECOMMENDED_PSI", "STRESS_PSI")
 EXECUTION_ROLES = ("OPERATIONAL", "SHADOW", "EVIDENCE_ONLY")
@@ -52,6 +72,99 @@ def derive_result_bundle_id(engine_run_id: Any, attempt_no: Any) -> str:
         "attempt_no": _positive(attempt_no),
     }
     return f"IOB-{digest(identity)}"
+
+
+def derive_psi_child_result_id(
+    *,
+    engine_run_id: Any,
+    attempt_no: Any,
+    canonical_input_hash: Any,
+    result_kind: Any,
+    execution_role: Any,
+    strategy_type: Any,
+    scenario_id: Any,
+    scenario_content_hash: Any,
+    challenger_id: Any = None,
+    model_content_hash: Any = None,
+) -> str:
+    """Derive the immutable Child identity used by PSI and Bundle producers."""
+
+    identity = {
+        "contract_id": PSI_CHILD_IDENTITY_CONTRACT_ID,
+        "engine_run_id": identifier(engine_run_id),
+        "attempt_no": _positive(attempt_no),
+        "canonical_input_hash": hash_value(canonical_input_hash),
+        "result_kind": choice(*RESULT_KINDS)(result_kind),
+        "execution_role": choice(*EXECUTION_ROLES)(execution_role),
+        "strategy_type": choice(*RESULT_STRATEGY_TYPES)(strategy_type),
+        "scenario_id": identifier(scenario_id),
+        "scenario_content_hash": hash_value(scenario_content_hash),
+        "challenger_id": None if challenger_id is None else identifier(challenger_id),
+        "model_content_hash": (
+            None if model_content_hash is None else hash_value(model_content_hash)
+        ),
+    }
+    return f"IOC-{digest(identity)}"
+
+
+def derive_psi_artifact_references(
+    *,
+    engine_run_id: Any,
+    attempt_no: Any,
+    child_result_id: Any,
+) -> dict[str, str]:
+    """Derive logical PSI and action locations; byte existence is a Reader concern."""
+
+    base = (
+        f"artifact:inventory:{identifier(engine_run_id)}:{_positive(attempt_no)}:"
+        f"{identifier(child_result_id)}"
+    )
+    return {
+        "psi": f"{base}:psi",
+        "raw_action": f"{base}:raw-action",
+        "constrained_action": f"{base}:constrained-action",
+        "adjustment_reasons": f"{base}:adjustment-reasons",
+    }
+
+
+def derive_stress_scenario_content_hash(
+    *,
+    scenario_id: Any,
+    scenario_contract_key: Any,
+    scenario_contract_version: Any,
+    scenario_payload_content_hash: Any,
+    deterministic_seed: Any,
+) -> str:
+    """Bind one resolved Stress payload and seed to its semantic identity."""
+
+    descriptor = {
+        "scenario_id": identifier(scenario_id),
+        "scenario_contract_key": identifier(scenario_contract_key),
+        "scenario_contract_version": _contract_version(scenario_contract_version),
+        "scenario_payload_content_hash": hash_value(scenario_payload_content_hash),
+        "deterministic_seed": _deterministic_seed(deterministic_seed),
+    }
+    require(descriptor["scenario_id"] != "BASE", "STRESS_SCENARIO_ID_RESERVED")
+    return digest(descriptor)
+
+
+def derive_cost_profile_content_hash(
+    *,
+    cost_profile_id: Any,
+    profile_contract_key: Any,
+    profile_contract_version: Any,
+    profile_payload_content_hash: Any,
+) -> str:
+    """Bind an approved cost payload to its immutable business identity."""
+
+    return digest(
+        {
+            "cost_profile_id": identifier(cost_profile_id),
+            "profile_contract_key": identifier(profile_contract_key),
+            "profile_contract_version": _contract_version(profile_contract_version),
+            "profile_payload_content_hash": hash_value(profile_payload_content_hash),
+        }
+    )
 
 
 def _reference(value: Any) -> str:
@@ -87,13 +200,39 @@ def _contract_version(value: Any) -> str:
 
 
 def _signed_decimal(value: Any) -> str:
-    return decimal_string(value, signed=True)
+    require(isinstance(value, str) and len(value) <= 40, "RESULT_METRIC_DECIMAL_REQUIRED")
+    try:
+        number = Decimal(value)
+        require(
+            number.is_finite() and number.copy_abs() <= _MAX_AGGREGATE_METRIC_QUANTITY,
+            "RESULT_METRIC_QUANTITY_RANGE",
+        )
+        exponent = number.as_tuple().exponent
+        require(
+            isinstance(exponent, int) and exponent >= -6,
+            "RESULT_METRIC_QUANTITY_PRECISION",
+        )
+        require(
+            re.fullmatch(r"-?(?:0|[1-9][0-9]*)(?:\.[0-9]{1,6})?", value) is not None,
+            "RESULT_METRIC_DECIMAL_FORMAT",
+        )
+        return quantity_text(number)
+    except InvalidOperation:
+        raise InventoryInputError("RESULT_METRIC_INVALID_DECIMAL") from None
 
 
 def _positive(value: Any) -> int:
     result = integer(value)
     require(result > 0, "INVALID_POSITIVE_INTEGER")
     return result
+
+
+def _deterministic_seed(value: Any) -> int:
+    require(
+        type(value) is int and 0 <= value <= 9_223_372_036_854_775_807,
+        "INVALID_DETERMINISTIC_SEED",
+    )
+    return value
 
 
 def _row_count(value: Any) -> int:
@@ -124,13 +263,38 @@ def _model(value: Any) -> dict[str, str]:
     )
 
 
-def _operational_strategy(value: Any) -> dict[str, str]:
+def _strategy_input_binding(value: Any) -> dict[str, str]:
+    return shape(
+        value,
+        {
+            "contract_id": choice("io-mathematical-policy-input-v1"),
+            "contract_version": choice("1.0.0"),
+            "snapshot_id": identifier,
+            "content_hash": hash_value,
+        },
+    )
+
+
+def _operational_strategy(value: Any) -> dict[str, Any]:
     return shape(
         value,
         {
             "strategy_type": choice("MATHEMATICAL"),
-            "implementation_id": identifier,
-            "version": identifier,
+            "implementation_id": choice("historical-normal-r-s"),
+            "version": choice("1.0.0"),
+            "implementation_content_hash": hash_value,
+            "replenishment_config_content_hash": hash_value,
+            "strategy_input_binding": _strategy_input_binding,
+        },
+    )
+
+
+def _psi_simulator(value: Any) -> dict[str, str]:
+    return shape(
+        value,
+        {
+            "implementation_id": choice(PSI_SIMULATOR_IMPLEMENTATION_ID),
+            "version": choice(PSI_SIMULATOR_IMPLEMENTATION_VERSION),
             "implementation_content_hash": hash_value,
         },
     )
@@ -147,7 +311,7 @@ def _challenger(value: Any) -> dict[str, Any]:
             "version": identifier,
             "implementation_content_hash": hash_value,
             "model": _model,
-            "approval_reference": _reference,
+            "approval_reference": identifier,
         },
     )
 
@@ -184,7 +348,7 @@ def _challengers(value: Any) -> list[dict[str, Any]]:
     )
 
 
-def _stress_scenario(value: Any) -> dict[str, str]:
+def _stress_scenario(value: Any) -> dict[str, Any]:
     result = shape(
         value,
         {
@@ -192,14 +356,30 @@ def _stress_scenario(value: Any) -> dict[str, str]:
             "scenario_type": choice("STRESS"),
             "scenario_contract_key": identifier,
             "scenario_contract_version": _contract_version,
+            "scenario_payload_content_hash": hash_value,
+            "deterministic_seed": _deterministic_seed,
             "scenario_content_hash": hash_value,
+            "runner_implementation_id": identifier,
+            "runner_implementation_version": identifier,
+            "runner_implementation_content_hash": hash_value,
         },
     )
     require(result["scenario_id"] != "BASE", "STRESS_SCENARIO_ID_RESERVED")
+    require(
+        result["scenario_content_hash"]
+        == derive_stress_scenario_content_hash(
+            scenario_id=result["scenario_id"],
+            scenario_contract_key=result["scenario_contract_key"],
+            scenario_contract_version=result["scenario_contract_version"],
+            scenario_payload_content_hash=result["scenario_payload_content_hash"],
+            deterministic_seed=result["deterministic_seed"],
+        ),
+        "STRESS_SCENARIO_CONTENT_HASH_MISMATCH",
+    )
     return result
 
 
-def _stress_scenarios(value: Any) -> list[dict[str, str]]:
+def _stress_scenarios(value: Any) -> list[dict[str, Any]]:
     require(type(value) is list and len(value) <= 64, "STRESS_SCENARIOS_INVALID")
     result = [_stress_scenario(item) for item in value]
     require(
@@ -209,16 +389,46 @@ def _stress_scenarios(value: Any) -> list[dict[str, str]]:
     return sorted(result, key=lambda item: (item["scenario_id"], item["scenario_content_hash"]))
 
 
+def _cost_profile(value: Any) -> dict[str, Any]:
+    result = shape(
+        value,
+        {
+            "cost_profile_id": identifier,
+            "profile_contract_key": choice("inventory.cost_profile"),
+            "profile_contract_version": _contract_version,
+            "profile_payload_content_hash": hash_value,
+            "profile_content_hash": hash_value,
+            "source_type": choice("DEVELOPMENT_SYNTHETIC", "AUTHORIZED_SOURCE"),
+            "approval_reference": identifier,
+        },
+    )
+    require(
+        result["profile_content_hash"]
+        == derive_cost_profile_content_hash(
+            cost_profile_id=result["cost_profile_id"],
+            profile_contract_key=result["profile_contract_key"],
+            profile_contract_version=result["profile_contract_version"],
+            profile_payload_content_hash=result["profile_payload_content_hash"],
+        ),
+        "COST_PROFILE_CONTENT_HASH_MISMATCH",
+    )
+    return result
+
+
 STRATEGY_EXECUTION_PLAN_BODY_FIELDS = {
     "contract_id": choice(STRATEGY_EXECUTION_PLAN_CONTRACT_ID),
     "contract_version": choice(STRATEGY_EXECUTION_PLAN_CONTRACT_VERSION),
     "strategy_execution_plan_id": identifier,
     "classification_config_hash": hash_value,
     "effective_policy_content_hash": hash_value,
-    "base_scenario_content_hash": hash_value,
+    "base_scenario_contract_key": choice(BASE_SCENARIO_CONTRACT_KEY),
+    "base_scenario_contract_version": choice(BASE_SCENARIO_CONTRACT_VERSION),
+    "base_scenario_content_hash": choice(BASE_SCENARIO_CONTENT_HASH),
+    "psi_simulator": _psi_simulator,
     "operational_strategy": _operational_strategy,
     "shadow_challenger_bindings": _challengers,
     "stress_scenario_bindings": _stress_scenarios,
+    "cost_profile_binding": optional(_cost_profile),
     "result_bundle_contract_key": choice(RESULT_BUNDLE_SOURCE_CONTRACT_KEY),
     "result_bundle_contract_version": choice(RESULT_BUNDLE_CONTRACT_VERSION),
 }
@@ -231,16 +441,31 @@ STRATEGY_EXECUTION_PLAN_FIELDS = {
 def seal_strategy_execution_plan(value: Mapping[str, Any]) -> dict[str, Any]:
     """Normalize ordering and seal an immutable run-level strategy plan."""
 
-    body = shape(dict(value), STRATEGY_EXECUTION_PLAN_BODY_FIELDS)
-    return {**body, "content_hash": digest(body)}
+    candidate = dict(value)
+    candidate.setdefault("cost_profile_binding", None)
+    body = shape(candidate, STRATEGY_EXECUTION_PLAN_BODY_FIELDS)
+    hash_body = dict(body)
+    if hash_body["cost_profile_binding"] is None:
+        # Preserve the 1.1.0 hash of plans produced before cost profiles were
+        # bindable. A bound profile remains part of the immutable plan hash.
+        hash_body.pop("cost_profile_binding")
+    return {**body, "content_hash": digest(hash_body)}
 
 
 def validate_strategy_execution_plan(value: Mapping[str, Any]) -> dict[str, Any]:
     """Validate a sealed plan, including its canonical SHA-256."""
 
-    normalized = shape(dict(value), STRATEGY_EXECUTION_PLAN_FIELDS)
+    candidate = dict(value)
+    candidate.setdefault("cost_profile_binding", None)
+    normalized = shape(candidate, STRATEGY_EXECUTION_PLAN_FIELDS)
     body = {key: normalized[key] for key in STRATEGY_EXECUTION_PLAN_BODY_FIELDS}
-    require(normalized["content_hash"] == digest(body), "STRATEGY_EXECUTION_PLAN_HASH_MISMATCH")
+    hash_body = dict(body)
+    if hash_body["cost_profile_binding"] is None:
+        hash_body.pop("cost_profile_binding")
+    require(
+        normalized["content_hash"] == digest(hash_body),
+        "STRATEGY_EXECUTION_PLAN_HASH_MISMATCH",
+    )
     return normalized
 
 
@@ -308,6 +533,19 @@ def _child_result(value: Any) -> dict[str, Any]:
         or (not succeeded and result["failure_reason_code"] is not None),
         "CHILD_RESULT_STATUS_EVIDENCE_INVALID",
     )
+    if succeeded:
+        require(
+            result["row_count"] is not None and result["row_count"] > 0,
+            "CHILD_RESULT_EMPTY_SUCCESS_FORBIDDEN",
+        )
+    if not succeeded:
+        validate_optional_child_failure_semantics(
+            result_kind=result["result_kind"],
+            execution_role=result["execution_role"],
+            strategy_type=result["strategy_type"],
+            status=result["status"],
+            failure_reason_code=result["failure_reason_code"],
+        )
     if result["strategy_type"] == "DEEP_RL":
         require(
             result["challenger_id"] is not None and result["model_content_hash"] is not None,
@@ -344,7 +582,11 @@ def _child_result(value: Any) -> dict[str, Any]:
         )
     else:
         require(
-            result["execution_role"] == "EVIDENCE_ONLY" and result["scenario_id"] != "BASE",
+            result["execution_role"] == "EVIDENCE_ONLY"
+            and result["strategy_type"] == "MATHEMATICAL"
+            and result["scenario_id"] != "BASE"
+            and result["challenger_id"] is None
+            and result["model_content_hash"] is None,
             "STRESS_RESULT_ROLE_INVALID",
         )
 
@@ -352,9 +594,42 @@ def _child_result(value: Any) -> dict[str, Any]:
     action_values = list(actions.values())
     if succeeded and result["strategy_type"] != "NONE":
         require(all(value is not None for value in action_values), "ACTION_EVIDENCE_REQUIRED")
-    if result["strategy_type"] == "NONE":
+    if not succeeded:
+        require(
+            all(value is None for value in action_values),
+            "RESULT_BUNDLE_FAILED_CHILD_ARTIFACT_FORBIDDEN",
+        )
+    elif result["strategy_type"] == "NONE":
         require(all(value is None for value in action_values), "ACTION_EVIDENCE_FORBIDDEN")
     return result
+
+
+def validate_optional_child_failure_semantics(
+    *,
+    result_kind: Any,
+    execution_role: Any,
+    strategy_type: Any,
+    status: Any,
+    failure_reason_code: Any,
+) -> None:
+    """Keep optional-child alerting semantics stable across all producers."""
+
+    kind = choice(*RESULT_KINDS)(result_kind)
+    role = choice(*EXECUTION_ROLES)(execution_role)
+    strategy = choice(*RESULT_STRATEGY_TYPES)(strategy_type)
+    outcome = choice("FAILED", "SKIPPED")(status)
+    reason = identifier(failure_reason_code)
+    if kind == "RECOMMENDED_PSI" and role == "SHADOW" and strategy == "DEEP_RL":
+        require(outcome == "FAILED", "PPO_CHILD_SKIP_FORBIDDEN")
+        return
+    if kind == "STRESS_PSI" and role == "EVIDENCE_ONLY" and strategy == "MATHEMATICAL":
+        require(
+            (outcome == "SKIPPED" and reason == "STRESS_SCENARIO_UNAVAILABLE")
+            or (outcome == "FAILED" and reason != "STRESS_SCENARIO_UNAVAILABLE"),
+            "STRESS_CHILD_FAILURE_STATUS_INVALID",
+        )
+        return
+    raise InventoryInputError("REQUIRED_PSI_CHILD_CANNOT_FAIL")
 
 
 def _child_results(value: Any) -> list[dict[str, Any]]:
@@ -536,9 +811,13 @@ def _validate_bundle_semantics(body: Mapping[str, Any], plan: Mapping[str, Any])
         not body["automatic_order_allowed"] or body["automatic_publish_allowed"],
         "RESULT_BUNDLE_PUBLICATION_GATE_INVALID",
     )
+    cost_binding = plan["cost_profile_binding"]
+    if cost_binding is None and body["cost_profile_content_hash"] is not None:
+        raise InventoryInputError("RESULT_BUNDLE_COST_PROFILE_BINDING_UNSUPPORTED")
     require(
-        body["cost_profile_content_hash"] is None,
-        "RESULT_BUNDLE_COST_PROFILE_BINDING_UNSUPPORTED",
+        body["cost_profile_content_hash"]
+        == (None if cost_binding is None else cost_binding["profile_content_hash"]),
+        "RESULT_BUNDLE_COST_PROFILE_BINDING_MISMATCH",
     )
 
     children = body["result_children"]
@@ -585,6 +864,56 @@ def _validate_bundle_semantics(body: Mapping[str, Any], plan: Mapping[str, Any])
         "RESULT_BUNDLE_SHADOW_RESULT_SET_MISMATCH",
     )
     for item in children:
+        expected_child_result_id = derive_psi_child_result_id(
+            engine_run_id=body["engine_run_id"],
+            attempt_no=body["attempt_no"],
+            canonical_input_hash=body["canonical_input_hash"],
+            result_kind=item["result_kind"],
+            execution_role=item["execution_role"],
+            strategy_type=item["strategy_type"],
+            scenario_id=item["scenario_id"],
+            scenario_content_hash=item["scenario_content_hash"],
+            challenger_id=item["challenger_id"],
+            model_content_hash=item["model_content_hash"],
+        )
+        require(
+            item["child_result_id"] == expected_child_result_id,
+            "RESULT_BUNDLE_CHILD_ID_DERIVATION_MISMATCH",
+        )
+        references = derive_psi_artifact_references(
+            engine_run_id=body["engine_run_id"],
+            attempt_no=body["attempt_no"],
+            child_result_id=expected_child_result_id,
+        )
+        if item["status"] == "SUCCEEDED":
+            require(
+                item["artifact_reference"] == references["psi"]
+                and item["artifact_contract_key"] == PSI_RESULT_ARTIFACT_CONTRACT_KEY
+                and item["artifact_contract_version"] == PSI_RESULT_ARTIFACT_CONTRACT_VERSION,
+                "RESULT_BUNDLE_CHILD_ARTIFACT_REFERENCE_MISMATCH",
+            )
+            if item["strategy_type"] != "NONE":
+                require(
+                    all(
+                        item["action_evidence"][f"{key}_reference"] == references[key]
+                        for key in (
+                            "raw_action",
+                            "constrained_action",
+                            "adjustment_reasons",
+                        )
+                    ),
+                    "RESULT_BUNDLE_ACTION_REFERENCE_MISMATCH",
+                )
+        else:
+            require(
+                item["artifact_reference"] is None
+                and item["artifact_contract_key"] is None
+                and item["artifact_contract_version"] is None
+                and item["child_content_hash"] is None
+                and item["row_count"] is None
+                and all(value is None for value in item["action_evidence"].values()),
+                "RESULT_BUNDLE_FAILED_CHILD_ARTIFACT_FORBIDDEN",
+            )
         if item["strategy_type"] == "DEEP_RL":
             challenger = challengers.get(item["challenger_id"])
             require(
@@ -605,7 +934,8 @@ def _validate_bundle_semantics(body: Mapping[str, Any], plan: Mapping[str, Any])
     stress_bindings = {item["scenario_id"]: item for item in plan["stress_scenario_bindings"]}
     stress_results = [item for item in children if item["result_kind"] == "STRESS_PSI"]
     require(
-        {item["scenario_id"] for item in stress_results} == set(stress_bindings),
+        len(stress_results) == len(stress_bindings)
+        and {item["scenario_id"] for item in stress_results} == set(stress_bindings),
         "RESULT_BUNDLE_STRESS_RESULT_SET_MISMATCH",
     )
     for item in stress_results:
@@ -631,6 +961,7 @@ def _validate_bundle_semantics(body: Mapping[str, Any], plan: Mapping[str, Any])
         _validate_comparison_metrics(
             comparison,
             candidate_status=candidate["status"],
+            cost_profile_bound=cost_binding is not None,
         )
 
 
@@ -638,6 +969,7 @@ def _validate_comparison_metrics(
     comparison: Mapping[str, Any],
     *,
     candidate_status: str,
+    cost_profile_bound: bool,
 ) -> None:
     metrics = (
         comparison["cost_delta"],
@@ -672,15 +1004,23 @@ def _validate_comparison_metrics(
         "RESULT_BUNDLE_OPERATIONAL_METRICS_REQUIRED",
     )
     cost = comparison["cost_delta"]
-    require(
-        cost
-        == {
-            "status": "NOT_AVAILABLE",
-            "value": None,
-            "reason_code": "COST_PROFILE_NOT_BOUND",
-        },
-        "RESULT_BUNDLE_COST_PROFILE_STATUS_INVALID",
-    )
+    if cost_profile_bound:
+        require(
+            cost["status"] == "AVAILABLE"
+            and cost["value"] is not None
+            and cost["reason_code"] is None,
+            "RESULT_BUNDLE_COST_PROFILE_STATUS_INVALID",
+        )
+    else:
+        require(
+            cost
+            == {
+                "status": "NOT_AVAILABLE",
+                "value": None,
+                "reason_code": "COST_PROFILE_NOT_BOUND",
+            },
+            "RESULT_BUNDLE_COST_PROFILE_STATUS_INVALID",
+        )
 
 
 __all__ = [
@@ -691,6 +1031,9 @@ __all__ = [
     "STRATEGY_EXECUTION_PLAN_CONTRACT_ID",
     "STRATEGY_EXECUTION_PLAN_CONTRACT_VERSION",
     "STRATEGY_EXECUTION_PLAN_FIELDS",
+    "derive_psi_artifact_references",
+    "derive_psi_child_result_id",
+    "derive_cost_profile_content_hash",
     "derive_result_bundle_id",
     "result_display_code",
     "seal_inventory_result_bundle",

@@ -274,9 +274,20 @@ class RuntimeExecutionContractTests(unittest.TestCase):
         ] = "tampered"
         with self.assertRaisesRegex(
             InventoryInputError,
-            "STRATEGY_EXECUTION_PLAN_HASH_MISMATCH",
+            "INVALID_CODE",
         ):
             InventoryRuntimeExecutionRequest.from_dict(tampered)
+
+        hash_tampered = runtime_dispatch_v2(
+            config_hash="a" * 64,
+            effective_policy_content_hash="c" * 64,
+        )
+        hash_tampered["claim"]["strategy_execution_plan"]["content_hash"] = "0" * 64
+        with self.assertRaisesRegex(
+            InventoryInputError,
+            "STRATEGY_EXECUTION_PLAN_HASH_MISMATCH",
+        ):
+            InventoryRuntimeExecutionRequest.from_dict(hash_tampered)
 
         mismatched = runtime_dispatch_v2(
             config_hash="a" * 64,

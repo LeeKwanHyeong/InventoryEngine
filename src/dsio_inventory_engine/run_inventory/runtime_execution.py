@@ -40,6 +40,8 @@ class InventoryRuntimeResult:
     inventory_result_contract_version: str | None = None
     canonical_input: CanonicalInputRequest | None = None
     inventory_result_bundle: Mapping[str, Any] | None = None
+    publication_outbox_id: str | None = None
+    publication_outbox_content_hash: str | None = None
 
     def __post_init__(self) -> None:
         identifier(self.inventory_result_snapshot_id)
@@ -87,6 +89,13 @@ class InventoryRuntimeResult:
                 isinstance(self.inventory_result_bundle, Mapping),
                 "RUNTIME_RESULT_BUNDLE_PAYLOAD_INVALID",
             )
+        require(
+            (self.publication_outbox_id is None) == (self.publication_outbox_content_hash is None),
+            "RUNTIME_RESULT_OUTBOX_BINDING_INCOMPLETE",
+        )
+        if self.publication_outbox_id is not None:
+            identifier(self.publication_outbox_id)
+            hash_value(self.publication_outbox_content_hash)
 
 
 @dataclass(frozen=True, slots=True)
@@ -188,6 +197,10 @@ class InventoryRuntimeExecutionHandler(Protocol):
     ) -> InventoryRuntimeResult: ...
 
 
+class InventoryRuntimePublicationAcknowledger(Protocol):
+    async def acknowledge_publication(self, result: InventoryRuntimeResult) -> None: ...
+
+
 class InventoryRuntimeExecutionUseCase:
     """Validate the closed request before submitting it to a durable worker port."""
 
@@ -212,9 +225,11 @@ class InventoryRuntimeWorker:
         *,
         handler: InventoryRuntimeExecutionHandler,
         platform: InventoryPlatformLifecyclePort,
+        publication_acknowledger: InventoryRuntimePublicationAcknowledger | None = None,
     ) -> None:
         self._handler = handler
         self._platform = platform
+        self._publication_acknowledger = publication_acknowledger
 
     async def execute(
         self,
@@ -285,6 +300,11 @@ class InventoryRuntimeWorker:
                 inventory_result_contract_key=result.inventory_result_contract_key,
                 inventory_result_contract_version=result.inventory_result_contract_version,
             )
+        if result.publication_outbox_id is not None:
+            sealed_result_payload.update(
+                publication_outbox_id=result.publication_outbox_id,
+                publication_outbox_content_hash=result.publication_outbox_content_hash,
+            )
         terminal = await self._platform.append_event(
             request,
             InventoryRuntimeStageEvent(
@@ -330,6 +350,8 @@ class InventoryRuntimeWorker:
             and publication.get("site_status") == "succeeded",
             "PLATFORM_PUBLICATION_RECEIPT_INVALID",
         )
+        if self._publication_acknowledger is not None:
+            await self._publication_acknowledger.acknowledge_publication(result)
         published_result = {
             "engine_run_id": request.engine_run_id,
             "status": "succeeded",
@@ -456,6 +478,7 @@ def _validate_result_policy_binding(
 __all__ = [
     "InventoryPlatformLifecyclePort",
     "InventoryRuntimeExecutionHandler",
+    "InventoryRuntimePublicationAcknowledger",
     "InventoryRuntimeExecutionUseCase",
     "InventoryRuntimeResult",
     "InventoryRuntimeStageEvent",

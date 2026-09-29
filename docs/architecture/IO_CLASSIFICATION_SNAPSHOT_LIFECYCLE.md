@@ -1,6 +1,6 @@
 # Inventory 분류 Snapshot Lifecycle
 
-기준일: 2026-09-11. 이 문서는 승인된 Inventory Configuration, Actual Close와 VED
+기준일: 2026-09-15. 이 문서는 승인된 Inventory Configuration, Actual Close와 VED
 Assignment와 선택된 추가 분석 축을 이용해 품목별 7축 분류 Snapshot을 계산하는 독립 실행
 경계를 정의한다.
 
@@ -31,7 +31,9 @@ Config 2.0.0에서는 FSN·SDE·HML·PLC를 독립 `axis_results`로 추가한�
 상태는 [IO_SEVEN_AXIS_SEGMENTATION_CONTRACT.md](IO_SEVEN_AXIS_SEGMENTATION_CONTRACT.md)를
 따른다. `SHADOW` 축은 결과와 근거만 보존하고 유효 정책에는 영향을 주지 않는다. 7축 품목
 결과의 DB Projection Migration 075·076은 2026-09-11 개발 PostgreSQL에 적용해 게시 Schema와
-Deferred Constraint를 검증했다. 다만 실제 V2 업무 Snapshot은 아직 영속 게시하지 않았다.
+Deferred Constraint를 검증했다. 2026-09-15에는 DSE/C100/V100 개발 범위의 Config 2.0.0과
+실제 V2 분류 Snapshot을 영속 게시했다. 실제 업무 중요도가 아닌 개발 VED와 합성 PLC를
+사용했으므로 운영 승인 Snapshot으로 해석하지 않는다.
 `ABC_XYZ` 모드는 승인된 Config Schema 1.1.0과, `SEVEN_AXIS` 모드는 2.0.0과 정확히
 결합한다. allowlist에 있는 Schema라도 모드가 다르면 Source 계산 전에
 `CLASSIFICATION_CONFIG_SCHEMA_MISMATCH`로 차단한다.
@@ -129,9 +131,12 @@ V2 품목을 위장하면 차단한다. Snapshot 본문에서 Content Hash와 UU
 집계·7축·Gate 사유까지 Transaction 전과 Deferred Constraint에서 재검증한다.
 
 Migration 075·076은 개발 PostgreSQL에서 072 이후 순서대로 적용됐고, V2 1품목·7축·4 Window·
-5 사유 Canary가 `SET CONSTRAINTS ALL IMMEDIATE`를 통과한 뒤 Rollback됐다. 기존 Snapshot
-1건은 보존됐으며 실제 V2 업무 Snapshot은 생성하지 않았다. 공용 Runtime과 운영 DB에는
-적용하지 않았다.
+5 사유 Canary가 `SET CONSTRAINTS ALL IMMEDIATE`를 통과한 뒤 Rollback됐다. 이후 프로젝트
+`9ed62f41`의 DSE/C100/V100 범위에 Config Revision 2와 V2 Snapshot Revision 2를 게시했다.
+Snapshot은 Header 1건, Item 7,000건, Axis 49,000건, Window 3건, Policy Reason 26,610건이며
+Content Hash `54084553...347d`, Effective Policy Hash `4ee176f6...2049`를 가진다. 동일 Source와
+Config 재실행은 같은 Snapshot ID를 반환하고 `database_writes=false`인 Exact Replay였다.
+공용 Runtime과 운영 DB에는 적용하지 않았다.
 
 ## 4. Run 단계 연결
 
@@ -164,5 +169,7 @@ Lead Time, HML 승인 수준을 실제 보충 계산에 사용한다. `REVIEW`�
 자동 호출하지 않는다. `BLOCK` 또는 미검증 Operational 축은 계산 전에 차단한다. V1은
 Classification Binding 없이 기존 Policy 1.0.0으로 호환된다.
 
-이 Run Binding과 Mock/Offline 통합 검증은 완료했다. 남은 승인 대상은 공통 Run Migration 074
-개발 적용, 실제 V2 업무 Snapshot/Run DB Write, Scheduler 자동 실행과 공용 Runtime 배포다.
+이 Run Binding과 Mock/Offline 통합 검증, 개발 V2 Snapshot 게시·Exact Replay 검증은 완료했다.
+Migration 074와 실제 Claim·Attempt·Retry·CAS도 개발 PostgreSQL에서 별도로 검증했다.
+남은 승인 대상은 Scheduler 자동 실행, 공용 Runtime 배포와 실제 Result Bundle DB/Object
+Storage 게시 E2E다. Claim 검증 완료가 공용 Runtime 배포 완료를 의미하지 않는다.

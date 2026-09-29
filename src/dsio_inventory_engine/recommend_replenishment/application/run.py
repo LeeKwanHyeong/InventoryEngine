@@ -23,7 +23,9 @@ from dsio_inventory_engine.inventory_contracts.runtime import (
     validate_effective_policy_runtime_binding,
 )
 from dsio_inventory_engine.prepare_inventory.application.inventory_input import (
+    PreparedInventoryInput,
     PrepareInventoryInputUseCase,
+    validate_prepared_projection,
 )
 from dsio_inventory_engine.simulate_inventory.application.step import InventoryState, advance_bucket
 from .effective_policy import admit_effective_item_policy
@@ -43,13 +45,30 @@ class RunRecommendedPsiUseCase:
         strategy: ReplenishmentStrategy,
         *,
         runtime_request: InventoryRuntimeExecutionRequest | None = None,
+        prepared_input: PreparedInventoryInput | None = None,
     ) -> dict:
         request = RecommendationRequest.from_dict(request.to_dict())
         require(self.deployment.environment == "DEVELOPMENT", "LOCAL_RECOMMENDATION_ONLY")
         data = request.to_dict()
         canonical_input = CanonicalInputRequest.from_dict(data["canonical_input"])
-        prepared = PrepareInventoryInputUseCase(self.deployment).execute(canonical_input).to_dict()
+        prepared_snapshot = prepared_input or PrepareInventoryInputUseCase(self.deployment).execute(
+            canonical_input
+        )
         execution = data["execution"]
+        if (
+            execution["contract_version"] == "2.0.0"
+            and execution["execution_mode"] == "PLATFORM_BOUND"
+        ):
+            prepared_snapshot = validate_prepared_projection(
+                canonical_input,
+                prepared_snapshot,
+                self.deployment,
+            )
+        prepared = prepared_snapshot.to_dict()
+        require(
+            prepared["manifest"]["input_content_hash"] == canonical_input.input_hash,
+            "PREPARED_INPUT_BINDING_MISMATCH",
+        )
         require(
             descriptor(strategy.descriptor) == execution["strategy"], "STRATEGY_BINDING_MISMATCH"
         )
@@ -74,10 +93,11 @@ class RunRecommendedPsiUseCase:
                 strategy,
                 admissions=admissions,
             )
-        automatic_publish_allowed = all(
+        shadow_execution = execution.get("execution_purpose") == "SHADOW"
+        automatic_publish_allowed = not shadow_execution and all(
             admission["automatic_publish_allowed"] for admission in admissions.values()
         )
-        automatic_order_allowed = all(
+        automatic_order_allowed = not shadow_execution and all(
             admission["automatic_order_allowed"] for admission in admissions.values()
         )
         result = {
@@ -160,7 +180,7 @@ def apply_effective_policy_controls(
         )
         for item_id, policy in policies.items()
     }
-    if runtime_request is not None:
+    if runtime_request is not None and execution["execution_purpose"] == "OPERATIONAL":
         claim = runtime_request.value["claim"]
         require(
             (
