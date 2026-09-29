@@ -79,6 +79,29 @@ class SqliteInventoryEvidenceUnitOfWork:
             replayed=all(replay_flags) and outbox_replayed,
         )
 
+    def commit_artifacts(self, artifacts: Sequence[ArtifactObject]) -> bool:
+        """Atomically retain non-publication child evidence without creating a PSI Outbox.
+
+        This separate boundary cannot consume the unique Run/Attempt publication
+        key, appear in pending publication, or authorize an order.
+        """
+        require(bool(artifacts), "ARTIFACT_BATCH_EMPTY")
+        require(
+            len({item.reference for item in artifacts}) == len(artifacts),
+            "ARTIFACT_REFERENCE_DUPLICATE",
+        )
+        connection = self._connect()
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+            replay_flags = [self._write_artifact(connection, item) for item in artifacts]
+            connection.commit()
+            return all(replay_flags)
+        except Exception:
+            connection.rollback()
+            raise
+        finally:
+            connection.close()
+
     def read_artifact(self, reference: str) -> ArtifactObject:
         reference = evidence_reference(reference)
         with self._connect() as connection:

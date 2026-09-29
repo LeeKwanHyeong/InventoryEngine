@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dsio.local/landed_cost_shipment_input.schema.json",
+  "title": "Run-bound development Landed Cost Shipment Input v1",
+  "type": "object", "additionalProperties": false,
+  "required": ["contract_id", "contract_version", "binding", "calculation_purpose", "shipment_id", "lane_id", "destination_site_cd", "import_country_code", "export_country_code", "cost_currency", "fixed_cost_allocation_basis", "tariff_basis", "currency_scale", "rounding_mode", "rounding_rule_reference", "transaction_value_basis", "charge_exemptions", "lines", "content_hash"],
+  "properties": {
+    "contract_id": {"const": "io-landed-cost-shipment-input-v1"},
+    "contract_version": {"const": "1.0.0"},
+    "binding": {"$ref": "#/$defs/binding"},
+    "calculation_purpose": {"const": "DEVELOPMENT_FIXTURE"},
+    "shipment_id": {"$ref": "#/$defs/id"}, "lane_id": {"$ref": "#/$defs/id"},
+    "destination_site_cd": {"enum": ["V101", "V102", "V103", "V104"]},
+    "import_country_code": {"enum": ["JP", "CN", "SA", "AE"]}, "export_country_code": {"const": "KR"},
+    "cost_currency": {"$ref": "#/$defs/currency"},
+    "fixed_cost_allocation_basis": {"enum": ["CUSTOMS_VALUE", "QUANTITY", "WEIGHT", "VOLUME"]},
+    "tariff_basis": {"const": "MFN"},
+    "currency_scale": {"type": "integer", "minimum": 0, "maximum": 6},
+    "rounding_mode": {"enum": ["HALF_UP", "HALF_EVEN", "DOWN", "UP"]},
+    "rounding_rule_reference": {"$ref": "#/$defs/id"},
+    "transaction_value_basis": {"const": "GOODS_ONLY_EXCLUDING_ADDITIONAL_CHARGES"},
+    "charge_exemptions": {"type": "array", "maxItems": 11, "items": {"type": "object", "additionalProperties": false, "required": ["component_type", "reason_code", "source_reference"], "properties": {
+      "component_type": {"$ref": "#/$defs/component"}, "reason_code": {"$ref": "#/$defs/id"}, "source_reference": {"$ref": "#/$defs/id"}
+    }}},
+    "lines": {"type": "array", "minItems": 1, "maxItems": 10000, "items": {"$ref": "#/$defs/line"}},
+    "content_hash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"},
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "uuid": {"type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"},
+    "date": {"type": "string", "format": "date", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "decimal": {"type": "string", "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"},
+    "positiveDecimal": {"allOf": [{"$ref": "#/$defs/decimal"}, {"not": {"pattern": "^0(\\.0+)?$"}}]},
+    "currency": {"type": "string", "pattern": "^[A-Z]{3}$"},
+    "component": {"enum": ["ORIGIN_HANDLING", "INTERNATIONAL_FREIGHT", "INSURANCE", "PACKING", "ASSIST_VALUE", "ROYALTY", "BROKERAGE", "DESTINATION_HANDLING", "INLAND_FREIGHT", "STORAGE", "OTHER_NONRECOVERABLE"]},
+    "binding": {"type": "object", "additionalProperties": false,
+      "required": ["engine_run_id", "attempt_no", "tenant_id", "project_id", "company_cd", "subs_cd", "origin_site_cd", "canonical_input_hash", "revision_set_id", "revision_set_content_hash", "network_revision_id", "valuation_date", "judgment_at"],
+      "properties": {
+        "engine_run_id": {"$ref": "#/$defs/id"}, "attempt_no": {"type": "integer", "minimum": 1, "maximum": 1000000},
+        "tenant_id": {"$ref": "#/$defs/id"}, "project_id": {"$ref": "#/$defs/id"}, "company_cd": {"$ref": "#/$defs/id"},
+        "subs_cd": {"const": "C100"}, "origin_site_cd": {"const": "V100"},
+        "canonical_input_hash": {"$ref": "#/$defs/hash"}, "revision_set_id": {"$ref": "#/$defs/uuid"},
+        "revision_set_content_hash": {"$ref": "#/$defs/hash"}, "network_revision_id": {"$ref": "#/$defs/uuid"},
+        "valuation_date": {"$ref": "#/$defs/date"}, "judgment_at": {"type": "string", "format": "date-time", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,6})?(Z|[+-][0-9]{2}:[0-9]{2})$"}
+      }
+    },
+    "charge": {"type": "object", "additionalProperties": false,
+      "required": ["component_type", "amount", "currency", "included_in_customs_value", "included_in_gross_landed_cost", "recoverable", "source_status", "source_reference"],
+      "properties": {
+        "component_type": {"$ref": "#/$defs/component"}, "amount": {"$ref": "#/$defs/decimal"}, "currency": {"$ref": "#/$defs/currency"},
+        "included_in_customs_value": {"type": "boolean"}, "included_in_gross_landed_cost": {"type": "boolean"}, "recoverable": {"type": "boolean"},
+        "source_status": {"enum": ["DEVELOPMENT_FIXTURE", "AUTHORITATIVE"]}, "source_reference": {"$ref": "#/$defs/id"}
+      }
+    },
+    "line": {"type": "object", "additionalProperties": false,
+      "required": ["shipment_line_id", "item_id", "quantity", "quantity_uom", "transaction_value", "transaction_currency", "source_status", "source_reference", "charges"],
+      "properties": {
+        "shipment_line_id": {"$ref": "#/$defs/id"}, "item_id": {"type": "string", "minLength": 1, "maxLength": 160},
+        "quantity": {"$ref": "#/$defs/positiveDecimal"}, "quantity_uom": {"const": "EA"},
+        "transaction_value": {"$ref": "#/$defs/positiveDecimal"}, "transaction_currency": {"$ref": "#/$defs/currency"},
+        "source_status": {"enum": ["DEVELOPMENT_FIXTURE", "AUTHORITATIVE"]}, "source_reference": {"$ref": "#/$defs/id"},
+        "charges": {"type": "array", "maxItems": 11, "items": {"$ref": "#/$defs/charge"}}
+      }
+    }
+  }
+}
