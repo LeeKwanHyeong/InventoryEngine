@@ -22,8 +22,8 @@
 
 - 현재 작업 디렉터리: `InventoryEngine`
 - 목표 Repository 명칭: `DSIOInventoryOptimizationEngine`
-- 현재 상태: 승인 Network 입력, Canonical·Cut-off·공통 PSI/행동 검증, 수학적 정책, 독립 합성 기반·ML/PPO와 0.8.0 안정성 검증을 구현했다. 0.15.0은 7축 Source·Lookback·Coverage 불일치를 보정하고 Effective Policy V2 Snapshot ID·Hash를 Run Input에 고정해 FSN/PLC Gate, SDE Lead Time, HML 승인 수준을 실제 보충 계산에 연결했다. Migration 075·076은 개발 PostgreSQL에 적용하고 Rollback Canary를 완료했다. 실제 V2 업무 Snapshot·공통 Run Migration 074·공용 Runtime 배포는 후속이며 ML/PPO 성능 Gate 미달은 유지한다. SDE/HML은 권위 Source가 없어 `UNVERIFIED`, PLC는 `SYNTHETIC + SHADOW_ONLY`다.
-- Git 저장소: `inventory_engine_dev` Branch와 GitHub `origin` 구성 완료
+- 현재 상태: 승인 Network 입력, Canonical·Cut-off·공통 PSI/행동 검증, 수학적 정책, 독립 합성 기반·ML/PPO와 0.8.0 안정성 검증을 구현했다. 0.15.0은 7축 Source·Lookback·Coverage 불일치를 보정하고 Effective Policy V2 Snapshot ID·Hash를 Run Input에 고정해 FSN/PLC Gate, SDE Lead Time, HML 승인 수준을 실제 보충 계산에 연결했다. 개발 PostgreSQL DSE/C100/V100에 Config 2.0.0과 V2 Snapshot을 게시·대사했고 개발 Cost/Stress Registry도 Plan과 Runtime에 연결했다. 공통 Run Migration 074를 개발 DB에 적용해 실제 Claim·Attempt·Input Binding·Retry·CAS를 검증했다. 공용 Runtime 배포와 권위 비용/SDE/HML/PLC Source는 후속이며 ML/PPO 성능 Gate 미달은 유지한다.
+- Git 저장소: 로컬 `inventory_engine_dev`와 GitHub `origin/inventory_engine_dev`를 개발 기준으로 사용. 별도 `codex/` 브랜치 없이 직접 작업하며 PSI·증적, Trade Cost와 문서 기준선을 기능별 Commit으로 고정
 - Python 패키지·테스트·Wheel 빌드: 구성 및 검증 완료. 배포와 공통 Runtime 연결은 미구성
 - 기존 `main.py`와 연구 Notebook은 보존하며 Production 실행 경로로 사용하지 않음
 
@@ -747,11 +747,16 @@ Run Admission은 이 Binding을 재검증하고 정확한 Config Hash와 대조�
 Version이 준비된 뒤 허용한다. 합성 PLC도 Profile Hash와 Lifecycle 시간 순서를 검증해 등급·
 Evidence·표시 코드는 만들되 Effective Policy에는 투영하지 않는다. ABC·XYZ·FSN의 Demand
 Actual Lineage는 전체 Lookback의 최신 주차별 Revision을 Hash하며 SDE 입고 Lookback은 이
-Demand Window를 확장하지 않는다. V1/V2 Admission과 분류 Snapshot 조립은 구현됐지만 이 V2
-정책을 실제 보충 Runtime 입력에 끝까지 연결하는 작업은 진행 중이며,
+Demand Window를 확장하지 않는다. V1/V2 Admission과 분류 Snapshot 조립, V2 정책의 실제 보충
+Runtime 입력 연결까지 구현했으며,
 7축 DB Projection Migration 075·076은 2026-09-11 개발 PostgreSQL에 적용했다. V2 1품목·7축·
 4 Window·5 사유 Canary는 Deferred Constraint를 강제한 뒤 전체 Rollback했고 기존 Snapshot
-1건을 보존했다. 이는 실제 V2 업무 Snapshot 게시나 운영 적용을 의미하지 않는다.
+1건을 보존했다. 이 Canary 자체는 실제 V2 업무 Snapshot 게시나 운영 적용을 의미하지 않는다.
+
+이후 2026-09-15 개발 Scope `DSE/C100/V100`에는 Config 2.0.0과 7,000개 품목의 V2 분류
+Snapshot을 실제 게시·승인했다. 2,300개는 ABC·XYZ·FSN 분류에 성공했고 수요 이력이 부족한
+4,700개는 `BLOCK`으로 유지했다. 이 게시 자료의 VED Assignment와 PLC Profile은 개발 검증용
+합성 근거이므로 실제 업무 중요도·Lifecycle의 운영 승인을 의미하지 않는다.
 
 ### 8.12 DSIM Read Contract
 
@@ -1009,12 +1014,16 @@ Planning Cycle 상태는 다음과 같다.
 
 ### 10.6 Planning Cycle 최소 물리 계약
 
-초기 물리 계약은 역할별 Table을 모두 분리하지 않고 **신규 2개 Table, 기존 Run Table 1개 확장, 기존 Event/Audit Table 재사용**으로 제한한다.
+초기 물리 계약은 역할별 Table을 모두 분리하지 않고 **공통 Plan Source Registry 1개,
+Planning Cycle 2개와 Input Binding 1개, 기존 Run Table 1개 확장, 기존 Event/Audit Table
+재사용**으로 제한한다.
 
 | 구분 | 물리 Object | 역할 |
 |---|---|---|
+| 신규 | `dsai.engine_plan_sources` | Engine별 의미 기반 Plan Source Key·Contract Version과 Resolver Adapter를 등록한다. |
 | 신규 | `dsai.planning_cycle_revisions` | 논리 Planning Cycle과 Revision을 한 행 모델에 결합한다. 주차, Plan Version, Demand·Forecast·Calendar·Master·Configuration Binding, 상태, Binding Hash와 `row_version`을 저장한다. |
 | 신규 | `dsai.planning_cycle_site_executions` | Revision 안에서 Site 하나를 처리하는 논리 작업이다. Site 상태, `next_attempt_no`, `effective_run_id`, 봉인된 Inventory Snapshot ID/Hash와 `row_version`을 저장한다. V1의 모든 Site는 REQUIRED다. |
+| 신규 | `dsai.engine_run_input_bindings` | Attempt가 실제로 읽은 Forecast·재고·정책·Calendar·Master·Classification 등 Snapshot ID·Hash와 Contract Version을 Append-only로 저장한다. |
 | 확장 | `dsai.engine_runtime_runs` | 실제 시도 한 번을 나타낸다. `cycle_site_execution_id`, `attempt_no`, `retry_of_engine_run_id`, `site_binding_hash`, `evidence_status`를 추가한다. |
 | 재사용 | `dsai.engine_runtime_run_events` | 시도별 단계와 상태 Event를 Append-only로 기록한다. |
 | 재사용 | `dsai.governance_audit_events` | Cycle Revision 생성과 상태 변경 Audit을 기록한다. |
@@ -1079,7 +1088,9 @@ dsai.engine_run_input_bindings
 
 대표 `input_type`은 `DEMAND_FORECAST`, `INVENTORY_POSITION`, `INVENTORY_POLICY`, `CALENDAR`, `MASTER`다. 이 구조는 Source가 `dsdm`인지 `dsim`인지 구분하면서도 Run Table에 Engine별 Column을 계속 추가하지 않게 한다.
 
-Network를 사용하는 실행은 `INVENTORY_NETWORK`와 `source_contract_key=inventory.network_master`, 승인 Revision ID/Hash를 추가한다. 이번 구현은 Manifest DTO 생성까지이며 `engine_run_input_bindings` Migration·Insert를 수행하지 않는다. Run Claim, Cycle Binding 검증과 Artifact 봉인은 공통 Runner/영속 저장 구현에서 연결한다.
+Network를 사용하는 실행은 `INVENTORY_NETWORK`와 `source_contract_key=inventory.network_master`, 승인 Revision ID/Hash를 추가한다. `engine_run_input_bindings` Migration·Insert와 Run Claim의
+계보 고정은 완료했다. Network Artifact 봉인과 실제 PSI 소비는 공통 Runtime/영속 저장 후속
+범위에서 연결한다.
 
 업무 Plan과 강한 참조 무결성이 필요한 경우에는 다형 FK를 Run Table에 넣지 않고 Engine별 Typed Binding을 둔다. 예를 들어 `dsim.io_engine_run_plan_bindings`가 `engine_run_id`, `io_plan_id`, `planning_cycle_id`, `site_cd`를 연결할 수 있다. 이 Table은 IO 전용 Run Lifecycle 복제가 아니라 공통 Run과 IO 업무 Plan 사이의 관계만 소유한다.
 
@@ -1218,10 +1229,23 @@ DRAFT -> VALIDATED -> PUBLISHED -> DEPRECATED -> RETIRED
 | Performance | 대량 품목과 Horizon에서 처리 시간 및 메모리 검증 |
 | E2E | EngineStudio Run 요청부터 DB Publication까지 전체 검증 |
 
-2026-09-11 Effective Policy V2 기준선은 InventoryEngine 374건 통과·20건 Skip·355 Subtest,
-dsai-platform Backend 62건과 Frontend 정적 계약 5건, Ruff와 diff-check 통과다. 개발
-PostgreSQL에서는 Migration 075·076과 V2 Rollback Canary만 검증했으며 실제 V2 업무 Snapshot,
-Migration 074, 공용 Runtime과 전체 Run E2E는 이 수치에 포함하지 않는다.
+2026-09-11 Effective Policy V2 당시 기준선은 InventoryEngine 374건 통과·20건 Skip·355
+Subtest와 V2 Rollback Canary였다. 2026-09-16 Trade Cost Sealed Projection 변경은 InventoryEngine
+Unit 442건·Contract 48건과 관련 Offline Integration 67건, dsai-platform 회귀 162건을 통과했다.
+DemandEngine 교차 Handoff 1개 모듈은 로컬 Polars 선택 의존성 충돌로 전체 집계에서 분리했다.
+개발 PostgreSQL에는
+Migration 075·076과 Config 2.0.0, V2 분류 Snapshot 7,000건을 게시했고 같은 ID·Hash 재실행이
+DB Write 없이 `exact_replay`가 되는 것도 확인했다. Migration 074 실제 적용과 V2 Claim
+Attempt·Retry·CAS 및 V1 Effective Run CAS를 개발 DB에서 추가 확인했다. 공용 Runtime 배포와
+Result Bundle 전체 Publication E2E는 이 수치에 포함하지 않는다.
+
+2026-09-29 Git 기준선 재검증은 InventoryEngine 566건 통과·7건 Skip·570 Subtest와
+dsai-platform Inventory 관련 248건 통과다. DemandEngine 교차 Handoff는 Python 3.12 환경에서
+포함했고, JSON Schema 19개와 Ruff·Format도 확인했다. Skip 7건은 이번에 비활성화한 DB 읽기
+전용 검사다. Platform `main.py`의 기존 import 위치·전체 서식 지적은 유지하고 새 Router 외
+후보 Python 파일을 정적 검사했다. DB·Runtime·Frontend 재배포 검증은 이번 범위가 아니다.
+Commit 분리와 검증 범위는 [Git 기준선 기록](evidence/git-baseline-validation-20260929.json)을
+따른다.
 
 핵심 불변조건 예시:
 
@@ -1357,16 +1381,17 @@ Ending Inventory
 - 초기에는 모든 요청 Site를 `REQUIRED`로 설정
 - 초기 V1은 Optional Site, Waiver와 `COMPLETED_WITH_WAIVER` 상태를 지원하지 않음
 
-### Planning Cycle 실행 Schema — 진행 중
+### Planning Cycle 실행 Schema — 완료(개발 DB)
 
 - 완료: 신규 `planning_cycle_revisions`, `planning_cycle_site_executions` 2개 Table로 Cycle Revision과 Site 논리 실행을 저장하는 최소 구조 확정
 - 완료: Attempt는 기존 `engine_runtime_runs`, 실행 Event는 `engine_runtime_run_events`, Cycle 변경 Audit은 `governance_audit_events`를 재사용
 - 완료: 별도 Effective Run·Attempt·Waiver·Cycle Event Table을 초기 범위에서 제외하고 `effective_run_id`와 Attempt Column으로 관리
 - 완료: Run/Event를 Engine별로 복제하지 않고 `engine_key`, 의미 기반 `plan_source_key`와 Contract Version을 사용하는 공통 Run/Configuration 계약으로 일반화
 - 완료: `dsai`, `dsdm`, `dsim`을 초기에는 동일 PostgreSQL Database의 독립 Schema로 배치해 Cross-schema FK와 Claim-and-Start 단일 UoW를 지원
-- 다음 작업: 기존 Demand 전용 FK와 물리 `plan_source` 값을 무중단 전환하는 호환 Migration DDL 작성
+- 완료: 기존 Demand 전용 FK와 물리 `plan_source` 값을 의미 기반 Source 계약으로 무중단 전환하는 Migration 074 작성·개발 적용
 - 완료: IO의 Forecast·Inventory·Policy·Calendar·Master와 선택 Network, V2 Classification Snapshot 계보를 저장하는 `engine_run_input_bindings` DDL·무결성 규칙 및 로컬 계약 검증
-- 다음 작업: 첫 Attempt의 Inventory Snapshot ID/Hash 고정, `attempt_no` 할당, `effective_run_id` 승격과 Cycle 상태 집계의 CAS·Transaction DDL 및 Repository/UoW 검증
+- 완료: 첫 Attempt의 Inventory Snapshot ID/Hash 고정, `attempt_no` 할당, 동일 Binding Retry, `effective_run_id` 승격과 Cycle 상태 집계의 CAS·Transaction DDL 및 Repository/UoW 개발 DB 검증
+- 확인된 후속 경계: V2 `REVIEW` 결과는 자동 승격하지 않으며, 사람이 승인해 게시할 별도 상태·CAS Workflow가 필요하다.
 
 완료 조건은 Demand 성공 Snapshot 하나와 Site별 IO Attempt가 같은 Binding으로 추적되고 부분 실패·복구 상태가 결정론적으로 집계되는 상태다.
 
@@ -1409,21 +1434,25 @@ Golden Scenario의 수작업 기대값과 Domain 단위 Test는 P0-10, P0-15와 
 - 완료: IO Plan 식별값과 Ready/Claim/Terminal 상태 전이, 의미 기반 Plan Source와 Input Binding 계약
 - 완료: 공통 Engine Configuration·Config Revision과 Demand 호환 Migration 초안
 - 완료: V2 Classification Snapshot ID·Effective Policy Content Hash의 시스템 생성 Run Input Binding과 보충 계산 소비, `REVIEW` 자동 Publish 차단
-- 다음 작업: Engine Manifest 전체 조립과 Runtime 영속 Submission/Worker 계약
-- 다음 작업: Migration 074 개발 적용 전 DDL/UoW 대사와 실제 DB E2E 승인
+- 완료: Strategy Execution Plan 1.1.0, Cost/Stress Binding, 동일 Run Result Bundle과 Offline Runtime Handler 조립
+- 다음 작업: 운영 Artifact Store와 Runtime 영속 Submission/Worker 계약
+- 완료: Migration 074 개발 적용, Ledger·물리 Signature 대사와 실제 V2 Claim·Retry·CAS/V1 Effective Run CAS 검증
 
 이 단계는 EngineStudio Backend의 공통 실행 계약과 직렬로 맞춰야 한다.
 
 ### 프로젝트 기반 구성 — 진행 중
 
 - 완료: Python 3.12 기반 `pyproject.toml`, `src` Layout, Network CLI·테스트·Ruff와 Wheel 빌드 검증
-- 완료: 독립 Git 저장소와 `inventory_engine_dev` Branch·GitHub `origin` 구성
+- 완료: 독립 Git 저장소와 로컬 `inventory_engine_dev`·GitHub `origin/inventory_engine_dev` 구성. 기존 별도 브랜치는 병합 상태 확인 후 정리
 - 완료: Runtime HTTP 접수·Platform Callback·Worker Orchestration의 Mock/Offline 경계
 - 완료: Effective Policy V2를 실제 보충 계산 Handler에 연결하고 Mock/Offline에서 `ALLOW/REVIEW/BLOCK` 실행 경계 검증
-- 다음 작업: 영속 Queue/Worker, 전체 Pipeline Handler, Type Check·구조화 Logging과 배포 환경 구성
+- 완료: Canonical 입력부터 PSI Orchestrator, 로컬 Append-only Artifact/Outbox, Terminal Event와 Publish까지 전체 Offline Pipeline Handler 연결
+- 다음 작업: 운영 PostgreSQL/Object Storage Adapter, 영속 Queue/Worker, Type Check·구조화 Logging과 배포 환경 구성
 - 다음 작업: 전체 Engine Manifest/Contract Version 구성. 현재 Network Wire Contract Version은 `1.0.0`
 
-완료 조건은 빈 Runner가 동일한 설정과 Run ID로 CLI 및 테스트에서 실행되고 구조 검증을 통과하는 상태다.
+다음 완료 조건은 같은 봉인 입력이 프로세스 재시작 이후에도 운영 Artifact와 Queue에서 복구되고,
+Migration 074의 실제 Claim을 Scheduler→공용 Runtime→Terminal Result Bundle Publication까지
+개발 환경에서 대사하는 상태다.
 
 ### IO Pipeline 구현 — 다음 작업
 
@@ -1538,7 +1567,7 @@ Golden Scenario의 수작업 기대값과 Domain 단위 Test는 P0-10, P0-15와 
 | 정책 적용 우선순위 | 승인 Override → Python 계산값과 Source Hard Constraint → 승인 Source Fallback → 명시적 Legacy Fallback → 계산 제외 순으로 적용한다. |
 | 정책 값 계보 | Source·Python 계산·최종 적용값을 분리하고 Legacy 정책은 비교 또는 승인 Fallback 외에는 자동 우선하지 않는다. |
 | 보충 전략 확장 | 공통 PSI·제약 검증 위에 MATHEMATICAL/PREDICTIVE_ML/DEEP_RL을 연결한다. 수학적 기준 전략부터 구현하며 실제 학습·운영 활성화는 별도 검증한다. EOQ·범용 Solver·Multi-Echelon은 이번 범위 밖이다. |
-| Segmentation 정책 적용 | 7축 분류는 결정론적으로 수행한다. ABC는 현재 검증된 `REVENUE`만 지원하고 ABC·XYZ·FSN·SDE Lookback을 분리한다. HML은 Source 경과기간을 검증하고 현재 PLC 개발 자료는 `SYNTHETIC`으로 표시하며 Config 2.0.0에서 Shadow-only로 고정한다. FSN 및 향후 권위 PLC의 주문 Gate, SDE P50/P90 보호기간, HML 승인 수준과 Shadow 무영향 Effective Policy V2는 Run Input Binding과 실제 보충 계산까지 연결했다. Migration 075·076 개발 적용은 완료했고 실제 V2 업무 Snapshot 게시·공용 Runtime E2E는 후속이다. |
+| Segmentation 정책 적용 | 7축 분류는 결정론적으로 수행한다. ABC는 현재 검증된 `REVENUE`만 지원하고 ABC·XYZ·FSN·SDE Lookback을 분리한다. HML은 Source 경과기간을 검증하고 현재 PLC 개발 자료는 `SYNTHETIC`으로 표시하며 Config 2.0.0에서 Shadow-only로 고정한다. FSN 및 향후 권위 PLC의 주문 Gate, SDE P50/P90 보호기간, HML 승인 수준과 Shadow 무영향 Effective Policy V2는 Run Input Binding과 실제 보충 계산까지 연결했다. Migration 075·076 개발 적용과 DSE/C100/V100의 V2 Config·7,000개 품목 분류 Snapshot 게시를 완료했다. 개발용 합성 VED·PLC를 권위 Source로 교체하고 공용 Runtime E2E를 수행하는 작업은 후속이다. |
 | Cut-off Evidence | 기존 `TB_IO_SNAPSHOT_MANIFEST`를 확장하고 `TB_IO_INVENTORY_RECONCILIATION` 1개만 추가하며 상세 Movement·Late Event는 Artifact로 보존한다. |
 | DSIM 연계 | DSIM의 일반 질의는 Effective Run, 감사 질의는 명시적 Run을 사용하며 Versioned Read-only Query API로 Evidence에 접근한다. 내부 View는 Projection Adapter로만 사용한다. |
 
@@ -1556,7 +1585,7 @@ Golden Scenario의 수작업 기대값과 Domain 단위 Test는 P0-10, P0-15와 
 | P0-8 | 완료 | 보충 공급 가능성 모델 | PSI·품절 위험·보충 필요량·필요일·권고 발주량으로 범위 한정 | Phase 3.10~3.15 제외를 확정함 |
 | P0-9 | 완료 | Master 기준일 | Planning Cycle의 Plan Version 기준일 사용, Legacy 실행일은 회귀 비교 전용 | `master_as_of_date` Source와 재실행 규칙을 확정함 |
 | P0-10 | 진행 중(로컬 완료) | 합성 BOH Generator 검증 | 0.5.0 독립 Reference·Schema·G01~G14 대응·Canonical 호환 검증 완료. 운영 Artifact 봉인·사용자 업무 검토는 후속 | 로컬 Hash/Golden 검증과 실제 불변 저장·업무 승인을 구분 |
-| P0-11 | 진행 중 | Planning Cycle 물리 계약 | 신규 2개 Table, 공통 Run/Event/Audit 재사용, 의미 기반 Source 계약은 확정. 호환 Migration PK/FK, Input Binding, CAS·상태 집계 UoW 상세 필요 | 부분 실패와 Retry를 원자적으로 집계하는 Schema/UoW와 무중단 Migration DDL이 승인됨 |
+| P0-11 | 완료(개발 DB) | Planning Cycle 물리 계약 | 공통 Plan Source Registry 1개, Planning Cycle 2개와 Input Binding 1개, 공통 Run/Event/Audit 재사용, 의미 기반 Source, PK/FK, Attempt·Retry·Effective Run CAS와 상태 집계 UoW를 Migration 074로 적용·검증 | V2 REVIEW의 사람 승인 게시 Workflow와 공용 Runtime E2E는 별도 후속 범위 |
 | P0-12 | 완료 | DSIM Read Contract | 일반 Effective Run·명시적 감사 Run, 응답 Grain, Versioned Query API와 Tenant/Company/Subs/Site 권한 계약 | 물리 Schema와 분리된 Read Contract를 확정함 |
 | P0-13 | 다음 작업 | `TB_IO_*` 물리 Schema | DSIM Access Pattern과 Canonical Data Set에 맞춘 Column, Grain, PK/FK, Numeric/UOM, Index와 Partition | DDL 초안과 무결성 Test Case가 승인됨 |
 | P0-14 | 보류 | Evidence 보존·일관성 | Artifact 선봉인·DB 원자 게시·Receipt·기본 Reconciliation은 유지. PostgreSQL Online 보존기간, Archive 시점, 성공·실패 Run 차등 보존, Restore 목표와 민감정보 처리는 운영 용량·규정 확인 후 결정 | 운영 배포 또는 보존 자동화 착수 전에 Retention과 Restore 규칙이 고정됨 |
@@ -1578,6 +1607,7 @@ Golden Scenario의 수작업 기대값과 Domain 단위 Test는 P0-10, P0-15와 
 | P1-5 | Calendar 일자 확장 | 기본 Calendar Snapshot을 유지하면서 영업일 Lead Time, Site 휴일 또는 정확한 주문·입고일이 필요한 경우 Versioned 확장 |
 | P1-6 | Multi-Echelon Network 실행 | 단일 Site Core가 검증된 후 PostgreSQL의 Versioned Network/Node/Lane을 Snapshot으로 소비하고, Site별 결과를 Hub-Spoke 제약으로 조정하는 별도 Capability를 활성화 |
 | P1-7 | Neo4j Network Projection | 승인된 PostgreSQL Network Revision을 Outbox 기반으로 멱등 Projection하고 경로·영향도 조회의 가치와 운영비용을 검증한 뒤 DSIM Graph 조회를 활성화 |
+| P1-8 | Trade Cost·Landed Cost 실행 | C100 V100→V101~V104 Source 계약과 Shipment Line Component 계약을 기준으로 HS·원산지·Invoice·운송비·세관환율·VAT/FTA 권위 Source가 준비된 국가부터 Shadow 계산을 활성화. 미확인 값은 0으로 보정하지 않음 |
 
 명시적으로 보류한 P0-14, P0-18과 P0-19는 초기 Domain·Application·Schema 초안 구현의 차단 조건에서 제외한다. 다만 각각 운영 보존 자동화, Publication 구현, Legacy 회귀 기반 운영 전환에 들어가기 전에는 반드시 재개해 확정한다. 그 외 활성 P0 항목이 확정되기 전에는 기존 결과와 동일한 IO Engine 구현이 완료된 것으로 판단하지 않는다. P1 항목은 관련 계약과 측정 근거 없이 기술부터 선택하지 않는다.
 
@@ -1622,3 +1652,4 @@ Golden Scenario의 수작업 기대값과 Domain 단위 Test는 P0-10, P0-15와 
 35. PostgreSQL Network Revision을 권위 데이터로 사용하며 Neo4j는 Outbox로 동기화되는 경로·영향도 조회용 파생 Projection으로 운영한다.
 36. 7축 분류는 축별 Source·Lookback과 상태를 독립 보존하고, `OPERATIONAL + CLASSIFIED` 결과만 Effective Policy V2에 적용한다. `REVIEW`는 계산·Evidence만 허용하고 자동 게시·발주는 차단하며, Shadow·비활성 축은 운영 정책 Hash를 바꾸지 않는다. 현재 합성 PLC는 Config 2.0.0에서 Shadow-only로 둔다.
 37. Effective Policy V2 실행은 승인 Classification Snapshot ID와 전체 Policy Content Hash를 시스템 생성 Run Input으로 봉인한다. `REVIEW`는 Runtime 계산 후 자동 Publish를 호출하지 않고, `BLOCK`과 미검증 Operational 축은 계산 전에 차단한다.
+38. Network Lane의 Lead Time과 Trade Cost를 분리한다. Landed Cost는 Shipment Line+Lane+Item+적용일 Grain의 Versioned Source와 Component Evidence로 계산한다. 개발 Fixture는 개발 Landed Cost·Simulation·MEIO 비용 입력에는 사용하되 운영 게시·발주·운영 MEIO 입력으로 승격하지 않는다.

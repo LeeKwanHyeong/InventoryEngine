@@ -1,8 +1,8 @@
 {
   "project_name": "InventoryEngine",
-  "baseline_date": "2026-09-04",
-  "latest_contract_review_date": "2026-09-11",
-  "description": "0.15.0은 Config 1.1.0 호환을 유지하면서 7축 결정론적 분류와 Effective Policy V2를 구현한다. 승인된 V2 Snapshot ID·Policy Content Hash를 Run Input Binding에 고정하고 FSN/PLC Gate, SDE Lead Time, HML 승인 수준을 실제 보충 계산에 연결했다. Migration 075·076은 개발 PostgreSQL에 적용하고 Rollback Canary를 완료했다. SDE/HML 권위 Source, PLC 권위 Source, 실제 V2 업무 Snapshot·Migration 074·공용 Runtime 배포는 미완료다.",
+  "baseline_date": "2026-09-29",
+  "latest_contract_review_date": "2026-09-16",
+  "description": "0.15.0 기준 계약 위에 7축 Effective Policy V2와 동일 Run PSI Result Bundle Orchestrator를 구현했다. 개발 Cost Profile과 Stress Registry, DSE/C100/V100 개발 V2 Snapshot, Migration 074 실제 Claim 검증을 완료했다. C100 V100→V101~V104의 Trade Cost 개발 Fixture, Pure Decimal Calculator, Migration 077, 승인 API, Run Binding과 Sealed Projection Runtime 조회까지 연결했다. Landed Cost Child Artifact·개발 Simulation/MEIO 비용 연결, 운영 Artifact Adapter와 공용 Runtime 배포는 미완료다.",
   "tech_stack": {
     "frontend": "dsai-platform Engine Studio의 Inventory Config 2.0.0 편집·Source 상태 표시",
     "backend": "Python >=3.12, src layout, 순수 계산 UseCase, asyncpg 읽기 Adapter",
@@ -33,11 +33,23 @@
     "forecast_handoff_proposal": "2026-09-04 사용자 구현 승인 반영. IO 0.10.0/Demand opt-in Export·공유 Guard·Parquet Reader와 111020행 전달/입력 검증 완료. 실제 Artifact Mapping/Receipt Port·Studio 활성화·DB Publication은 미완료. IO_FORECAST_HANDOFF_CONTRACT.md 참조",
     "network_input": "완료: 요청 ID/Hash·승인·Scope·Plan 기준일 검증과 메모리 Snapshot/Manifest",
     "validation": {
-      "inventory_tests_passed": 374,
-      "inventory_tests_skipped": 20,
-      "inventory_subtests_passed": 355,
-      "platform_backend_tests_passed": 62,
-      "platform_frontend_tests_passed": 5,
+      "validation_date": "2026-09-29",
+      "inventory_unit_tests": 442,
+      "inventory_contract_tests": 48,
+      "inventory_offline_integration_tests": 76,
+      "inventory_tests_total": 566,
+      "inventory_tests_failed": 0,
+      "inventory_tests_skipped": 7,
+      "inventory_subtests_passed": 570,
+      "inventory_skipped_reason": "PostgreSQL 읽기 전용 통합 테스트 7건은 이번 로컬 검증에서 명시적으로 비활성화",
+      "platform_backend_tests_passed": 248,
+      "historical_platform_frontend_tests_passed": 5,
+      "platform_frontend_tests_reexecuted": false,
+      "json_schemas_checked": 19,
+      "declared_optional_extra_versions_verified": false,
+      "optional_dependency_environment_limitations": "로컬 Polars 1.31.0과 Torch 2.14.0은 선언된 handoff/learning Extra 범위 밖. 기존 환경은 보존했고 선언 범위의 별도 격리 검증은 후속",
+      "validation_scope": "Unit·Contract·Offline Integration. Demand 교차 Handoff 포함. DB 접속·Migration 적용·DB Write·Runtime 배포 없음",
+      "historical_validation_note": "아래 기존 Source·Network·학습 실험별 수치는 이전 증적이며 이번에 DB 검증을 재실행한 수치가 아님",
       "ruff": "PASSED",
       "diff_check": "PASSED",
       "offline_cli_integration": 38,
@@ -69,17 +81,19 @@
     },
     "canonical_cutoff_baseline_psi": "로컬 구현 완료; 원천 수집/실제 봉인 저장 제외",
     "source_read_adapter": "0.9.1 완료: Source DTO/Schema/매핑/파일 Reader/지정 Run PostgreSQL 대조. 전체 로컬 검증 후에만 DB 연결, 검증된 메모리 Snapshot 재사용. Canonical Hash 결정론성·미확인 Due-in 제외·기존 14 Golden/52주 합성 입력 호환. 운영 Source Admission 완료는 아님",
-    "run_lifecycle_evidence_persistence": "진행 중: Platform Claim DTO·Repository/API·Migration 074 초안, Demand 및 V2 Classification Input Binding, Runtime Dispatch·접수·Event/Publish Callback과 실제 보충 계산 소비를 Offline 검증했다. 실제 DB Claim, Migration 074, 영속 Runtime Queue/Worker와 전체 실행 Evidence는 미구현",
-    "classification_snapshot_lifecycle": "0.15.0 구현: 1.1.0 호환, 2.0.0 7축 axis_results·Effective Policy V2와 Run Binding을 구현했다. FSN/PLC Gate·SDE Lead Time·HML 승인 수준을 실제 보충 계산에 적용하고 REVIEW 자동 Publish를 차단한다. Migration 075·076은 개발 PostgreSQL에 적용했으며 Canary는 전체 Rollback됐다. SDE/HML은 UNVERIFIED, PLC는 SYNTHETIC_SHADOW_ONLY다. 실제 V2 업무 Snapshot은 미게시",
+    "run_lifecycle_evidence_persistence": "개발 DB 완료: Platform Claim·Plan 1.1.0, 동일 Run Orchestrator, SQLite Append-only Artifact/Outbox와 Runtime 단계 Event·Terminal·Publish를 Offline 검증했다. Migration 074를 개발 PostgreSQL에 적용하고 V2 Config·분류 Snapshot·Cost/Stress Plan을 실제 Claim에 봉인해 Attempt 1 실패→Attempt 2 복구, 동일 10개 Input Binding, Stale CAS 차단과 V1 Effective Run CAS를 검증했다. 운영 PostgreSQL/Object Storage Adapter와 영속 Queue/Worker는 미구현",
+    "classification_snapshot_lifecycle": "0.15.0 구현: 1.1.0 호환, 2.0.0 7축 axis_results·Effective Policy V2와 Run Binding을 구현했다. FSN/PLC Gate·SDE Lead Time·HML 승인 수준을 실제 보충 계산에 적용하고 REVIEW 자동 Publish를 차단한다. Migration 075·076은 개발 PostgreSQL에 적용했고 Canary는 전체 Rollback됐다. 2026-09-15 개발 Scope DSE/C100/V100에 V2 Config와 분류 Snapshot 7,000건을 게시·승인했으며 2,300건은 분류 완료, 수요 이력이 부족한 4,700건은 차단했다. VED와 PLC는 개발용 합성 근거이고 SDE/HML은 비활성 Shadow이므로 운영 업무 Snapshot 승인을 의미하지 않는다.",
     "learning_stability": "검증 기능/실행 완료: TRAIN52/VALIDATION52, 학습Seed3개×후보2개, 선정Hash 고정 후 새TEST Seed3개×104주. ML/PPO 모두 연구Gate 미달. 수학적 기준 유지; 운영 승인/통계적 우월성 주장 없음",
     "dsim_agent_and_read_api": "미구현; 현재 개발 선행 조건 아님",
-    "inventory_git": "inventory_engine_dev Branch와 GitHub origin 구성",
-    "platform_branch": "dsai-platform: origin/develop 기반 codex/inventory-psi-strategy-v2",
+    "inventory_git": "로컬 inventory_engine_dev에서 PSI·증적 기능과 Trade Cost 기능을 독립 Commit으로 고정. 문서·계획·AGENTS를 별도 기준선 Commit으로 관리하고 origin/inventory_engine_dev로 Push한다. 별도 codex/ 브랜치는 생성하지 않는다. 사용자 SCM 보고서 수정은 제외",
+    "platform_branch": "dsai-platform: 최신 origin/develop abe71826 기반 codex/inventory-psi-strategy-v2. b0df9b4c(Run/Plan)와 c6c38373(Trade Cost) 두 로컬 Commit 완료. Push·develop 병합·배포 미수행",
     "strategy_shared_psi": "완료: 불변 계약·주차 전이·행동 검증·대기열·로컬 Recommended PSI. v1.1은 추가 전략 입력 Snapshot Binding을 지원; v1.0 유지",
     "mathematical_policy": "완료: FROZEN_PRE_W0 13/26주 이력·정규근사 SS/ROP/목표재고·승인 Override/정책 Fallback·독립 Golden. 실제 Source 적합성, 인증/Run/영속화 제외",
     "training_foundation": "완료: 52주 독립 BOH, 시간순 Feature/Label, 비용/서비스/지연 Reference World. 실제 Forecast Vintage, 운영 저장은 후속",
     "production_evaluation_adapter": "완료: 생산 수학적 정책/공통 Guard 호출, 실제 상태 피드백, 기간형 정책/Override/Fallback/용량/납기 검증. SYNTHETIC_FROZEN_MEAN과 EPISODE_RECEIPTS_ONLY의 로컬 실험이며 운영 성능 합격 아님",
-    "learned_strategies": "완료: 공통14 Feature/모델Version·Hash·Scope·정책Profile 계약, CPU ML300회/PPO12 Episode·1560 Item-week, JSON 추론·공통Guard, 6시나리오 VALIDATION/TEST 비교. 소규모 합성 검증이며 수렴/운영 우월성·승인/봉인 아님"
+    "learned_strategies": "완료: 공통14 Feature/모델Version·Hash·Scope·정책Profile 계약, CPU ML300회/PPO12 Episode·1560 Item-week, JSON 추론·공통Guard, 6시나리오 VALIDATION/TEST 비교. 소규모 합성 검증이며 수렴/운영 우월성·승인/봉인 아님",
+    "psi_result_orchestrator": "완료(로컬): Canonical 입력 1회 준비, 실제 Baseline·Operational Math·승인 PPO Shadow·등록 Stress PSI 실행, PSI/Action Child Artifact와 서비스·종료재고·Backorder 비교, Action Observation Source 재투영·공통 Guard·V2 Admission 재실행, PPO/Stress 실패 격리, 결정론적 Result Bundle 봉인. 개발 Cost Profile을 Plan에 봉인해 실제 PSI Row 기반 비용 비교까지 계산하고 로컬 Durable 저장·Runtime 게시를 연결했다. 운영 Artifact Adapter와 권위 비용·Stress Source는 미구현",
+    "trade_cost_landed_cost_v1": "완료(개발 실행 기준선): C100 V100→V101~V104의 개발 Fixture와 Pure Calculator, Migration 077, 승인·Supersede CAS API, Planning Cycle Run Binding, Repeatable Read Sealed Projection API와 InventoryEngine Runtime Hash·Scope·적용일 재검증을 구현했다. Child Artifact와 개발 Simulation/MEIO 비용 연결은 미구현이며 운영 Source 승격은 별도다."
   },
   "tasks": [
     {
@@ -402,9 +416,9 @@
     {
       "id": "io-seven-axis-segmentation",
       "agent": "backend/frontend",
-      "status": "완료(로컬)",
+      "status": "완료(로컬·개발 DB)",
       "title": "7축 Segmentation 계약·Config·결정론적 분류",
-      "description": "ABC·XYZ·VED·FSN·SDE·HML·PLC를 독립 axis_results로 계산하고 Config 1.1.0/2.0.0 병행 검증, Source 상태 API와 Engine Studio 설정 화면을 구현했다. Migration 075·076의 개발 DB Projection과 Rollback Canary도 완료했다. SDE/HML 권위 Source와 실제 V2 업무 Snapshot은 미완료다.",
+      "description": "ABC·XYZ·VED·FSN·SDE·HML·PLC를 독립 axis_results로 계산하고 Config 1.1.0/2.0.0 병행 검증, Source 상태 API와 Engine Studio 설정 화면을 구현했다. Migration 075·076과 DSE/C100/V100의 Config Revision 2·V2 Snapshot Revision 2 게시, 7,000품목·49,000축 대사와 Exact Replay까지 완료했다. SDE/HML과 PLC 권위 Source는 미완료다.",
       "priority": 1,
       "dependencies": ["io-source-read"],
       "estimated_complexity": "high",
@@ -415,20 +429,20 @@
     {
       "id": "io-effective-policy-v2",
       "agent": "backend",
-      "status": "완료(로컬·개발 DB Schema)",
+      "status": "완료(로컬·개발 DB Snapshot)",
       "title": "7축 Effective Policy V2의 Snapshot·Runtime Binding",
-      "description": "FSN 및 향후 권위 PLC의 주문 Gate, SDE P50/P90 보호기간, HML 승인 수준, Operational Source fail-closed와 Shadow 무영향 Hash를 V2 Snapshot·Run Input Binding·실제 보충 계산에 연결했다. REVIEW는 계산·Evidence 후 자동 게시·발주를 차단하고 BLOCK은 계산 전에 차단한다. Migration 075·076은 개발 DB 적용과 Rollback Canary까지 완료했으나 실제 V2 업무 Snapshot은 게시하지 않았다.",
+      "description": "FSN 및 향후 권위 PLC의 주문 Gate, SDE P50/P90 보호기간, HML 승인 수준, Operational Source fail-closed와 Shadow 무영향 Hash를 V2 Snapshot·Run Input Binding·실제 보충 계산에 연결했다. REVIEW는 계산·Evidence 후 자동 게시·발주를 차단하고 BLOCK은 계산 전에 차단한다. 개발 DB V2 Snapshot 게시와 Policy Gate 대사까지 완료했다.",
       "priority": 1,
       "dependencies": ["io-seven-axis-segmentation"],
       "estimated_complexity": "medium",
-      "acceptance_criteria": ["OPERATIONAL+CLASSIFIED 축만 유효 Projection과 Hash에 포함", "품목 ID·classification_config_hash·effective_policy_hash의 Binding Hash 봉인과 Run config_hash 대조", "REVIEW는 계산·Evidence 허용, 자동 게시·발주 차단", "BLOCK·미검증 Operational 축 fail-closed", "V1 회귀와 V2 Snapshot·Runtime 정책 Hash 일치", "개발 DB Projection 적용과 Rollback Canary 완료; 실제 V2 업무 Snapshot 미게시"],
+      "acceptance_criteria": ["OPERATIONAL+CLASSIFIED 축만 유효 Projection과 Hash에 포함", "품목 ID·classification_config_hash·effective_policy_hash의 Binding Hash 봉인과 Run config_hash 대조", "REVIEW는 계산·Evidence 허용, 자동 게시·발주 차단", "BLOCK·미검증 Operational 축 fail-closed", "V1 회귀와 V2 Snapshot·Runtime 정책 Hash 일치", "개발 DB Projection·V2 Snapshot·Exact Replay 검증 완료"],
       "artifacts_expected": ["Effective Policy V2 계약", "V1/V2 Admission", "분류 Snapshot Binding", "보충 Runtime Binding 테스트", "Migration 075·076 개발 적용 증적"],
       "scope": ["InventoryEngine/inventory_contracts", "InventoryEngine/classify_inventory", "InventoryEngine/recommend_replenishment", "InventoryEngine/run_inventory"]
     },
     {
       "id": "io-model-improvement",
       "agent": "backend",
-      "status": "다음 작업",
+      "status": "완료(로컬)",
       "title": "성능 미달 ML/PPO 원인 분리와 개선 실험",
       "description": "TRAIN/VALIDATION에서 정규화·무수요·행동/보상·학습량을 분리 검증한다. 기존 TEST는 튜닝에 재사용하지 않고 새 Revision/홀드아웃으로 검증한다.",
       "priority": 2,
@@ -505,27 +519,127 @@
       ]
     },
     {
-      "id": "io-runtime",
+      "id": "io-psi-result-orchestrator",
       "agent": "backend",
-      "status": "진행 중",
-      "title": "공통 Run·Planning Cycle 연결",
-      "description": "기존 Demand 계약을 보존하며 IO Claim·Attempt·Network Binding과 7축 Classification/Effective Policy Snapshot 입력을 연결했다. Platform Dispatch와 Runtime 접수·Callback, V2 보충 계산 소비의 로컬 계약은 구현됐고 Migration 074·영속 Queue/Worker·전체 Pipeline Handler 조립은 진행 중이다.",
-      "priority": 2,
+      "status": "완료(로컬)",
+      "title": "동일 Run PSI Child Artifact와 Result Bundle 조립",
+      "description": "하나의 Canonical 입력을 한 번 준비하고 전체 Prepared Projection을 재검증한 뒤 실제 Baseline·Operational Math·승인 PPO Shadow·등록 Stress PSI를 실행한다. Stress Runner는 미래 수요·확정 입고 변형만 반환하고 실제 Math·Guard·PSI는 Orchestrator가 수행한다. 개발 Cost Profile이 결합되면 PSI Row와 제약 적용 행동에서 실제 비교 비용을 계산한다. PSI·행동·비용과 판단 Source를 결정론적으로 봉인하고 PPO/Stress 실패는 Child 단위로 격리한다.",
+      "priority": 1,
       "dependencies": [
-        "io-strategy-contract",
-        "io-effective-policy-v2"
+        "io-psi-actions",
+        "io-effective-policy-v2",
+        "io-drl"
       ],
       "estimated_complexity": "high",
       "acceptance_criteria": [
-        "같은 입력 Retry는 새 Run ID와 동일 입력 Hash",
-        "Cycle·Run FK/Scope와 CAS 경합 테스트",
-        "입력 변경은 새 Revision",
-        "기존 Demand API 회귀 통과; 실제 Migration은 별도 승인"
+        "한 Run에서 Canonical 입력 준비 1회",
+        "재봉인된 Prepared 변조는 Child 실행 전에 차단",
+        "모든 성공 Child의 Canonical Hash와 PSI Universe 일치",
+        "모든 품목의 주차 Key·날짜 범위·연속성 일치",
+        "비교값을 외부 Fixture가 아닌 실제 PSI Row에서 계산",
+        "Action Observation을 봉인 Source에서 재투영하고 공통 Guard 결과와 정확히 일치",
+        "V2 품목 정책 Admission을 Config·실행 목적·Strategy·Model 승인에서 재실행",
+        "PPO는 SKIPPED 금지, Stress SKIPPED는 미해소 Registry에만 허용",
+        "Stress Payload·Seed·Runner Hash 일치와 새 Instance 이중 Replay",
+        "Stress Runner의 Context·Master·Policy·BOH 변조와 임의 전략·PSI 결과 반환 차단",
+        "성공 Child는 1행 이상이며 실패·건너뜀 Child의 Row Count와 Artifact는 null",
+        "PPO 실패 시 Mathematical Child와 Effective Pointer 유지",
+        "결합된 Cost Profile은 PSI Row 기반 비용을 AVAILABLE로 계산하고 미결합 비용은 NOT_AVAILABLE로 명시",
+        "동일 입력 재실행의 Bundle·Child·Artifact Hash 일치"
       ],
       "artifacts_expected": [
-        "호환 Migration 초안",
-        "Repository/UoW 테스트",
-        "Inventory Runner"
+        "PSI Child Artifact Builder",
+        "Result Bundle Orchestrator",
+        "실패 격리·Stress Runner 오프라인 통합 테스트",
+        "IO_PSI_ORCHESTRATOR_VERIFICATION.md"
+      ],
+      "scope": [
+        "InventoryEngine/run_inventory",
+        "InventoryEngine/recommend_replenishment",
+        "InventoryEngine/simulate_inventory"
+      ]
+    },
+    {
+      "id": "io-platform-strategy-plan-1-1",
+      "agent": "backend",
+      "status": "완료(로컬)",
+      "title": "Platform Strategy Execution Plan 1.1.0 정합화",
+      "description": "InventoryEngine이 봉인하는 수학 정책 입력 Snapshot·Replenishment Config Hash·Cost Profile·Stress Runner 구현 Binding을 dsai-platform Producer와 Schema에 동일하게 반영한다. 승인된 개발 Registry의 정확한 Payload·Identity Hash만 Plan에 결합하며 Migration 074의 Planning Cycle Source 계약 Version은 변경하지 않는다.",
+      "priority": 1,
+      "dependencies": [
+        "io-effective-policy-v2",
+        "io-psi-result-orchestrator"
+      ],
+      "estimated_complexity": "medium",
+      "acceptance_criteria": [
+        "Platform Producer와 Inventory Consumer의 Plan 1.1.0 Hash Golden 일치",
+        "수학 정책 입력·실행 설정·Cost Profile·Stress Runner Binding 누락 또는 Hash 변조 차단",
+        "승인 Reference 식별자 규칙 일치",
+        "기존 Demand 계약 회귀 유지; DB Write 없음"
+      ],
+      "artifacts_expected": [
+        "dsai-platform Plan 1.1.0 Pydantic Model",
+        "Cross-repository Contract Fixture",
+        "Backend 계약 문서"
+      ],
+      "scope": [
+        "dsai-platform Backend inventory_engine_run_contract",
+        "dsai-platform tests/unit/platform"
+      ]
+    },
+    {
+      "id": "io-evidence",
+      "agent": "backend",
+      "status": "완료(로컬)",
+      "title": "Result Bundle Artifact 저장과 재검증 경계",
+      "description": "Storage-neutral Port와 SQLite Adapter로 PSI·원 행동·제약 행동·조정 사유·Canonical·Prepared·Execution Source·Bundle 바이트를 Append-only 저장하고 독립 재검증한다. 같은 Transaction의 Durable Outbox와 동일 Pointer 재사용을 Offline 검증했다. 운영 Adapter는 후속이다.",
+      "priority": 2,
+      "dependencies": [
+        "io-cutoff",
+        "io-psi-actions",
+        "io-psi-result-orchestrator"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "Artifact Reference·Row Count·Content Hash Read-back 검증",
+        "Run Input Binding의 Prepared/Execution에서 Action Source와 Admission 독립 재구성",
+        "동일 Bundle의 멱등 저장과 Durable Outbox 재사용",
+        "동일 Semantic Reference·다른 Hash의 Write-once 충돌 차단",
+        "영속 Evidence 미검증 Run 성공 처리 금지",
+        "로컬 Port/Adapter 테스트; 실제 DB Write 별도 승인"
+      ],
+      "artifacts_expected": [
+        "Artifact Writer/Reader/Verifier Port",
+        "Durable Outbox 계약",
+        "저장·복구·대사 테스트"
+      ],
+      "scope": [
+        "InventoryEngine/inventory_evidence",
+        "dsai-platform Artifact Interface"
+      ]
+    },
+    {
+      "id": "io-runtime",
+      "agent": "backend",
+      "status": "완료(로컬)",
+      "title": "공통 Run·Planning Cycle 전체 Handler 연결",
+      "description": "Claim·Dispatch·Callback과 동일 Run PSI Orchestrator를 검증된 Artifact 저장 경계로 연결했다. Mathematical만 Effective 결과로 유지하고 REVIEW 자동 게시를 차단하며, 게시 실패 Retry는 PSI를 재계산하지 않고 Outbox의 동일 Bundle Pointer를 재사용한다.",
+      "priority": 2,
+      "dependencies": [
+        "io-platform-strategy-plan-1-1",
+        "io-evidence"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "Offline Claim→계산→저장→Terminal Event→Publish 계약 통과",
+        "같은 입력 Retry는 새 Run ID와 동일 입력 Hash",
+        "Cycle·Run FK/Scope와 CAS 경합 테스트",
+        "기존 Demand API 회귀 통과; Migration 074 개발 적용과 실제 Claim·Retry·CAS 검증"
+      ],
+      "artifacts_expected": [
+        "Inventory Pipeline Handler",
+        "단계·Terminal Event Adapter",
+        "실패·재시도 Offline 통합 테스트"
       ],
       "scope": [
         "dsai-platform Backend 공통 Runtime",
@@ -534,32 +648,154 @@
       ]
     },
     {
-      "id": "io-evidence",
+      "id": "io-trade-cost-contract-v1",
       "agent": "backend",
-      "status": "다음 작업",
-      "title": "중간 산출물 물리 계약과 이중 기록",
-      "description": "P0-13을 확정해 입력·대사·PSI·정책을 Artifact와 TB_IO에 연결한다.",
+      "status": "완료(계약/읽기 전용 조사)",
+      "title": "C100 Trade Cost Source와 Landed Cost 계산 계약",
+      "description": "C100 V100→V101~V104의 내부 Source Coverage와 네 목적국 공식 Source 후보를 조사하고, 미확인 값을 0으로 치환하지 않는 Source Catalog 및 Shipment Line Component 계약을 구현했다.",
       "priority": 2,
       "dependencies": [
-        "io-cutoff",
-        "io-psi-actions",
+        "io-source-read",
+        "io-psi-result-orchestrator"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "HS·원산지·가격·물성·Incoterms·운송비·세관환율·VAT·FTA 필드별 Source 상태와 Coverage 봉인",
+        "Shipment Line+Lane+Item+적용일 Grain과 Source Revision Set Hash 고정",
+        "Component 합계·회수 가능 VAT·MFN/FTA/Broker/Actual Replay·반올림 계약 검증",
+        "DEVELOPMENT_FIXTURE와 미확인 Source의 운영 게시 차단",
+        "Migration·DB Write·Runtime 배포 없음"
+      ],
+      "artifacts_expected": [
+        "IO_TRADE_COST_LANDED_COST_CONTRACT.md",
+        "Trade Cost Source Catalog/Landed Cost Assessment DTO와 JSON Schema",
+        "C100 Source Audit Evidence",
+        "계약 Negative Test"
+      ],
+      "scope": [
+        "InventoryEngine/inventory_contracts",
+        "InventoryEngine/docs/architecture",
+        "dsai-platform/docs/backend/dsim",
+        "개발 PostgreSQL 읽기 영역"
+      ]
+    },
+    {
+      "id": "io-trade-cost-physical-calculator-v1",
+      "agent": "backend",
+      "status": "완료(개발 DB 적용)",
+      "title": "Versioned Trade Cost 물리 모델과 Pure Calculator",
+      "description": "Source Domain별 Revision과 승인 Revision Set, 실행별 Assessment/Component Projection을 Migration 077로 설계해 개발 DB에 적용하고 Decimal 기반 관세·세금·고정비 배부 Calculator를 구현했다.",
+      "priority": 2,
+      "dependencies": [
+        "io-trade-cost-contract-v1"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "Source Owner Manifest의 미지정 Domain 승인 차단",
+        "종가·종량·복합세와 Floor/Cap 계산",
+        "고정비 배부 후 Shipment 총액 보존",
+        "일본·중국·사우디·UAE 합성 Golden과 Result Hash 고정",
+        "Migration 077 Parser·Rollback Canary·개발 DB 적용과 Fixture Seed 검증"
+      ],
+      "artifacts_expected": [
+        "trade_cost_source_collection_manifest.schema.json",
+        "077_dsim_trade_cost_landed_cost_v1.sql",
+        "Pure Decimal Calculator와 Golden"
+      ],
+      "scope": [
+        "InventoryEngine/calculate_landed_cost",
+        "InventoryEngine/inventory_contracts",
+        "dsai-platform/infra/migrations/drafts"
+      ]
+    },
+    {
+      "id": "io-trade-cost-platform-binding",
+      "agent": "backend",
+      "status": "완료(개발 계약)",
+      "title": "Trade Cost Revision 승인 API와 Run Binding",
+      "description": "Migration 077의 Repository·승인 CAS와 Source Domain Coverage 검증을 구현하고 승인 Revision Set ID·Hash를 Planning Cycle Claim에 고정했다. Sealed Projection API와 InventoryEngine Runtime Resolver가 전체 Source·Set·Projection Hash와 Scope·적용일·환경을 재검증한다.",
+      "priority": 2,
+      "dependencies": [
+        "io-trade-cost-physical-calculator-v1",
         "io-runtime"
       ],
       "estimated_complexity": "high",
       "acceptance_criteria": [
-        "Grain/PK/FK/Numeric/Hash/Receipt 계약 확정",
-        "Network 전체 Snapshot과 Site Context 저장",
-        "영속 Evidence 미검증 Run 성공 처리 금지",
-        "복구·대사 테스트; 실제 DB Write 별도 승인"
+        "DRAFT→APPROVED→SUPERSEDED 상태와 row_version CAS",
+        "필수 Domain×관할국 Coverage·적용기간·Content Hash 검증",
+        "사용자 Hash 입력 없이 승인 Revision Set을 Run Claim에 Binding",
+        "Repeatable Read Projection과 Runtime Hash·Scope·적용일 검증",
+        "개발 DB 실제 Projection 27 Source·27 Document·22 Record 검증"
       ],
       "artifacts_expected": [
-        "TB_IO DDL 초안",
-        "Artifact/Evidence Adapter",
-        "Reconciliation 테스트"
+        "Trade Cost Repository·Service·API",
+        "Revision Set Run Input Binding",
+        "Migration/Repository 계약 테스트"
       ],
       "scope": [
-        "InventoryEngine/inventory_evidence",
-        "dsai-platform/infra/migrations"
+        "dsai-platform Backend",
+        "InventoryEngine Runtime Resolver",
+        "Migration 077"
+      ]
+    },
+    {
+      "id": "io-trade-cost-child-artifact",
+      "agent": "backend",
+      "status": "다음 작업",
+      "title": "Landed Cost Child Artifact와 개발 Simulation·MEIO 비용 연결",
+      "description": "Run에 봉인된 Trade Cost Projection을 Pure Calculator 입력으로 변환하고 Shipment+Lane+Item+적용일별 Component와 총액을 Append-only Child Artifact로 보존한 뒤 개발 Simulation·MEIO 비용 입력에 연결한다.",
+      "priority": 2,
+      "dependencies": [
+        "io-trade-cost-platform-binding",
+        "io-evidence"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "Run Binding·Projection·Calculator·Child Artifact가 동일 Revision Set Hash를 공유",
+        "Component 합과 Gross·Recoverable·Net Landed Cost 보존식 검증",
+        "동일 Reference·동일 Hash 멱등 처리와 다른 Hash 충돌",
+        "DEVELOPMENT Fixture 결과는 개발 Simulation·MEIO만 허용",
+        "operational_eligible=false 결과의 자동 게시·발주 차단"
+      ],
+      "artifacts_expected": [
+        "Landed Cost Input Adapter",
+        "Landed Cost Child Artifact Writer/Reader/Verifier",
+        "개발 Simulation·MEIO Cost Binding 통합 테스트"
+      ],
+      "scope": [
+        "InventoryEngine Runtime",
+        "InventoryEngine Evidence Store",
+        "개발 Simulation·MEIO"
+      ]
+    },
+    {
+      "id": "io-trade-cost-source-adapters",
+      "agent": "backend",
+      "status": "외부 작업 대기",
+      "title": "권위 Trade Cost Source와 국가별 계산 Adapter 연결",
+      "description": "개발 단계에서는 승인 개발 Fixture를 사용한다. 운영 전환 시 구매 Invoice·원산지·품목 물성·Incoterms·물류 계약·관세사 자료와 일본·중국·사우디·UAE 공식 Tariff/세관환율 Snapshot을 승인 Revision으로 수집한다.",
+      "priority": 2,
+      "dependencies": [
+        "io-trade-cost-contract-v1",
+        "io-source"
+      ],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "필수 Source Owner·Grain·적용일·Revision·Raw Hash 확정",
+        "실제 공식 Rule과 개발 Golden의 Source 상태 분리",
+        "FTA는 품목별 원산지 기준과 유효 증명서가 있을 때만 적용",
+        "Actual Declaration Replay와 미래 Planning 결과 분리",
+        "개발 PostgreSQL Migration·Seed·E2E Write는 별도 승인"
+      ],
+      "artifacts_expected": [
+        "ERP·관세·환율·세금 권위 Source Adapter",
+        "국가별 공식 Rule Adapter",
+        "Source 승인·변경 탐지 운영 Workflow"
+      ],
+      "scope": [
+        "InventoryEngine/trade_cost",
+        "dsai-platform Backend/API/Frontend",
+        "승인된 개발 PostgreSQL"
       ]
     },
     {
@@ -642,7 +878,20 @@
       ]
     }
   ],
-  "api_contracts": [],
+  "api_contracts": [
+    {
+      "name": "Inventory Trade Cost Source Catalog v1",
+      "status": "개발 계약·Migration·승인/Projection API 완료",
+      "contract_id": "io-trade-cost-source-catalog-v1",
+      "version": "1.0.0"
+    },
+    {
+      "name": "Inventory Landed Cost Assessment v1",
+      "status": "개발 계약·Pure Calculator 완료; Child Artifact Publication 미구현",
+      "contract_id": "io-landed-cost-assessment-v1",
+      "version": "1.0.0"
+    }
+  ],
   "data_models": [
     {
       "entity": "NetworkInputRequest",
@@ -678,7 +927,7 @@
       "fields": {
         "decision_evidence": "관측/Hash·제안·Source 정책·조정/거부 근거",
         "recommended_orders": "생성→대기→시뮬레이션 입고",
-        "psi_rows": "공통 주간 전이 결과; 영속 저장은 미구현"
+        "psi_rows": "공통 주간 전이 결과; 로컬 Append-only Artifact 저장·Read-back 검증 완료, 운영 저장소 미연결"
       }
     },
     {
@@ -695,6 +944,23 @@
         "model": "JSON-only weights·Model ID/Version/Hash·TRAIN lineage·Scope·policy profile",
         "features": "io-learned-observation-v1,14 known-at-decision values; ML uses indices6–9",
         "learning": "TRAIN-only bounded CPU recipe; finite-horizon GAE/PPO-Clip; no publication"
+      }
+    },
+    {
+      "entity": "TradeCostSourceCatalog",
+      "fields": {
+        "scope": "DSE/C100/V100→V101~V104와 환경",
+        "fields": "필드별 AUTHORITATIVE/UNVERIFIED/DEVELOPMENT_FIXTURE/NOT_FOUND, Coverage·Revision·Evidence Hash",
+        "content_hash": "정렬된 전체 Source Audit의 SHA-256"
+      }
+    },
+    {
+      "entity": "LandedCostAssessment",
+      "fields": {
+        "grain": "Shipment Line+Lane+Item+Valuation Date",
+        "components": "과세가격·Gross 포함·회수 가능 여부와 Source Evidence",
+        "totals": "Customs Value, Gross/Recoverable/Net Landed Cost",
+        "gate": "Calculation Status·Blocking Reasons·Operational Eligibility·Content Hash"
       }
     }
   ],
@@ -717,9 +983,9 @@
     ]
   },
   "testing_strategy": {
-    "unit_tests": "InventoryEngine 전체 374건 통과, 20건 Skip, 355 Subtest 통과. 7축 Source·V1/V2 Snapshot·Runtime Binding·REVIEW/BLOCK 회귀 포함",
-    "integration_tests": "dsai-platform Backend 62건, Frontend 정적 계약 5건, Ruff와 diff-check 통과. Migration 075·076 개발 적용 및 Rollback Canary 통과",
-    "e2e_tests": "Canary는 V2 1품목·7축·4 Window·5 사유를 Deferred Constraint까지 검증하고 전체 Rollback. 실제 V2 업무 Snapshot과 IO Run Write는 미수행",
+    "unit_tests": "InventoryEngine Unit 442건과 Contract 48건 통과. Trade Cost Projection 변조·Scope·적용일·환경과 Runtime Binding 회귀 포함",
+    "integration_tests": "2026-09-29 InventoryEngine Offline Integration 76건 및 dsai-platform Inventory 관련 회귀 248건 통과. Python 3.12에서 DemandEngine 교차 Handoff·111020행 검증을 포함했다. Migration 074·075·076·077 개발 적용과 Canary는 이전 증적이며 이번에는 DB를 재검증하거나 변경하지 않았다",
+    "e2e_tests": "DSE/C100/V100 개발 Config 2.0.0과 V2 Snapshot 게시, Planning Cycle Claim·Retry·CAS를 검증했다. Trade Cost는 승인 Revision Set ce625f93-9cf8-59dd-96e6-d394aba1a8b8의 27 Source·27 Document·22 Record를 읽고 Set Hash a609a003fd7d223a3c44b4d8ab72455bf8a648572c9d3c16c585f3569fb85898와 Projection Hash 2e6b893e2bb533d179f9b4c3bb1e74ced9af7a042975cc241c251b9e712b0775를 재검증했다.",
     "performance_tests": "후속 대표 POSM/TGSM 입력으로 실측; 현재 처리량 주장 없음"
   }
 }

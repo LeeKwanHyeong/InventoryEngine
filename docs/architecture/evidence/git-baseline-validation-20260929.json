@@ -1,0 +1,159 @@
+{
+  "contract_id": "io-development-git-baseline-validation-v1",
+  "verification_date": "2026-09-29",
+  "scope": "LOCAL_UNIT_CONTRACT_OFFLINE_INTEGRATION_AND_GIT_BASELINE",
+  "repositories": {
+    "inventory_engine": {
+      "path": "/Users/igwanhyeong/PycharmProjects/InventoryEngine",
+      "branch": "inventory_engine_dev",
+      "base_commit": "0e6a07e46bd933ed8555ba55bb21f43b9fe27dcb",
+      "feature_commits": [
+        {
+          "commit": "346b99b2b6f09f130bbd79f20babb4d62cad601c",
+          "subject": "feat(psi): orchestrate sealed results and durable evidence",
+          "exported_index_tests_passed": 537,
+          "exported_index_tests_skipped": 7
+        },
+        {
+          "commit": "146aed1769269d8ea1eafcf4eee53f553ddd21e3",
+          "subject": "feat(trade-cost): seal sources and run-bound projections",
+          "exported_index_tests_passed": 566,
+          "exported_index_tests_skipped": 7
+        }
+      ],
+      "documentation_baseline": "The commit containing this evidence also freezes branch instructions and updated architecture documents.",
+      "push_target": "origin/inventory_engine_dev"
+    },
+    "dsai_platform": {
+      "path": "/Users/igwanhyeong/PycharmProjects/dsai-platform",
+      "branch": "codex/inventory-psi-strategy-v2",
+      "verified_remote_develop_commit": "abe71826dff5a4f10c2ee04a2226ebcfc02e60dd",
+      "rebase_required": false,
+      "feature_commits": [
+        {
+          "commit": "b0df9b4c2f6a6d89e4ea742f3bbbe6b06986f18a",
+          "subject": "feat(inventory): align strategy plans and development run baseline",
+          "exported_index_tests_passed": 233
+        },
+        {
+          "commit": "c6c38373ff17e4cf7ac7c94ae144b5d48aec4e99",
+          "subject": "feat(trade-cost): add approved revision and projection lifecycle",
+          "exported_index_tests_passed": 248
+        }
+      ],
+      "push_performed": false,
+      "merge_to_develop_performed": false
+    },
+    "demand_engine": {
+      "path": "/Users/igwanhyeong/PycharmProjects/DemandEngine",
+      "branch": "demand_engine_v3",
+      "baseline_commit_prefix": "a43ca73",
+      "changed_or_committed": false,
+      "preserved_worktree_diff_sha256": "9b6dda388575e700e9eb55eb633a6b2ab2e47a89fe7d003657f1f58e65a117f6"
+    }
+  },
+  "test_environment": {
+    "inventory": {
+      "python": "3.12.10",
+      "pytest": "9.0.3",
+      "ruff": "0.15.22",
+      "jsonschema": "4.25.0",
+      "polars": "1.31.0",
+      "torch": "2.14.0",
+      "pytest_environment": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONPATH": "src",
+        "IO_READONLY_INTEGRATION": "0",
+        "IO_SOURCE_READONLY_INTEGRATION": "0",
+        "DEMAND_ENGINE_ROOT": "/Users/igwanhyeong/PycharmProjects/DemandEngine",
+        "DSAI_PLATFORM_ROOT": "temporary exported candidate snapshot, sibling of InventoryEngine"
+      },
+      "declared_optional_extra_versions_verified": false,
+      "limitations": [
+        "Installed Polars 1.31.0 is below the declared handoff extra polars>=1.41,<2.",
+        "Installed Torch 2.14.0 is outside the declared learning extra torch>=2.12,<2.13.",
+        "No packages, dependency constraints, secrets or existing environments were changed. This result describes the inspected local environment, not all declared-extra combinations."
+      ]
+    },
+    "platform": {
+      "python": "3.11.15",
+      "pytest": "9.0.2",
+      "pydantic": "2.13.4",
+      "fastapi": "0.136.3",
+      "asyncpg": "0.31.0"
+    }
+  },
+  "validation": {
+    "inventory": {
+      "unit_passed": 442,
+      "contract_passed": 48,
+      "offline_integration_passed": 76,
+      "total_passed": 566,
+      "failed": 0,
+      "skipped": 7,
+      "subtests_passed": 570,
+      "skipped_reason": "5 Network and 2 Source PostgreSQL opt-in read-only integration tests explicitly disabled",
+      "schemas_checked": 19,
+      "ruff_check": "PASSED",
+      "ruff_format_check": "PASSED",
+      "python_files_checked": 180,
+      "demand_handoff_large_rows": 111020
+    },
+    "platform": {
+      "inventory_related_unit_passed": 248,
+      "failed": 0,
+      "ruff_check": "PASSED_WITH_EXISTING_MAIN_E402_EXCEPTION",
+      "ruff_format_check": "26 CANDIDATE FILES PASSED; EXISTING MAIN FORMAT ISSUES PRESERVED",
+      "main_baseline_e402_count": 42,
+      "main_candidate_e402_count": 43,
+      "main_new_import": "Inventory Trade Cost Router follows existing bootstrap-before-import ordering",
+      "frontend_reexecuted": false,
+      "entire_platform_suite_reexecuted": false
+    },
+    "diff_check": "PASSED",
+    "staged_json_check": "PASSED",
+    "staged_credential_pattern_check": "PASSED; common provider tokens, private keys and credential DSNs only; not a full security audit",
+    "export_layout_issue": {
+      "initial_failure": "Network parity test assumes InventoryEngine is a sibling of dsai-platform.",
+      "resolution": "Create an isolated temporary workspace with both exported index snapshots under their repository names; no source code changed.",
+      "final_full_suite": "566 PASSED, 7 SKIPPED, 570 SUBTESTS PASSED"
+    }
+  },
+  "preserved_exclusions": {
+    "inventory_report": {
+      "path": "docs/reports/INVENTORY_ENGINE_SCM_EXPERT_REPORT.md",
+      "sha256": "3d0f5e9bb762b590beef00a65b39b2578b0b281f07fd1f5a2630261dfcb4835e",
+      "committed": false
+    },
+    "platform_generated_or_personal_paths": {
+      "untracked_count": 1818,
+      "path_list_sha256": "0b484df3b3750388e402f2699fc22d88008c070d4932dc75922bb2cdb237eddf",
+      "committed": false
+    },
+    "demand_env_and_ide_changes": "Preserved; no additional DemandEngine commit"
+  },
+  "migration_file_housekeeping": {
+    "migration_074": "Applied SQL promoted from drafts to formal path; no DB application in this task.",
+    "migration_077": {
+      "path": "infra/migrations/077_dsim_trade_cost_landed_cost_v1.sql",
+      "sha256": "9a97b25cf3d3aa90ad54b82a43d1b03089f8512547bbc468a4f4bea64cc3d252",
+      "original_sql_bytes_preserved": true,
+      "db_reapplication_performed": false
+    }
+  },
+  "authorization_boundary": {
+    "database_connections_performed": false,
+    "migration_application_performed": false,
+    "actual_e2e_database_write_performed": false,
+    "runtime_deployment_performed": false,
+    "service_activation_performed": false,
+    "secret_changes_performed": false
+  },
+  "next_work": [
+    "Verify the declared optional dependency extras in a clean isolated development environment without changing existing environments.",
+    "Build a run-bound Landed Cost Child Artifact from the sealed development Revision Set and Shipment input.",
+    "Connect Trade Cost to development Simulation evaluation without double-counting inventory/ordering costs.",
+    "Review and authorize dsai-platform branch push/MR separately; this task creates local Platform commits only.",
+    "Seek explicit scope approval before actual Result Bundle DB/Object Storage E2E or shared Runtime deployment."
+  ]
+}

@@ -1,6 +1,6 @@
 # InventoryEngine 개발 기준선과 작업 순서
 
-기준일: 2026-09-11, 로컬 패키지 0.15.0. 이 문서는 **목표 계약 확정**, **코드 구현**, **개발 DB 검증**, **운영 사용**을 구분한다. 목표 아키텍처의 전체 파일 트리가 이미 구현돼 있다고 해석하지 않는다.
+기준일: 2026-09-29, 로컬 패키지 0.15.0. 이 문서는 **목표 계약 확정**, **코드 구현**, **개발 DB 검증**, **운영 사용**을 구분한다. 목표 아키텍처의 전체 파일 트리가 이미 구현돼 있다고 해석하지 않는다.
 
 동일 순서의 [의존관계 계획 JSON](IO_DEVELOPMENT_PLAN.json), [Network 검증 요약](evidence/network-input-validation-20260903.json), [Canonical·PSI 검증 기록](IO_CANONICAL_PSI_VERIFICATION.md)을 함께 관리한다. 계획 파일은 향후 작업 목록이며 자동 실행 지시나 DB 변경 승인이 아니다.
 
@@ -8,13 +8,15 @@
 
 | 대상 | 실제 상태 | 아직 하지 않은 것 |
 |---|---|---|
-| InventoryEngine 프로젝트 | Python 3.12 패키지, 독립 Git 저장소, Runtime HTTP 접수·Platform Callback·Worker Orchestration과 테스트 기반 | 영속 Queue/Worker, 전체 계산 Handler 조립, 배포 |
+| InventoryEngine 프로젝트 | Python 3.12 패키지, 독립 Git 저장소, Runtime HTTP 접수·Platform Callback·Worker Orchestration, 전체 PSI Handler와 로컬 영속 Evidence Adapter | 운영 PostgreSQL/Object Storage Adapter, 영속 Queue Worker, 배포 |
 | Network 입력 | 요청 ID/Hash·승인·Scope·Plan 기준일 검증, 불변 Network Snapshot·Manifest와 Site 후보 경로 생성 | Artifact 봉인·TB_IO 저장, Cycle/Run FK·Claim, 운송수단 선택·계산 적용 |
 | Canonical 입력·Golden | 8개 Snapshot 구조·JSON Schema, 요청 Binding·Hash 검증, 독립 Golden 14개/45 PSI Row | 실제 Legacy SQL Adapter, 운영 Source 의미·정확성 검증 |
 | 0.9.1 Source 읽기 호환 | 전체 로컬 검증 후 DB 연결과 기존 JSON v1 DTO·Hash 유지. 실제 DB 2건은 0.9.0 당시 기록 | 실제 재고/주문/정책 Collector와 운영 공유 Snapshot 미준비 |
 | 0.10.0 Forecast 전달 | Demand POINT opt-in Export/Guard·분할 Parquet, IO 독립 Reader·Canonical v2 계획/물리 정밀도 분리. 111,020행 전달·입력 준비 검증 | 실제 Artifact Mapping/실행 전 Receipt 저장/Studio 연결·DB Publication·대형 Recommended PSI 성능 |
-| 7축 분류·Effective Policy V2 | Config 1.1.0 호환과 2.0.0 ABC·XYZ·VED·FSN·SDE·HML·PLC 독립 결과를 결정론적으로 생성. FSN/PLC Gate·SDE P50/P90 보호기간·HML 승인 수준을 Run Binding과 실제 보충 계산에 연결했다. `REVIEW`는 Evidence까지만 허용하고 자동 게시·발주를 차단하며 `BLOCK`은 계산 전에 차단한다. Migration 075·076은 개발 PostgreSQL 적용과 Rollback Canary를 완료했다. | 실제 V2 업무 Snapshot 게시, 공통 Run Migration 074·실제 Claim·Scheduler·공용 Runtime 배포. SDE/HML 운영 Source와 PLC 권위 Source는 아직 준비되지 않음 |
+| 7축 분류·Effective Policy V2 | Config 1.1.0 호환과 2.0.0 7축 결과를 결정론적으로 생성한다. 개발 PostgreSQL DSE/C100/V100에 Config Revision 2와 V2 Snapshot Revision 2를 게시했고 7,000품목·49,000축 Row·26주 Actual Close·Exact Replay를 검증했다. Migration 074와 실제 Claim·Attempt·Retry·CAS도 개발 DB에서 검증했다. | Scheduler·공용 Runtime 배포. SDE/HML 운영 Source와 PLC 권위 Source는 아직 준비되지 않음 |
 | Cut-off·단일 Site PSI | 전기 EOH–BOH·Watermark·Late Posting·봉인/고아 검증, 공통 주차 전이·Baseline/로컬 Recommended PSI와 Evidence JSON | ERP 신규 거래 수집/실제 봉인 저장·DB Evidence 적재 |
+| 동일 Run PSI Result Bundle | Canonical 입력을 한 번 준비하고 실제 Baseline·Math·PPO Shadow·등록 Stress PSI를 계산한다. 승인된 개발 Cost Profile과 수요 급증·확정 입고 7일 지연 Registry를 Plan에 Hash로 봉인하고 실제 PSI Row에서 비용 Delta를 산출한다. 무비용 V1 경로는 `COST_PROFILE_NOT_BOUND`로 호환된다. | 권위 비용 Source와 운영 Stress Registry, PostgreSQL/Object Storage Adapter, 공용 Runtime 배포·DB 게시 |
+| Trade Cost·Landed Cost V1 | C100 V100→V101~V104의 개발 Fixture Catalog, Pure Calculator, Migration 077, 승인·Supersede CAS API, Planning Cycle Run Binding과 Sealed Revision Set Projection 조회를 구현했다. Runtime은 Source·Set·Projection Hash와 Scope·적용일·환경을 다시 검증한다. | Landed Cost Child Artifact와 개발 Simulation·MEIO 비용 연결. 운영 전환 시 권위 Source와 국가별 공식 Rule Adapter 필요 |
 | 세 전략 공통 기반 | MATHEMATICAL/PREDICTIVE_ML/DEEP_RL 계약, 행동/납기/용량 검증, 공급 대기열 | 전략 간 자동 Fallback·운영 승인 인증 |
 | 수학적 정책 | 13/26주 이력·SS/ROP/목표재고·승인 Override/Fallback·권고 Golden 14개/42 PSI Row | 실제 Source 적합성/서비스수준 달성 검증 |
 | 학습·평가 기반 | 독립 52주 Generator, 시간순 Feature/Label, 비용·서비스·입고지연 Reference World, 130주·5품목·6시나리오 | 실제 Forecast Vintage/공급 이력 수집·운영 봉인 |
@@ -28,12 +30,36 @@
 
 InventoryEngine 작업 경로는 `/Users/igwanhyeong/PycharmProjects/InventoryEngine`이며 독립 Git 저장소와 `origin`이 구성돼 있다. `main.py`와 `sample_jupyter/io_proximal_policy_optimization.ipynb`는 기존 사용자 자료로 보존한다. 연구 Notebook은 재고정책·Solver 구현 기준선으로 자동 채택하지 않는다.
 
-0.15.0 기준 InventoryEngine 전체 회귀는 374건 통과, 20건 Skip, 355개 Subtest 통과다.
-dsai-platform 관련 Backend 62건과 Frontend 정적 계약 5건, Ruff와 diff-check도 통과했다.
-Migration 075·076의 개발 PostgreSQL 적용과 Rollback Canary는 포함하지만 실제 V2 업무 Snapshot,
-공통 Run DB Write와 공용 Runtime 배포 검증은 포함하지 않는다.
+2026-09-29 로컬 재검증에서 InventoryEngine Unit 442건, Contract 48건, Offline Integration
+76건이 통과했다. 합계 566건 통과·실패 0·Skip 7·Subtest 570건이다. Skip은 명시적으로
+비활성화한 PostgreSQL 읽기 전용 테스트이며, DemandEngine 교차 Handoff와 111,020행 전달
+검증은 Python 3.12 환경에서 포함했다. Ruff, Format과 JSON Schema 19개 검증도 통과했다.
+dsai-platform은 최신 `origin/develop`의 `abe71826` 기준 Inventory 관련 회귀 248건이 통과했다.
+`main.py`의 기존 import 위치·전체 서식 지적은 기준 커밋에도 있어 전면 재작성하지 않았다.
+새 Inventory Router import는 같은 초기화 순서를 따르며, 그 외 후보 Python 파일의 Ruff와
+Format을 검증했다. Frontend와 Platform 전체 기능 테스트는 이번에 재실행하지 않았다.
 
-dsai-platform의 관련 변경은 `develop`에 병합돼 있다. 후속 Inventory 작업은 `origin/develop`에서 분리한 `codex/inventory-psi-strategy-v2`에서 진행한다. `planning_cycle_revisions`, `planning_cycle_site_executions`, `engine_run_input_bindings`의 Migration 초안과 Repository/API, Demand Handoff Input Binding, Runtime Dispatch가 구현돼 있다. Migration 074 개발 DB 적용과 실제 Write E2E는 아직 수행하지 않았다.
+로컬 실행 환경의 선택 의존성에는 별도 한계가 있다. 이번 Python 3.12 테스트는 Polars 1.31.0과
+Torch 2.14.0에서 통과했지만 `pyproject.toml`의 Handoff/학습 Extra 범위와 각각 다르다.
+기존 환경이나 의존성 범위를 변경하지 않았으며, 선언된 Extra 조합의 별도 격리 검증은 다음
+개발 확인 사항이다. 위 통과 수치를 배포 환경의 의존성 호환성 검증으로 해석하지 않는다.
+
+Migration 074·075·076·077의 개발 적용, Config·분류 Snapshot 게시와 Claim·Retry·CAS는
+이전 승인 작업의 증적이다. 이번 Git 기준선 검증에서는 DB 접속·Migration 적용·DB Write와
+공용 Runtime 배포를 수행하지 않았다. 세부 검증과 Commit 경계는
+[2026-09-29 Git 기준선 기록](evidence/git-baseline-validation-20260929.json)을 따른다.
+
+dsai-platform의 관련 변경은 `origin/develop`에서 분리한 로컬 `codex/inventory-psi-strategy-v2`에서
+Run/Plan 기준선 `b0df9b4c`와 Trade Cost 기준선 `c6c38373` 두 Commit으로 고정했다. Push와
+`develop` 병합은 하지 않았다. `planning_cycle_revisions`, `planning_cycle_site_executions`,
+`engine_run_input_bindings`의 Migration과 Repository/API, Demand Handoff Input Binding,
+Runtime Dispatch가 구현돼 있다. Migration 074는 이전 개발 DB 작업에서 적용했고 실제 V2
+Claim의 Attempt·Input Binding·Retry CAS와 V1 Effective Run CAS를 검증했다.
+Scheduler→공용 Runtime E2E는 아직 수행하지 않았다.
+InventoryEngine과 dsai-platform Backend의 Strategy Execution Plan은 모두 `1.1.0`이며,
+수학 정책 입력·Replenishment Config·PSI Simulator·Stress Payload/Seed/Runner Binding과
+승인 Reference 규칙 및 교차 저장소 Golden Hash가 일치한다. Migration 074의 Planning Cycle
+Source 계약 Version은 별도 의미이므로 변경하지 않았다.
 
 ## 2. 다시 결정하지 않는 업무 기준선
 
@@ -74,115 +100,203 @@ dsai-platform의 관련 변경은 `develop`에 병합돼 있다. 후속 Inventor
 
 0.8.0 [학습 안정성 계약](IO_LEARNING_STABILITY_CONTRACT.md)과 [검증 기록](IO_LEARNING_STABILITY_VERIFICATION.md)의 실험은 완료했다. 학습 모델12개, 새 홀드아웃·민감도128회/62,400 Item-week를 평가했지만 ML/PPO 모두 연구용 비용·서비스 Gate를 통과하지 못했다. 모델 승격은 하지 않았다.
 
-[Inventory 분류 Snapshot Lifecycle](IO_CLASSIFICATION_SNAPSHOT_LIFECYCLE.md)은 승인된 Config와 Actual Close를 사용한 결정론적 7축 분류, 품목별 유효 정책 Hash, 집계 Receipt, append-only 게시와 exact replay를 구현했다. Effective Policy V2 Snapshot ID·Content Hash는 시스템 생성 `INVENTORY_CLASSIFICATION / inventory.classification_effective_policy / 2.0.0` Run Input에 고정된다. 보충 Runtime은 같은 품목 정책 Hash를 재검증하고 FSN/PLC Gate, SDE Lead Time과 HML 승인 수준을 소비한다. `REVIEW`는 계산·Evidence까지만 수행하고 자동 Publish를 호출하지 않으며 `BLOCK`은 계산 전에 차단한다. Migration 075·076은 개발 PostgreSQL에 적용하고 전체 Rollback Canary를 완료했지만 실제 V2 업무 Snapshot은 게시하지 않았다. SDE/HML 운영 Source는 `UNVERIFIED`, 현재 PLC는 `SYNTHETIC + SHADOW_ONLY`다. 공통 Run Migration 074·실제 Claim·공용 Runtime 배포도 아직 수행하지 않았다.
+[Inventory 분류 Snapshot Lifecycle](IO_CLASSIFICATION_SNAPSHOT_LIFECYCLE.md)은 승인된 Config와 Actual Close를 사용한 결정론적 7축 분류, 품목별 유효 정책 Hash, 집계 Receipt, append-only 게시와 exact replay를 구현했다. 개발 PostgreSQL의 DSE/C100/V100에 Config Hash `48ad9893...e77e`와 Snapshot `e54e5649-ad2b-578c-b1fa-2e5603446895`를 게시했다. 7,000개 중 2,300개를 분류했고 4,700개는 `INSUFFICIENT_DEMAND_HISTORY`로 명시적 차단했다. SDE/HML은 비활성, PLC는 `SYNTHETIC + SHADOW_ONLY`다. 이 Snapshot을 Migration 074의 실제 V2 Claim에 고정했으며 자동 게시 불가 Gate도 개발 DB에서 확인했다. 공용 Runtime 배포는 아직 수행하지 않았다.
 
-### 1. 실제 V2 Config·분류 Snapshot 게시 검증 — 승인 필요
+[PSI·전략 실행 계약 V2](IO_PSI_STRATEGY_EXECUTION_CONTRACT_V2.md)의 저장소 독립 Orchestrator와
+실제 Child Artifact를 구현했다. 하나의 Canonical 입력을 한 번 준비해 Baseline, Operational
+Mathematical, 승인 PPO Shadow와 등록 Stress Scenario를 실행하고 실제 PSI Row로 비교값을
+만든다. PPO/Stress 실패는 선택 Child에 격리하며 Mathematical 결과만 Effective Pointer가
+된다. Stress Runner는 미래 수요·확정 입고 변형만 반환하며 Context·Master·Policy·BOH 변경과
+임의 전략·PSI 결과 반환을 차단한다. 변형 입력의 실제 Mathematical 전략·공통 Guard·PSI는
+Orchestrator가 수행한다. Raw Action에는 판단 당시의 Prepared/Execution Source를 봉인하고 Observation 재투영,
+공통 Guard·Effective Policy Admission 재실행, PSI·입고·Capacity 대사까지 수행한다. 상세
+검증 범위는 [동일 Run Orchestrator 검증 기록](IO_PSI_ORCHESTRATOR_VERIFICATION.md)을
+따른다. 이 Artifact는 아래 로컬 영속 Adapter와 Runtime Handler에서 다시 검증한다.
+
+### Platform Strategy Plan 1.1.0 정합화 — 완료(로컬)
+
+대상: dsai-platform Backend `inventory_engine_run_contract`, 계약 Fixture와 문서.
+
+- 수학 정책 입력 Snapshot, Replenishment Config Hash, PSI Simulator와 Stress Payload·Seed·Runner
+  Binding을 Platform Pydantic Model과 Hash 계약에 반영했다.
+- 승인 Reference를 InventoryEngine의 닫힌 식별자 규칙과 맞추고 두 저장소의 Golden Hash를
+  일치시켰다. Migration 074와 개발 DB Claim 검증은 아래 단계에서 완료했으며 배포는 수행하지
+  않았다.
+
+### Result Bundle Artifact 저장·재검증 경계 구현 — 완료(로컬)
+
+대상: InventoryEngine `inventory_evidence`와 저장 Port, dsai-platform Artifact Interface.
+
+- Storage-neutral Port와 로컬 SQLite Adapter를 구현했다. PSI, 원 행동, 제약 행동, 조정 사유,
+  Canonical·Prepared·Execution Source와 Bundle의 Canonical JSON 바이트를 한 Transaction에서
+  Append-only 저장한다.
+- Reader는 바이트 Hash·문서 Content Hash·Reference·Row Count·Child 연결을 다시 검증하고,
+  Prepared/Execution Source와 품목별 Admission에서 Action Observation Source를 재구성한다.
+- 동일 Reference·동일 바이트는 멱등 성공하고 다른 바이트·Hash는 전체 Transaction을
+  Rollback한다. 동시 동일 저장도 하나의 원본과 Exact Replay 하나로 직렬화한다.
+- Result-ready Outbox는 Bundle과 같은 Transaction에서 `PENDING`으로 생성되고 성공 게시 후
+  `PUBLISHED`로 CAS 전환한다. 실제 PostgreSQL/Object Storage Adapter는 아직 없다.
+
+### 전체 Runtime Pipeline Handler 연결 — 완료(로컬)
+
+대상: InventoryEngine Runtime, dsai-platform Backend 공통 Runtime.
+
+- Plan 1.1.0 Claim을 Command Resolver와 동일 Run Orchestrator에 전달해 입력 해소, PSI 실행,
+  Artifact 저장·재검증, 단계 Event, Terminal Event와 Platform Publish를 연결했다.
+- Mathematical Bundle Gate만 Runtime 결과로 사용한다. `REVIEW`는 Evidence와
+  `WITHHELD_FOR_REVIEW` Outbox를 남기지만 자동 Publish 대상 조회와 Publish를 모두 차단한다.
+- Platform 게시 실패 시 Outbox를 유지한다. Retry는 Command 해소와 PSI 계산을 건너뛰고 저장된
+  Bundle을 다시 검증해 동일 Pointer를 게시하며, 성공 후 Outbox를 `PUBLISHED`로 전환한다.
+- 공용 Runtime 배포와 실제 E2E Write는 별도 승인 대상이다.
+
+### 개발 Cost Profile과 Stress Registry 연결 — 완료(로컬)
+
+대상: InventoryEngine 계약·평가 모듈, 권위 비용·공급 Source.
+
+- 개발 Cost Profile `DEV-KRW-COST-BASELINE/1.0.0`과 수요 20% 증가·확정 입고 7일 지연
+  Scenario를 승인 Reference, Payload Hash, Runner Hash와 함께 Strategy Execution Plan에 봉인한다.
+- Runtime은 Registry가 해소한 동일 Payload만 허용하고 실제 PSI·제약 적용 행동에서 보유비,
+  Backorder 비용, 고정·변동 발주비를 다시 계산한다.
+- 이는 개발 E2E용 합성 비용이다. 권위 회계 Cost Profile과 운영 승인 Stress Catalog가 준비될
+  때까지 운영 경제성 판정에는 사용하지 않는다. Profile 미결합 Run은 계속
+  `COST_PROFILE_NOT_BOUND`로 호환한다.
+
+### Trade Cost Source·Landed Cost V1 실행 기준선 — 완료(개발 환경)
+
+대상: InventoryEngine 계약·Schema, dsai-platform 문서, 개발 PostgreSQL 읽기 영역.
+
+- Source Owner·수집 Manifest를 정의했다. 개발 Fixture는 개발 환경에서 승인할 수 있고
+  `development_eligible=true`, `operational_eligible=false`로 해석한다.
+- Source Domain별 Versioned Revision과 승인 Revision Set, 실행별 `TB_IO_*` Evidence를
+  Migration 077로 설계하고 개발 PostgreSQL에 적용했다.
+- Decimal 기반 종가·종량·복합세·Floor/Cap과 고정비 배부기를 구현하고 일본·중국·사우디·UAE
+  합성 Golden 4건을 고정했다. 합성 Rate는 법정·운영 세율이 아니다.
+
+- [Trade Cost·Landed Cost 계약](IO_TRADE_COST_LANDED_COST_CONTRACT.md)에서 V1을
+  `C100: V100→V101~V104`로 제한하고, 물리 Grain을 Shipment Line+Lane+Item+적용일로 고정했다.
+- 개발 PostgreSQL의 C100 35,000개 Site-Item과 승인 Network 8개 Lane을 읽기 전용으로 조사했다.
+  `EA`와 Site/국가 관계 외의 HS·원산지·구매가격·Incoterms·운송비·VAT/FTA Source는 운영 계산에
+  사용할 수 없으며, 과거 판매가격·환율은 `UNVERIFIED`로 분류했다.
+- Source Catalog와 Landed Cost Assessment DTO/JSON Schema를 구현했다. 미확인 값을 0으로
+  치환하지 않고 Component 합계, 회수 가능 VAT, FTA Evidence, Actual Replay와
+  `operational_eligible`를 Fail Closed로 검증한다.
+- Source Revision/Revision Set 승인·Supersede CAS API와 Backend-resolved Run Binding을 구현했다.
+- Sealed Projection API는 Run에 고정된 Set ID·Hash를 받아 Repeatable Read로 Source 27개와
+  Document·구조화 Record를 읽고 Source·Set Hash를 재계산한다. InventoryEngine Runtime Resolver는
+  Projection Hash, Scope, 적용일과 개발/운영 환경을 다시 검증한다.
+- 국가별 공식 Source 후보는 운영 전환 자료이며 개발 선행조건이 아니다. Landed Cost Child
+  Artifact와 개발 Simulation·MEIO 비용 연결은 아직 수행하지 않았다.
+
+### 실제 V2 Config·분류 Snapshot 게시 검증 — 완료(개발 DB)
 
 대상: dsai-platform Backend, InventoryEngine `classify_inventory`, 개발 PostgreSQL.
 
-- Migration 075·076과 V2 Publisher의 로컬 검증은 완료했다. 다음은 실제 업무용 V2 Config Revision을 게시·활성화하고 그 정확한 Source/Config로 V2 Snapshot을 영속 게시하는 E2E다.
-- SDE·HML은 권위 Source가 없으므로 비활성 또는 Shadow로 명시하고, 현재 PLC는 반드시 `SYNTHETIC + SHADOW_ONLY`로 유지한다. 미확인 축을 운영 값으로 보정하지 않는다.
-- 완료 조건: 실제 저장된 Header·품목·7축·Window·Gate 사유의 Row Count와 Hash가 Receipt와 일치하고 Exact Replay가 새 Revision을 만들지 않는다.
-- 이 단계는 실제 개발 DB 업무 Row를 생성하므로 별도 E2E Write 승인이 필요하다.
+- 프로젝트 `9ed62f41`, DSE/C100/V100에 프로젝트 전용 VED 승인본 7,000건과 Config 2.0.0
+  Revision 2를 게시·활성화했다.
+- 최근 봉인 Actual Close 26주(`202528`~`202601`)로 Snapshot Revision 2를 게시했다. Header
+  1건, Item 7,000건, Axis 49,000건, Window 3건, Policy Reason 26,610건을 대사했다.
+- 자동 실행 Gate는 `ALLOW` 2,296건, `REVIEW` 4건, `BLOCK` 4,700건이다. 동일 입력 재실행은
+  같은 Snapshot ID/Hash의 `exact_replay`이고 추가 DB Write가 없음을 확인했다.
+- 상세 식별자와 Hash는 [개발 V2 게시 증적](evidence/inventory-v2-publication-20260915.json)에
+  기록한다. 실제 운영 중요도를 뜻하지 않는 개발 VED와 합성 PLC라는 한계는 유지한다.
 
-### 2. 공통 Planning Cycle Migration 074 적용과 Claim 검증 — 승인 필요
+### 3. Planning Cycle Migration 074와 실제 Claim 검증 — 완료(개발 DB)
 
 대상: dsai-platform Backend, 개발 PostgreSQL.
 
-- V2 Classification Binding을 포함한 Claim·Repository·API 계약은 로컬에서 검증했다. 다음은
-  Migration 074를 개발 DB에 적용하고 Attempt·Input Binding·CAS를 Rollback 가능한 Canary로 검증한다.
-- 완료 조건: 기존 Demand Run 호환을 유지하고 같은 입력 Retry·변경 입력 Revision 규칙이 DB
-  Constraint와 UoW에서 일치한다. 실제 Migration 074 적용 승인은 아직 받지 않았다.
+- Migration 074 Rollback Canary를 통과한 뒤 개발 PostgreSQL에 적용하고 Migration Ledger와
+  Table·Column·Constraint·Function·Trigger Signature를 대사했다. 동일 파일 재적용은 DB Write
+  없는 Exact Replay였다.
+- 실제 V2 Config Revision `d4be4ad6-...`, 분류 Snapshot
+  `e54e5649-ad2b-578c-b1fa-2e5603446895`, Effective Policy Hash, 개발 Cost Profile과 Stress
+  Scenario Hash를 Strategy Plan 1.1.0과 Claim에 고정했다.
+- Attempt 1 실패 후 Attempt 2를 새 `engine_run_id`로 재시도했고 두 Attempt의 10개 Input
+  Binding이 동일함을 확인했다. Stale Attempt CAS는 차단됐다.
+- V2 집계 Gate가 자동 게시 불가이므로 `effective_run_id` 승격은
+  `inventory_effective_run_review_required`로 차단했다. 별도 V1 호환 Cycle에서 성공·검증 Run의
+  Effective Pointer CAS와 Exact Replay를 확인했다.
+- 상세 식별자와 한계는 dsai-platform의
+  `docs/backend/dsim/evidence/inventory-run-lifecycle-migration-074-20260915.json`을 따른다.
+  Scheduler→공용 Runtime과 운영 Artifact Publication은 아직 범위 밖이다.
 
-### 3. 실제 공유 Artifact·Receipt·Studio 연결 — 다음 작업 / 외부 작업 대기
+### 4. Landed Cost Child Artifact와 개발 Simulation 비용 연결 — 다음 작업
 
-대상: DemandEngine/Studio의 Export 접점과 InventoryEngine Source Reader. [Source 계약](IO_SOURCE_READ_CONTRACT.md)과 [검증 기록](IO_SOURCE_READ_VERIFICATION.md)의 읽기/매핑 및 DB 연결 전 방어 구현은 완료했다. 실제 운영 Source가 준비됐다는 의미는 아니다.
+대상: InventoryEngine `calculate_landed_cost`, `run_inventory`, `inventory_evidence`.
 
-- [승인된 Handoff 계약](IO_FORECAST_HANDOFF_CONTRACT.md)의 로컬 구현은 완료했다. POINT·계획 소수/물리 정수·월요일 월 귀속은 더 이상 미결 결정이 아니다. 기존 JSON v1을 유지하고 v2의 200,000행·128MB 경계를 명시했다.
-- 다음은 Demand 실제 사용 파일을 공유 Snapshot으로 읽는 Mapping과 실행 전 Receipt 저장, Studio의 성공 후 별도 Export/정확한 Cycle Binding 연결이다. Guard Hook이 기본 경로에서 자동 활성화됐거나 기존 Run이 소급 봉인됐다고 해석하지 않는다.
+- Run에 고정된 Sealed Revision Set Projection과 개발 Shipment 입력을 Pure Calculator에
+  연결한다. 계산 결과의 Component·총액·Source Hash를 Child Artifact로 봉인하고 다시 검증한다.
+- 같은 개발 Fixture를 Simulation 평가에 연결하되, 보유비·Backorder·발주비와 운송·관세·세금의
+  중복 계산을 차단한다. 실제 Multi-Echelon 최적화 Solver 구현과는 별도 단계다.
+- 완료 조건: 동일 Run Binding이 동일 Landed Cost Artifact·Hash를 만들고 미확인 값이나
+  변조된 Source를 거부한다. 로컬 구현·Offline 검증에는 운영 Source Owner 승인이 필요 없다.
 
-- 성공 Demand Run의 Artifact Seal 이후 DB Receipt 게시·검증 상태를 연결한다. 현재 DB의 실적/성능 Snapshot을 Forecast 출력 봉인으로 대신 쓰지 않는다. 기존 성공 Run과 Export의 실패/재시도를 분리한다.
-- 고객 확정 주문·공급 확약·Reserved와 `PLAN_ID/PLAN_STRT_DT/BASE_DT`의 실제 Source를 확인한다. 현재 개발 DB에서 관련 Legacy 테이블 미확인, V100 정책 7,000행 NULL을 기록했다. 미확인 Source를 0 또는 CONFIRMED로 대체하지 않는다.
-- Cut-off에 고정된 Watermark로 원천을 수집하고 실제 봉인 Artifact/Receipt를 생성한다. 현재 검증기는 이미 전달된 SEALED 입력을 검증하는 역할이다.
-- 운영 Source 준비 전에는 독립 합성 Generator/Golden으로 구현을 검증한다. 사용자 데이터 변경 없이 Adapter 계약 테스트부터 진행한다.
-- 완료 조건: 동일 Source Binding이 동일 Canonical Hash를 만들고 실제 누락·Late Posting을 Source 계약에 따라 탐지한다. DB Write가 필요하면 별도 승인받는다.
+### 5. 실제 Demand·Inventory Source 연결 — 운영 전환 시 외부 작업 대기
 
-### 4. 공용 Runtime 배포와 실제 Run E2E — 승인 필요
+대상: DemandEngine/Studio Export, InventoryEngine Source Reader, 운영 Source 소유 부서.
 
-대상: InventoryEngine Runtime, dsai-platform Backend, 지정 개발 Artifact 저장소.
+- Demand 성공 후 봉인 Forecast Artifact와 Receipt를 정확한 Cycle Binding으로 전달하고,
+  고객 주문·재고·확정 공급·Reserved를 동일 Cut-off와 Watermark로 수집한다.
+- SDE는 확정 발주·실입고 이력, HML은 평가 단가·통화·기준일, PLC는 승인 Lifecycle Revision이
+  필요하다. 준비 전에는 SDE/HML `UNVERIFIED`, PLC `SYNTHETIC + SHADOW_ONLY`를 유지한다.
+- 완료 조건: 동일 Source Binding이 동일 Canonical Hash를 만들고 누락·Late Posting을 차단한다.
+  Source 게시나 DB Write가 필요하면 별도 승인받는다.
 
-- 로컬 Mock/Offline에서는 V2 계산·`REVIEW` 게시 차단까지 검증했다. 영속 Queue/Worker와 전체
-  Pipeline Handler를 조립한 뒤 공용 Runtime에 배포하고 실제 Claim→계산→Event→Publish를 검증한다.
-- 완료 조건: 자동 게시 가능한 Run만 Effective Run CAS로 승격되고 `REVIEW`는 자동 Publish되지
-  않으며 실패 Attempt의 Evidence가 보존된다. 공용 Runtime 재배포와 실제 E2E Write는 별도 승인 대상이다.
+### 6. PPO 개선 실험 — 다음 작업, 병렬 가능
 
-### 5. 권위 SDE·HML·PLC Source 연결 — 외부 작업 대기
+대상: InventoryEngine ML/PPO 학습·평가 모듈.
 
-대상: 운영 Source 소유 부서, 개발 PostgreSQL, dsai-platform Backend, InventoryEngine.
+- 수학 전략을 운영 기준선으로 유지하고 TRAIN/VALIDATION에서 상태·행동 Mask·보상·종료 효과와
+  무수요/간헐수요 표본을 개선한다. 이미 본 TEST에 맞춰 튜닝하지 않는다.
+- 완료 조건: 새 Revision과 새 Holdout에서 비용과 서비스 Gate를 함께 충족하거나 명확한
+  거부 근거를 남긴다. 자동 운영 전환이나 공용 Runtime 배포는 하지 않는다.
 
-- SDE는 확정 발주·실입고·벤더 확약 납기 이력, HML은 재고평가 단가·통화·평가기준일,
-  PLC는 승인된 Lifecycle Revision·승인자·Hash가 필요하다.
-- 현재 조사 결과 SDE·HML 권위 Coverage는 0이며 PLC 350,000건은 모두 합성이다. Source가
-  준비될 때까지 SDE/HML을 `UNVERIFIED`, PLC를 `SYNTHETIC + SHADOW_ONLY`로 유지한다.
+### 7. Publication 물리 계약과 실제 개발 E2E — 승인 필요
 
-### 6. 미달한 ML/PPO 개선 실험 — 다음 작업
+대상: InventoryEngine `deliver_inventory`, dsai-platform Runtime, 개발 PostgreSQL과 Artifact 저장소.
 
-대상: InventoryEngine ML/PPO 학습·평가 모듈. 완료한 [학습 안정성 실험](IO_LEARNING_STABILITY_VERIFICATION.md)을 재구현하지 않고 미달 원인을 분리한다.
+- 보류한 P0-13/P0-18을 재개해 `TB_IO_*` Grain·PK/FK·Hash·Receipt, 게시 멱등 Key,
+  부분 실패 재발행과 Effective Run CAS를 확정한다.
+- Demand→IO 순차 실행과 실패 Site Retry, Artifact/DB 불일치 복구를 실제 Run으로 검증한다.
+- 완료 조건: 성공 Run의 Evidence와 Effective Pointer가 일치하고 실패 Run은 정상 결과로
+  노출되지 않는다. Migration·DB Write·공용 Runtime 배포는 모두 별도 승인 대상이다.
 
-- 수학적 전략을 기준선으로 유지하고 TRAIN/VALIDATION에서 정규화·무수요 품목·행동/보상·학습량 영향을 검증한다.
-- 이번에 평가한 TEST에 맞춰 후보를 튜닝하지 않는다. 개선 후보는 새 Revision과 새 홀드아웃으로 평가한다.
-- 완료 조건: 비용과 서비스 기준을 함께 충족하는 재현 근거 또는 명확한 거부 이유. 자동 운영 전환·공용 Runtime 배포는 하지 않는다.
+### 8. 운영 전환과 후속 Capability — 외부 작업 대기 / 승인 필요
 
-### 7. 공통 Run·Configuration·Planning Cycle 연결 — 진행 중
+대상: 실제 운영 Source·배포 환경, 향후 Multi-Echelon 및 DSIM.
 
-대상: dsai-platform Backend와 InventoryEngine `platform_contracts`, `run_inventory`, Bootstrap.
-
-- 공통 Run 소유권과 최소 Cycle Table 원칙의 호환 Migration 초안·API·Repository,
-  Demand Handoff Binding과 Platform -> Runtime HTTP Dispatch는 구현했다. Demand 기존 API/Run을 유지한다.
-- Runtime의 닫힌 접수 계약, 단계 Event·최종 Publish Callback과 Offline 통합 테스트를 구현했다.
-- Effective Policy V2 Input Binding과 보충 계산 Handler 연결은 완료했다. 다음은 Runtime 영속
-  Queue/Worker와 전체 Pipeline Handler를 조립한다.
-- Network UseCase에는 Claim 이후 Run Context와 Cycle에 고정된 Network ID/Hash를 전달한다. 이 단계에서 Cycle/Run Row 존재와 전체 입력 Binding을 검증한다.
-- 완료 조건: 같은 입력의 기술적 Retry는 새 Run만 만들고 입력 Hash를 유지한다. 변경된 입력은 새 Cycle Revision으로 분리된다.
-
-### 8. Artifact·TB_IO 중간 산출물 저장 — 다음 작업
-
-대상: InventoryEngine `inventory_evidence`·저장 Adapter, dsai-platform의 `dsim` Migration 초안.
-
-- P0-13에서 Manifest·Cut-off 대사·Canonical 입력·PSI·정책 근거의 물리 Grain/PK/FK/Precision을 확정한다.
-- 모든 단계의 불변 DTO를 Run-scoped Artifact에 봉인하고 DB와 Row Count/Hash를 대사한다. Network 전체 Snapshot과 Site Context도 포함한다.
-- 계산은 DB와 분리해 구현할 수 있으나, Evidence가 영속 저장되지 않은 상태를 전체 Run 성공으로 표시하지 않는다.
-- 완료 조건: 실행별 입력/중간/결과 계보를 재구성할 수 있다. 실제 Migration/DB Write는 해당 대상별 승인 후 수행한다.
-
-### 9. Publication과 실제 개발 E2E — 승인 필요
-
-대상: InventoryEngine `deliver_inventory`, dsai-platform 공통 Runtime, 지정 개발 PostgreSQL/Artifact 저장소.
-
-- Publication 구현 전에 보류한 P0-18을 재개해 게시 Table·멱등 Key·부분 실패 재발행·Effective Run CAS를 확정한다.
-- Demand → IO 순차 실행, 실패 Site Retry, Artifact/DB 불일치·복구를 실제 Run으로 검증한다.
-- 완료 조건: 성공 Run의 Evidence/Receipt와 유효 결과 포인터가 일치하고 실패 Run은 정상 결과로 노출되지 않는다.
-- 신규 DB Write·Migration·공용 Runtime 배포 범위는 별도 승인받는다. 이전 Network Master 적용 승인을 전체 IO E2E 승인으로 확대하지 않는다.
-
-### 10. 운영 전환과 후속 Capability — 외부 작업 대기 / 승인 필요
-
-대상: 실제 운영 Source·배포 환경, 향후 Multi-Echelon 및 DSIM 개발.
-
-- 실제 재고·주문·공급 확약 Source, 물류 계약을 검증하고 P0-14 보존/복구와 P0-19 정식 회귀 Gate를 운영 전환 전에 확정한다.
-- Multi-Echelon은 단일 Site Core 검증 이후 별도 계산 범위로 착수한다.
-- DSIM은 아직 미구현이며 IO 개발의 선행 의존성이 아니다. DSIM을 개발하는 시점에 Evidence Read Contract를 소비하도록 설계한다.
+- 운영 전환 전에 실제 Source 정확성, P0-14 보존/복구, P0-19 회귀 합격 Gate를 확정한다.
+- 단일 Site Core가 운영 검증된 뒤 Hub–Spoke Multi-Echelon Solver를 별도 범위로 착수한다.
+- DSIM은 현재 미구현이며 선행 의존성이 아니다. 구현 시 봉인된 Evidence Read Contract를
+  소비하게 한다.
 
 ## 5. 병렬 가능성과 승인 경계
 
 공통 전략/PSI·수학적 기준·합성 기반·생산 평가·ML/PPO, V2 Runtime Binding과 개발 DB
-Projection은 완료됐다. 모델 성능 합격이나 운영 활성화를 뜻하지 않는다. 다음 직렬 경로는
-1번 실제 V2 Snapshot E2E → 2번 Migration 074 → 4번 공용 Runtime E2E다. 3번 실제 Source 연결과
-6번 모델 개선은 계약을 보존하면 병렬로 진행할 수 있다.
+Projection은 완료됐다. 모델 성능 합격이나 운영 활성화를 뜻하지 않는다. Artifact 저장
+경계와 Runtime Handler 연결도 로컬 완료됐다.
+Landed Cost Artifact 구현과 PPO 연구는 공통 PSI·Result Bundle 계약을 바꾸지 않는 범위에서
+병렬 진행할 수 있다. 공통 Artifact 계약 변경·DB Migration·실제 E2E는 직렬 작업이다.
+운영 Source 연결은 운영 전환 시 외부 준비가 필요하며 현재 개발 Fixture 흐름을 차단하지 않는다.
 
-8번 물리 Schema는 공통 Run ID 계약과 맞춘 뒤 작성한다. 실제 Migration → Source 적재 → 실행 → Publication/E2E는 직렬이며 대상별 승인이 필요하다.
+실제 V2 Snapshot과 Migration 074·Claim 검증은 완료했다. Publication/E2E는 직렬 적용 전에
+별도 승인이 필요하다.
+`TB_IO_*` 물리 Schema는 Plan 1.1.0과 공통 Run ID 계약을 맞춘 뒤 작성한다.
 
 기존 아키텍처·PM 기준선에 이번 Backend·QA 검증을 반영했다. 보호된 `.agents/` 대신 이 `docs/architecture`에서 기준선과 계획을 관리한다.
 
-InventoryEngine은 `inventory_engine_dev` Branch와 GitHub `origin`을 사용한다. dsai-platform의 후속 변경은 `origin/develop`에서 분리한 Inventory 전용 브랜치를 기준으로 독립 검토한다. 승인돼 완료된 개발 Migration 075·076 이외의 추가 Migration, 실제 업무 DB Write와 Runtime 배포는 별도 승인 전 수행하지 않는다.
+InventoryEngine은 `inventory_engine_dev`와 GitHub `origin/inventory_engine_dev`를 개발 기준 브랜치로 사용한다.
+2026-09-29 사용자 결정에 따라 별도 `codex/` 브랜치를 만들지 않고 이 브랜치에서 직접 작업한다.
+기존 `codex/inventory-result-orchestrator`는 동일 커밋의 병합 상태를 확인한 후 로컬·원격에서 삭제했고,
+기존 미커밋 변경은 `inventory_engine_dev` 작업 트리에 그대로 보존했다.
+dsai-platform의 후속 변경은 `origin/develop`에서 분리한 Inventory 전용 브랜치를 기준으로
+독립 검토한다. 승인돼 완료된 개발 Migration 074·075·076·077 이외의 추가 Migration, 실제 업무 DB
+Write와 Runtime 배포는 별도 승인 전 수행하지 않는다.
+
+InventoryEngine은 PSI Orchestrator·영속 Artifact/Outbox·Runtime와 Trade Cost·Sealed Projection을
+기능별 Commit으로 분리하고 이 문서·계획·브랜치 지침을 별도 기준선 Commit으로 관리한다.
+Push 대상은 `origin/inventory_engine_dev`이며 Platform과 DemandEngine을 함께 Push하지 않는다.
+사용자 원본 `main.py`, 연구 Notebook, 환경 파일, IDE 설정과 생성 Output은 제외한다.
+별도 SCM 전문가 보고서의 사용자 수정도 Commit에 포함하지 않고 그대로 보존한다.
 
 ## 6. 의사결정과 검증을 분리한 목록
 
@@ -194,7 +308,10 @@ InventoryEngine은 `inventory_engine_dev` Branch와 GitHub `origin`을 사용한
 | 보류 유지 | P0-14 보존·복구, P0-18 Publication 상세, P0-19 정식 Legacy 합격 Gate. 각 착수 경계에서만 재개 |
 | 향후 범위 | Multi-Echelon 계산·실제 물류 Source, DSIM Agent/조회 API |
 
-Source 읽기·변환, V2 Runtime Binding과 개발 DB Projection은 완료했다. 바로 다음은 승인된
-실제 V2 Config로 영속 Snapshot을 게시하는 개발 E2E이며, 이후 Migration 074와 공용 Runtime
-E2E가 이어진다. Demand/Studio의 실제 봉인 Export와 권위 SDE/HML/PLC Source는 외부 준비
-대기다. Multi-Echelon Solver와 DSIM은 별도 후속 범위다.
+Source 읽기·변환, V2 Runtime Binding, 개발 DB V2 Config·분류 Snapshot 게시와 동일 Run 로컬
+PSI Orchestrator는 완료했다. dsai-platform Strategy Plan 1.1.0 정합화, 개발 Cost/Stress
+Registry, Result Bundle 영속 Adapter와 Runtime Handler 연결도 로컬 완료했다. Migration 074와
+실제 Claim·Retry·CAS 검증 역시 완료했으므로 다시 실행 목록에 넣지 않는다. 다음 직렬 작업은
+Landed Cost Child Artifact와 개발 Simulation 비용 연결이다. 실제 Publication/E2E·공용 Runtime
+배포는 별도 승인 대상이며, 권위 SDE/HML/PLC·Trade Source는 운영 전환 때 준비한다.
+Multi-Echelon Solver와 DSIM은 별도 후속 범위다.

@@ -105,7 +105,8 @@ Inventory Result의 PostgreSQL/Object Storage Write, 공용 Runtime 배포 또�
 
 ## 4. 회귀 결과
 
-동일 작업 트리에서 다음 전체 테스트를 실행했다.
+2026-09-15 당시 작업 트리에서 다음 전체 테스트를 실행했다. 아래 수치는 당시 증적이며
+최신 Git 기준선 전체 테스트 수치와 구분한다.
 
 | 구분 | 실행 결과 |
 | --- | --- |
@@ -117,6 +118,12 @@ Inventory Result의 PostgreSQL/Object Storage Write, 공용 Runtime 배포 또�
 변경 Python 파일 전체의 Ruff 검사와 Format 검사도 통과했다. 이 Orchestrator 테스트 자체는
 DB, Network, 외부 Runtime에 접속하거나 데이터를 쓰지 않았다. 별도 승인 E2E로 V2 분류
 Snapshot은 개발 PostgreSQL에 게시했다.
+
+2026-09-29 재검증은 전체 후보 기준 InventoryEngine Unit 442건, Contract 48건, Offline
+Integration 76건 통과다. 합계 566건 통과·실패 0·Skip 7·Subtest 570건이며 DemandEngine 교차
+Handoff도 포함했다. PSI·증적 기능만 분리한 Stage Snapshot은 537건 통과·Skip 7이었다.
+최신 Commit 경계와 검증 환경은 [Git 기준선 기록](evidence/git-baseline-validation-20260929.json)을
+따른다. 이번 재검증에서는 외부 DB를 읽거나 쓰지 않았다.
 
 ## 5. 남은 경계
 
@@ -142,5 +149,7 @@ Stale Attempt CAS 차단, V2 자동 게시 Gate와 V1 Effective Run CAS를 확�
 dsai-platform의
 `docs/backend/dsim/evidence/inventory-run-lifecycle-migration-074-20260915.json`을 따른다.
 
-따라서 다음 구현 순서는 권위 Cost/Stress Source 교체와 운영 Artifact Adapter다. 실제 Result
-Bundle DB/Object Storage Write와 공용 Runtime 배포는 각각 명시적 승인 이후에 수행한다.
+개발 기준의 다음 구현은 Sealed Trade Cost Projection에서 Landed Cost Child Artifact를 만들고
+개발 Simulation 비용에 연결하는 작업이다. 권위 Cost/Stress Source 교체는 운영 전환 단계의
+후속 작업이다. 실제 Result Bundle DB/Object Storage Write와 공용 Runtime 배포는 각각 명시적
+승인 이후에 수행한다.
