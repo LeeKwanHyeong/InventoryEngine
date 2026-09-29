@@ -16,7 +16,7 @@
 | 7축 분류·Effective Policy V2 | Config 1.1.0 호환과 2.0.0 7축 결과를 결정론적으로 생성한다. 개발 PostgreSQL DSE/C100/V100에 Config Revision 2와 V2 Snapshot Revision 2를 게시했고 7,000품목·49,000축 Row·26주 Actual Close·Exact Replay를 검증했다. Migration 074와 실제 Claim·Attempt·Retry·CAS도 개발 DB에서 검증했다. | Scheduler·공용 Runtime 배포. SDE/HML 운영 Source와 PLC 권위 Source는 아직 준비되지 않음 |
 | Cut-off·단일 Site PSI | 전기 EOH–BOH·Watermark·Late Posting·봉인/고아 검증, 공통 주차 전이·Baseline/로컬 Recommended PSI와 Evidence JSON | ERP 신규 거래 수집/실제 봉인 저장·DB Evidence 적재 |
 | 동일 Run PSI Result Bundle | Canonical 입력을 한 번 준비하고 실제 Baseline·Math·PPO Shadow·등록 Stress PSI를 계산한다. 승인된 개발 Cost Profile과 수요 급증·확정 입고 7일 지연 Registry를 Plan에 Hash로 봉인하고 실제 PSI Row에서 비용 Delta를 산출한다. 무비용 V1 경로는 `COST_PROFILE_NOT_BOUND`로 호환된다. | 권위 비용 Source와 운영 Stress Registry, PostgreSQL/Object Storage Adapter, 공용 Runtime 배포·DB 게시 |
-| Trade Cost·Landed Cost V1 | C100 V100→V101~V104의 개발 Fixture Catalog, Pure Calculator, Migration 077, 승인·Supersede CAS API, Planning Cycle Run Binding과 Sealed Revision Set Projection 조회를 구현했다. Runtime은 Source·Set·Projection Hash와 Scope·적용일·환경을 다시 검증한다. | Landed Cost Child Artifact와 개발 Simulation·MEIO 비용 연결. 운영 전환 시 권위 Source와 국가별 공식 Rule Adapter 필요 |
+| Trade Cost·Landed Cost V1 | C100 V100→V101~V104의 개발 Fixture Catalog, Pure Calculator, Migration 077, 승인·Supersede CAS API, Planning Cycle Run Binding과 Sealed Revision Set 조회를 구현했다. 봉인 Shipment·Projection의 Child 계산, Append-only 원자 저장과 독립 Replay도 Offline 완료했다. | Child의 실제 Claim/Runtime·Parent Bundle 연결과 개발 Simulation·MEIO 비용 소비. 운영 전환 시 권위 Source와 국가별 공식 Rule Adapter 필요 |
 | 세 전략 공통 기반 | MATHEMATICAL/PREDICTIVE_ML/DEEP_RL 계약, 행동/납기/용량 검증, 공급 대기열 | 전략 간 자동 Fallback·운영 승인 인증 |
 | 수학적 정책 | 13/26주 이력·SS/ROP/목표재고·승인 Override/Fallback·권고 Golden 14개/42 PSI Row | 실제 Source 적합성/서비스수준 달성 검증 |
 | 학습·평가 기반 | 독립 52주 Generator, 시간순 Feature/Label, 비용·서비스·입고지연 Reference World, 130주·5품목·6시나리오 | 실제 Forecast Vintage/공급 이력 수집·운영 봉인 |
@@ -30,19 +30,22 @@
 
 InventoryEngine 작업 경로는 `/Users/igwanhyeong/PycharmProjects/InventoryEngine`이며 독립 Git 저장소와 `origin`이 구성돼 있다. `main.py`와 `sample_jupyter/io_proximal_policy_optimization.ipynb`는 기존 사용자 자료로 보존한다. 연구 Notebook은 재고정책·Solver 구현 기준선으로 자동 채택하지 않는다.
 
-2026-09-29 로컬 재검증에서 InventoryEngine Unit 442건, Contract 48건, Offline Integration
-76건이 통과했다. 합계 566건 통과·실패 0·Skip 7·Subtest 570건이다. Skip은 명시적으로
+2026-09-29 선언 범위의 격리 환경 재검증에서 InventoryEngine Unit 459건, Contract 52건,
+Offline Integration 85건이 통과했다. 합계 596건 통과·실패 0·Skip 7·Subtest 623건이다. Skip은 명시적으로
 비활성화한 PostgreSQL 읽기 전용 테스트이며, DemandEngine 교차 Handoff와 111,020행 전달
-검증은 Python 3.12 환경에서 포함했다. Ruff, Format과 JSON Schema 19개 검증도 통과했다.
+검증은 Python 3.12 환경에서 포함했다. Ruff, Format과 JSON Schema 21개 검증도 통과했다.
 dsai-platform은 최신 `origin/develop`의 `abe71826` 기준 Inventory 관련 회귀 248건이 통과했다.
 `main.py`의 기존 import 위치·전체 서식 지적은 기준 커밋에도 있어 전면 재작성하지 않았다.
 새 Inventory Router import는 같은 초기화 순서를 따르며, 그 외 후보 Python 파일의 Ruff와
 Format을 검증했다. Frontend와 Platform 전체 기능 테스트는 이번에 재실행하지 않았다.
 
-로컬 실행 환경의 선택 의존성에는 별도 한계가 있다. 이번 Python 3.12 테스트는 Polars 1.31.0과
-Torch 2.14.0에서 통과했지만 `pyproject.toml`의 Handoff/학습 Extra 범위와 각각 다르다.
-기존 환경이나 의존성 범위를 변경하지 않았으며, 선언된 Extra 조합의 별도 격리 검증은 다음
-개발 확인 사항이다. 위 통과 수치를 배포 환경의 의존성 호환성 검증으로 해석하지 않는다.
+기존 환경의 Polars 1.31.0·Torch 2.14.0과 의존성 선언은 변경하지 않았다. 임시 환경 두 개에서
+모든 선언 Extra를 함께 설치해 Polars 1.41.0/Torch 2.12.0 및 Polars 1.44.2/Torch 2.12.1을
+검증했고 `pip check`도 통과했다. 하한 환경은 Inventory 자체 587건, 최신 허용 환경은
+Demand 교차 Handoff 포함 596건 통과다. Handoff의 Demand 모듈 로딩에는 NumPy·pandas·
+PyArrow·psycopg2-binary·python-dotenv·tqdm을 테스트 보조 의존성으로 추가했다.
+이 결과는 macOS arm64/Python 3.12.10의 CPU·Offline 검증이며 Linux/CUDA·공용 Runtime
+배포 검증을 뜻하지 않는다. [격리 의존성·Artifact 증적](evidence/landed-cost-artifact-validation-20260929.json)을 따른다.
 
 Migration 074·075·076·077의 개발 적용, Config·분류 Snapshot 게시와 Claim·Retry·CAS는
 이전 승인 작업의 증적이다. 이번 Git 기준선 검증에서는 DB 접속·Migration 적용·DB Write와
@@ -221,14 +224,18 @@ Orchestrator가 수행한다. Raw Action에는 판단 당시의 Prepared/Executi
 
 ### 4. Landed Cost Child Artifact와 개발 Simulation 비용 연결 — 다음 작업
 
-대상: InventoryEngine `calculate_landed_cost`, `run_inventory`, `inventory_evidence`.
+대상: InventoryEngine `run_inventory`·`calculate_landed_cost`, dsai-platform Run 결과 계약.
 
-- Run에 고정된 Sealed Revision Set Projection과 개발 Shipment 입력을 Pure Calculator에
-  연결한다. 계산 결과의 Component·총액·Source Hash를 Child Artifact로 봉인하고 다시 검증한다.
-- 같은 개발 Fixture를 Simulation 평가에 연결하되, 보유비·Backorder·발주비와 운송·관세·세금의
-  중복 계산을 차단한다. 실제 Multi-Echelon 최적화 Solver 구현과는 별도 단계다.
-- 완료 조건: 동일 Run Binding이 동일 Landed Cost Artifact·Hash를 만들고 미확인 값이나
-  변조된 Source를 거부한다. 로컬 구현·Offline 검증에는 운영 Source Owner 승인이 필요 없다.
+- 현재 기준선: [Child Artifact 계약](IO_LANDED_COST_CHILD_ARTIFACT_CONTRACT.md)의 봉인 입력,
+  Source 해소, Component/총액 저장과 원본 기반 Replay는 Offline 완료했다. 별도 비용 Child이며
+  기존 PSI `result_children`에 비용 Row를 추가하지 않고 Publication Outbox도 만들지 않는다.
+- 다음 작업: 실제 Claim으로 Shipment를 해소하고 비용 Child 포인터를 Runtime·Parent 결과에
+  연결한다. Parent 계약 변경은 InventoryEngine·Platform 사이에서 먼저 정합화한다.
+- 그 후 개발 Simulation 평가에서 보유비·Backorder·발주비와 운송·관세·세금·구매비의 중복
+  계산을 차단한다. 실제 Multi-Echelon 최적화 Solver 구현과는 별도 단계다.
+- 완료 조건: 같은 Run의 봉인 비용 입력을 동일하게 복구하고 `CALCULABLE`인 개발 결과만
+  비용 평가에 사용한다. 미확인 비용은 0으로 대체하지 않는다. Offline 개발에 운영 Owner
+  승인은 필요 없고, DB Write·공용 Runtime 배포는 별도 승인 대상이다.
 
 ### 5. 실제 Demand·Inventory Source 연결 — 운영 전환 시 외부 작업 대기
 
@@ -274,7 +281,7 @@ Orchestrator가 수행한다. Raw Action에는 판단 당시의 Prepared/Executi
 공통 전략/PSI·수학적 기준·합성 기반·생산 평가·ML/PPO, V2 Runtime Binding과 개발 DB
 Projection은 완료됐다. 모델 성능 합격이나 운영 활성화를 뜻하지 않는다. Artifact 저장
 경계와 Runtime Handler 연결도 로컬 완료됐다.
-Landed Cost Artifact 구현과 PPO 연구는 공통 PSI·Result Bundle 계약을 바꾸지 않는 범위에서
+완료된 Landed Cost Artifact와 PPO 연구를 사용하는 평가 구현은 공통 PSI·Result Bundle 계약을 바꾸지 않는 범위에서
 병렬 진행할 수 있다. 공통 Artifact 계약 변경·DB Migration·실제 E2E는 직렬 작업이다.
 운영 Source 연결은 운영 전환 시 외부 준비가 필요하며 현재 개발 Fixture 흐름을 차단하지 않는다.
 
@@ -312,6 +319,6 @@ Source 읽기·변환, V2 Runtime Binding, 개발 DB V2 Config·분류 Snapshot 
 PSI Orchestrator는 완료했다. dsai-platform Strategy Plan 1.1.0 정합화, 개발 Cost/Stress
 Registry, Result Bundle 영속 Adapter와 Runtime Handler 연결도 로컬 완료했다. Migration 074와
 실제 Claim·Retry·CAS 검증 역시 완료했으므로 다시 실행 목록에 넣지 않는다. 다음 직렬 작업은
-Landed Cost Child Artifact와 개발 Simulation 비용 연결이다. 실제 Publication/E2E·공용 Runtime
+완료된 Landed Cost Child를 실제 Claim·Runtime·Parent 결과와 개발 Simulation 비용에 연결하는 것이다. 실제 Publication/E2E·공용 Runtime
 배포는 별도 승인 대상이며, 권위 SDE/HML/PLC·Trade Source는 운영 전환 때 준비한다.
 Multi-Echelon Solver와 DSIM은 별도 후속 범위다.

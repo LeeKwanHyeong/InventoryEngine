@@ -211,8 +211,18 @@ Shipment 고정비의 기본 배부 기준은 `CUSTOMS_VALUE`다. 승인된 Sour
 - Source·Set·Projection Hash와 Scope·적용일·환경을 InventoryEngine에서 재검증한다.
 - 개발 Fixture 결과는 개발 Scenario와 MEIO 입력에 사용하되 운영 적격성은 부여하지 않는다.
 
-### Landed Cost Child Artifact와 Simulation·MEIO 비용 연결 — 다음 작업
+### Landed Cost Child Artifact — 완료(Offline)
 
-- 봉인 Projection을 Pure Calculator 입력 DTO로 변환한다.
-- Shipment+Lane+Item+적용일별 Component와 총액을 Append-only Child Artifact로 보존한다.
-- 개발 Simulation·MEIO는 `development_eligible=true` 결과만 소비하고 운영 게시·발주는 계속 차단한다.
+- [Child Artifact 계약](IO_LANDED_COST_CHILD_ARTIFACT_CONTRACT.md)의 봉인 Shipment 입력과
+  Revision Set Projection을 Pure Calculator에 연결했다. 개발 MFN/SHIPMENT 정액 Lane Charge를
+  우선 지원하고, 미지원 Rule을 임의 대체하지 않는다.
+- Shipment+Lane+Item+적용일별 Component와 총액, 계산기 구현 Hash, 원본 Source를 로컬
+  SQLite에 원자·Append-only 저장한다. 원본으로 재계산해 독립 검증한다.
+- 미확인 비용은 null/차단 사유로 보존한다. 명시적인 미적용 사유와 Source 0을 누락과 구분한다.
+- 기존 PSI Child 계약과 Publication Outbox는 변경하지 않았다. 모든 운영·자동 게시·발주 Gate는 false다.
+
+### Runtime·Simulation·MEIO 비용 연결 — 다음 작업
+
+- 실제 Claim의 Shipment Binding과 Parent 결과 포인터를 연결한다.
+- 개발 Simulation·MEIO 비용 평가는 CALCULABLE 개발 결과만 소비하고 기존 비용과의 중복 계상을 차단한다.
+- 실제 MEIO Solver·권위 Source·운영 게시·배포는 완료되지 않았다.

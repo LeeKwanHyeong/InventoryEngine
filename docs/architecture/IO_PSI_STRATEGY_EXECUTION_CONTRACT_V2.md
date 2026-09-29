@@ -17,6 +17,10 @@ Store와 `TB_IO_*` 게시 테이블, Runtime 배포는 아직 구현 범위가 �
 개발 PostgreSQL에 적용했고 V2 Plan·Config·분류 Snapshot을 실제 Claim에 고정해
 Attempt·Input Binding·Retry·CAS를 검증했다.
 
+Landed Cost의 독립 비용 Child는 [별도 개발 계약](IO_LANDED_COST_CHILD_ARTIFACT_CONTRACT.md)으로
+구현했다. 현재 PSI Bundle `1.0.0`의 `result_children`에는 포함하지 않으며, Parent 포인터·
+Runtime 연결은 후속 계약 작업이다. 비용 Child를 PSI Row나 서비스 지표로 해석하지 않는다.
+
 ## 결정
 
 PSI 재고 이동 공식은 모든 전략이 공유한다. 전략은 PSI 공식을 바꾸지 않고 신규 보충

@@ -1,8 +1,8 @@
 {
   "project_name": "InventoryEngine",
   "baseline_date": "2026-09-29",
-  "latest_contract_review_date": "2026-09-16",
-  "description": "0.15.0 기준 계약 위에 7축 Effective Policy V2와 동일 Run PSI Result Bundle Orchestrator를 구현했다. 개발 Cost Profile과 Stress Registry, DSE/C100/V100 개발 V2 Snapshot, Migration 074 실제 Claim 검증을 완료했다. C100 V100→V101~V104의 Trade Cost 개발 Fixture, Pure Decimal Calculator, Migration 077, 승인 API, Run Binding과 Sealed Projection Runtime 조회까지 연결했다. Landed Cost Child Artifact·개발 Simulation/MEIO 비용 연결, 운영 Artifact Adapter와 공용 Runtime 배포는 미완료다.",
+  "latest_contract_review_date": "2026-09-29",
+  "description": "0.15.0 기준 계약 위에 7축 Effective Policy V2와 동일 Run PSI Result Bundle Orchestrator를 구현했다. 개발 Cost/Stress, V2 Snapshot, Migration 074 Claim과 Trade Cost 077/승인/Binding/Sealed Projection을 검증했다. Landed Cost의 봉인 Shipment·Projection 해소, 독립 비용 Child와 Append-only 원자 저장·재계산 Replay는 Offline 완료했다. 실제 Claim·Runtime·Parent 포인터와 개발 Simulation/MEIO 비용 소비, 운영 Artifact Adapter·배포는 미완료다.",
   "tech_stack": {
     "frontend": "dsai-platform Engine Studio의 Inventory Config 2.0.0 편집·Source 상태 표시",
     "backend": "Python >=3.12, src layout, 순수 계산 UseCase, asyncpg 읽기 Adapter",
@@ -34,20 +34,20 @@
     "network_input": "완료: 요청 ID/Hash·승인·Scope·Plan 기준일 검증과 메모리 Snapshot/Manifest",
     "validation": {
       "validation_date": "2026-09-29",
-      "inventory_unit_tests": 442,
-      "inventory_contract_tests": 48,
-      "inventory_offline_integration_tests": 76,
-      "inventory_tests_total": 566,
+      "inventory_unit_tests": 459,
+      "inventory_contract_tests": 52,
+      "inventory_offline_integration_tests": 85,
+      "inventory_tests_total": 596,
       "inventory_tests_failed": 0,
       "inventory_tests_skipped": 7,
-      "inventory_subtests_passed": 570,
+      "inventory_subtests_passed": 623,
       "inventory_skipped_reason": "PostgreSQL 읽기 전용 통합 테스트 7건은 이번 로컬 검증에서 명시적으로 비활성화",
       "platform_backend_tests_passed": 248,
       "historical_platform_frontend_tests_passed": 5,
       "platform_frontend_tests_reexecuted": false,
-      "json_schemas_checked": 19,
-      "declared_optional_extra_versions_verified": false,
-      "optional_dependency_environment_limitations": "로컬 Polars 1.31.0과 Torch 2.14.0은 선언된 handoff/learning Extra 범위 밖. 기존 환경은 보존했고 선언 범위의 별도 격리 검증은 후속",
+      "json_schemas_checked": 21,
+      "declared_optional_extra_versions_verified": true,
+      "optional_dependency_environment_limitations": "기존 환경 보존. macOS arm64/Python 3.12.10 임시 환경에서 Polars 1.41.0/Torch 2.12.0 자체 587건, Polars 1.44.2/Torch 2.12.1 Demand Handoff 포함 596건 통과. Handoff에는 Demand 로딩용 보조 라이브러리를 추가했고 Linux/CUDA 배포는 검증하지 않음",
       "validation_scope": "Unit·Contract·Offline Integration. Demand 교차 Handoff 포함. DB 접속·Migration 적용·DB Write·Runtime 배포 없음",
       "historical_validation_note": "아래 기존 Source·Network·학습 실험별 수치는 이전 증적이며 이번에 DB 검증을 재실행한 수치가 아님",
       "ruff": "PASSED",
@@ -741,9 +741,9 @@
     {
       "id": "io-trade-cost-child-artifact",
       "agent": "backend",
-      "status": "다음 작업",
-      "title": "Landed Cost Child Artifact와 개발 Simulation·MEIO 비용 연결",
-      "description": "Run에 봉인된 Trade Cost Projection을 Pure Calculator 입력으로 변환하고 Shipment+Lane+Item+적용일별 Component와 총액을 Append-only Child Artifact로 보존한 뒤 개발 Simulation·MEIO 비용 입력에 연결한다.",
+      "status": "완료",
+      "title": "Landed Cost 독립 Child Artifact와 Offline 저장·재검증",
+      "description": "봉인 Shipment·Projection을 Source-bound Calculator로 연결하고 Component·총액·구현 Hash와 원본을 로컬 SQLite에 원자 Append-only 저장한다. 외부 Binding과 원본 재계산으로 검증하며 기존 PSI Bundle·Publication Outbox를 변경하지 않는다.",
       "priority": 2,
       "dependencies": [
         "io-trade-cost-platform-binding",
@@ -754,19 +754,36 @@
         "Run Binding·Projection·Calculator·Child Artifact가 동일 Revision Set Hash를 공유",
         "Component 합과 Gross·Recoverable·Net Landed Cost 보존식 검증",
         "동일 Reference·동일 Hash 멱등 처리와 다른 Hash 충돌",
-        "DEVELOPMENT Fixture 결과는 개발 Simulation·MEIO만 허용",
-        "operational_eligible=false 결과의 자동 게시·발주 차단"
+        "DEVELOPMENT Fixture만 계산·증적에 허용하고 Simulation·MEIO 연결 완료와 구분",
+        "운영·자동 게시·발주 Gate false를 Reader에서 강제"
       ],
       "artifacts_expected": [
         "Landed Cost Input Adapter",
         "Landed Cost Child Artifact Writer/Reader/Verifier",
-        "개발 Simulation·MEIO Cost Binding 통합 테스트"
+        "Offline 동시 Replay·Hash 변조·원자 Rollback 통합 테스트"
       ],
       "scope": [
-        "InventoryEngine Runtime",
         "InventoryEngine Evidence Store",
-        "개발 Simulation·MEIO"
+        "InventoryEngine Pure Calculator"
       ]
+    },
+    {
+      "id": "io-landed-cost-runtime-simulation-binding",
+      "agent": "backend",
+      "status": "다음 작업",
+      "title": "Landed Cost를 실제 Claim·Runtime·Parent 결과와 개발 비용 평가에 연결",
+      "description": "Claim의 Canonical/Revision Set Binding으로 Shipment를 해소하고 독립 비용 Child 포인터를 Parent 계약에 연결한 뒤 개발 Simulation 비용 평가에서 구매·운송·관세·세금과 기존 비용의 중복 계상을 차단한다. 기존 PSI result_children에 비용 Row를 넣지 않는다.",
+      "priority": 2,
+      "dependencies": ["io-trade-cost-child-artifact"],
+      "estimated_complexity": "high",
+      "acceptance_criteria": [
+        "실제 Claim·Shipment·비용 Child가 동일 Canonical/Revision Set Binding을 공유",
+        "Parent 결과와 Runtime 복구가 비용 Child Reference/Hash를 검증",
+        "CALCULABLE 개발 결과만 비용 소비하고 누락 비용은 0으로 대체하지 않음",
+        "기존 비용과 중복 계상하지 않으며 운영 Gate false 유지"
+      ],
+      "artifacts_expected": ["Shipment Runtime Resolver", "Parent Cost Child 포인터 계약", "개발 Cost Binding 통합 테스트"],
+      "scope": ["InventoryEngine Runtime", "dsai-platform Run 계약", "개발 Simulation"]
     },
     {
       "id": "io-trade-cost-source-adapters",
@@ -983,8 +1000,8 @@
     ]
   },
   "testing_strategy": {
-    "unit_tests": "InventoryEngine Unit 442건과 Contract 48건 통과. Trade Cost Projection 변조·Scope·적용일·환경과 Runtime Binding 회귀 포함",
-    "integration_tests": "2026-09-29 InventoryEngine Offline Integration 76건 및 dsai-platform Inventory 관련 회귀 248건 통과. Python 3.12에서 DemandEngine 교차 Handoff·111020행 검증을 포함했다. Migration 074·075·076·077 개발 적용과 Canary는 이전 증적이며 이번에는 DB를 재검증하거나 변경하지 않았다",
+    "unit_tests": "선언 Extra 최신 허용 조합에서 Unit 459건·Contract 52건 통과. 새 Landed Cost Source 해소·금액 Golden·Schema·Hash/시점/Scope 변조 회귀 포함",
+    "integration_tests": "선언 Extra 최신 허용 조합에서 Offline Integration 85건(Demand 교차 Handoff 포함) 통과. DB 읽기 7건 비활성화. Platform 248건과 Migration 074·075·076·077 실제 DB 검증은 이전 증적이며 이번에 Platform·DB를 변경하거나 재검증하지 않았다",
     "e2e_tests": "DSE/C100/V100 개발 Config 2.0.0과 V2 Snapshot 게시, Planning Cycle Claim·Retry·CAS를 검증했다. Trade Cost는 승인 Revision Set ce625f93-9cf8-59dd-96e6-d394aba1a8b8의 27 Source·27 Document·22 Record를 읽고 Set Hash a609a003fd7d223a3c44b4d8ab72455bf8a648572c9d3c16c585f3569fb85898와 Projection Hash 2e6b893e2bb533d179f9b4c3bb1e74ced9af7a042975cc241c251b9e712b0775를 재검증했다.",
     "performance_tests": "후속 대표 POSM/TGSM 입력으로 실측; 현재 처리량 주장 없음"
   }
