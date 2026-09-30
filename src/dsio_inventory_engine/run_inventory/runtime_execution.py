@@ -27,6 +27,10 @@ from dsio_inventory_engine.inventory_contracts.values import (
     identifier,
     require,
 )
+from dsio_inventory_engine.inventory_evidence.contracts import evidence_reference
+from dsio_inventory_engine.inventory_contracts.run_result_manifest import (
+    validate_run_result_manifest,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -42,6 +46,9 @@ class InventoryRuntimeResult:
     inventory_result_bundle: Mapping[str, Any] | None = None
     publication_outbox_id: str | None = None
     publication_outbox_content_hash: str | None = None
+    run_result_manifest_reference: str | None = None
+    run_result_manifest_content_hash: str | None = None
+    run_result_manifest: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         identifier(self.inventory_result_snapshot_id)
@@ -96,6 +103,18 @@ class InventoryRuntimeResult:
         if self.publication_outbox_id is not None:
             identifier(self.publication_outbox_id)
             hash_value(self.publication_outbox_content_hash)
+        require(
+            (self.run_result_manifest_reference is None)
+            == (self.run_result_manifest_content_hash is None)
+            == (self.run_result_manifest is None),
+            "RUNTIME_RUN_RESULT_MANIFEST_INCOMPLETE",
+        )
+        if self.run_result_manifest_reference is not None:
+            evidence_reference(self.run_result_manifest_reference)
+            hash_value(self.run_result_manifest_content_hash)
+            require(
+                isinstance(self.run_result_manifest, Mapping), "RUNTIME_RUN_RESULT_MANIFEST_INVALID"
+            )
 
 
 @dataclass(frozen=True, slots=True)
@@ -201,6 +220,12 @@ class InventoryRuntimePublicationAcknowledger(Protocol):
     async def acknowledge_publication(self, result: InventoryRuntimeResult) -> None: ...
 
 
+class InventoryRunResultVerifier(Protocol):
+    async def verify_runtime_result(
+        self, request: InventoryRuntimeExecutionRequest, result: InventoryRuntimeResult
+    ) -> None: ...
+
+
 class InventoryRuntimeExecutionUseCase:
     """Validate the closed request before submitting it to a durable worker port."""
 
@@ -226,10 +251,12 @@ class InventoryRuntimeWorker:
         handler: InventoryRuntimeExecutionHandler,
         platform: InventoryPlatformLifecyclePort,
         publication_acknowledger: InventoryRuntimePublicationAcknowledger | None = None,
+        run_result_verifier: InventoryRunResultVerifier | None = None,
     ) -> None:
         self._handler = handler
         self._platform = platform
         self._publication_acknowledger = publication_acknowledger
+        self._run_result_verifier = run_result_verifier
 
     async def execute(
         self,
@@ -272,6 +299,31 @@ class InventoryRuntimeWorker:
             automatic_publish_allowed, automatic_order_allowed = _validate_result_policy_binding(
                 request, result
             )
+            cost_bound = (
+                request.strategy_execution_plan is not None
+                and request.strategy_execution_plan.get("landed_cost_binding") is not None
+            )
+            require(
+                cost_bound == (result.run_result_manifest is not None),
+                "RUNTIME_RUN_RESULT_MANIFEST_REQUIRED",
+            )
+            if cost_bound:
+                parent = validate_run_result_manifest(
+                    request,
+                    result.run_result_manifest,
+                    canonical_input_hash=result.canonical_input.input_hash,
+                    psi_snapshot_id=result.inventory_result_snapshot_id,
+                    psi_content_hash=result.inventory_result_content_hash,
+                )
+                require(
+                    parent["artifact_reference"] == result.run_result_manifest_reference
+                    and parent["content_hash"] == result.run_result_manifest_content_hash,
+                    "RUNTIME_RUN_RESULT_MANIFEST_POINTER_MISMATCH",
+                )
+                require(
+                    self._run_result_verifier is not None, "RUNTIME_RUN_RESULT_VERIFIER_REQUIRED"
+                )
+                await self._run_result_verifier.verify_runtime_result(request, result)
         except Exception as exc:
             error_code = _stable_error_code(exc)
             receipt = await self._platform.append_event(
@@ -305,6 +357,15 @@ class InventoryRuntimeWorker:
                 publication_outbox_id=result.publication_outbox_id,
                 publication_outbox_content_hash=result.publication_outbox_content_hash,
             )
+        manifest_payload = {}
+        if result.run_result_manifest is not None:
+            manifest_payload = {
+                "run_result_manifest_reference": result.run_result_manifest_reference,
+                "run_result_manifest_content_hash": result.run_result_manifest_content_hash,
+                "run_result_manifest_contract_key": "inventory.run_result_manifest",
+                "run_result_manifest_contract_version": "1.0.0",
+            }
+            sealed_result_payload.update(manifest_payload)
         terminal = await self._platform.append_event(
             request,
             InventoryRuntimeStageEvent(
@@ -338,6 +399,7 @@ class InventoryRuntimeWorker:
                     inventory_result_contract_key=result.inventory_result_contract_key,
                     inventory_result_contract_version=result.inventory_result_contract_version,
                 )
+            review_result.update(manifest_payload)
             return review_result
         publication = await self._platform.publish(
             request,
@@ -366,6 +428,7 @@ class InventoryRuntimeWorker:
                 inventory_result_contract_key=result.inventory_result_contract_key,
                 inventory_result_contract_version=result.inventory_result_contract_version,
             )
+        published_result.update(manifest_payload)
         return published_result
 
 

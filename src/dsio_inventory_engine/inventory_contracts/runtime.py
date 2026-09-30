@@ -393,6 +393,24 @@ def _claim(value: Any) -> dict[str, Any]:
             == classification["source_content_hash"],
             "RUNTIME_STRATEGY_EXECUTION_PLAN_POLICY_MISMATCH",
         )
+        cost = strategy_execution_plan.get("landed_cost_binding")
+        if cost is not None:
+            trade = by_type.get("TRADE_COST_REVISION_SET")
+            require(
+                trade is not None
+                and trade["source_snapshot_id"] == cost["revision_set_id"]
+                and trade["source_content_hash"] == cost["revision_set_content_hash"],
+                "RUN_COST_TRADE_BINDING_MISMATCH",
+            )
+            require(
+                result["scope"]["subs_cd"] == "C100"
+                and result["scope"]["site_cd"] == cost["destination_site_cd"],
+                "RUN_COST_CLAIM_SCOPE_MISMATCH",
+            )
+            require(
+                canonical_context_binding["master_as_of_date"] == cost["valuation_date"],
+                "RUN_COST_CLAIM_DATE_MISMATCH",
+            )
     else:
         # The additive V2 field must not change the normalized V1 wire or hash.
         del result["canonical_context_binding"]

@@ -143,6 +143,13 @@ class PlatformInventoryLifecycleHttpClient:
                 inventory_result_contract_key=result.inventory_result_contract_key,
                 inventory_result_contract_version=result.inventory_result_contract_version,
             )
+        if result.run_result_manifest_reference is not None:
+            result_payload.update(
+                run_result_manifest_reference=result.run_result_manifest_reference,
+                run_result_manifest_content_hash=result.run_result_manifest_content_hash,
+                run_result_manifest_contract_key="inventory.run_result_manifest",
+                run_result_manifest_contract_version="1.0.0",
+            )
         response = await self._request(
             "POST",
             f"/api/v1/engine-studio/inventory/runs/{request.engine_run_id}/publish",

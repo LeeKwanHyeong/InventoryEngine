@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.dsio.local/inventory_run_cost_input.schema.json",
+  "title": "Sealed development pricing input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_id",
+    "contract_version",
+    "snapshot_id",
+    "tenant_id",
+    "project_id",
+    "company_cd",
+    "subs_cd",
+    "origin_site_cd",
+    "destination_site_cd",
+    "network_revision_id",
+    "revision_set_id",
+    "revision_set_content_hash",
+    "valuation_date",
+    "judgment_at",
+    "cost_application_mode",
+    "recognition_rule",
+    "fixed_charge_rule",
+    "cost_currency",
+    "cost_profile_content_hash",
+    "profile_component_attribution",
+    "shipment_templates",
+    "content_hash"
+  ],
+  "properties": {
+    "contract_id": {
+      "const": "inventory-landed-cost-run-input-v1"
+    },
+    "contract_version": {
+      "const": "1.0.0"
+    },
+    "snapshot_id": {
+      "$ref": "landed_cost_shipment_input.schema.json#/$defs/id"
+    },
+    "tenant_id": {
+      "$ref": "landed_cost_shipment_input.schema.json#/$defs/id"
+    },
+    "project_id": {
+      "$ref": "landed_cost_shipment_input.schema.json#/$defs/id"
+    },
+    "company_cd": {
+      "$ref": "landed_cost_shipment_input.schema.json#/$defs/id"
+    },
+    "subs_cd": {
+      "const": "C100"
+    },
+    "origin_site_cd": {
+      "const": "V100"
+    },
+    "destination_site_cd": {
+      "enum": [
+        "V101",
+        "V102",
+        "V103",
+        "V104"
+      ]
+    },
+    "network_revision_id": {
+      "$ref": "landed_cost_shipment_input.schema.json#/$defs/uuid"
+    },
+    "revision_set_id": {
+      "$ref": "landed_cost_shipment_input.schema.json#/$defs/uuid"
+    },
+    "revision_set_content_hash": {
+      "$ref": "landed_cost_shipment_input.schema.json#/$defs/hash"
+    },
+    "valuation_date": {
+      "$ref": "landed_cost_shipment_input.schema.json#/$defs/date"
+    },
+    "judgment_at": {
+      "$ref": "landed_cost_shipment_input.schema.json#/$defs/binding/properties/judgment_at"
+    },
+    "cost_application_mode": {
+      "const": "DEVELOPMENT_LANE_PRICING_PROXY"
+    },
+    "recognition_rule": {
+      "const": "AT_ORDER_ACCEPTANCE_INCLUDING_OUT_OF_HORIZON_RECEIPTS"
+    },
+    "fixed_charge_rule": {
+      "const": "PER_ACCEPTED_ITEM_ORDER"
+    },
+    "cost_currency": {
+      "$ref": "landed_cost_shipment_input.schema.json#/$defs/currency"
+    },
+    "cost_profile_content_hash": {
+      "$ref": "landed_cost_shipment_input.schema.json#/$defs/hash"
+    },
+    "profile_component_attribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "holding_cost_per_unit_week",
+        "backorder_cost_per_unit_week",
+        "fixed_order_cost",
+        "variable_order_cost_per_unit"
+      ],
+      "properties": {
+        "holding_cost_per_unit_week": {
+          "const": "HOLDING"
+        },
+        "backorder_cost_per_unit_week": {
+          "const": "BACKORDER"
+        },
+        "fixed_order_cost": {
+          "const": "ORDER_ADMINISTRATION"
+        },
+        "variable_order_cost_per_unit": {
+          "const": "ORDER_HANDLING_ONLY"
+        }
+      }
+    },
+    "shipment_templates": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10000,
+      "items": {
+        "allOf": [
+          {
+            "$ref": "landed_cost_shipment_input.schema.json"
+          },
+          {
+            "properties": {
+              "lines": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 1,
+                "items": {
+                  "properties": {
+                    "quantity": {
+                      "const": "1"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "content_hash": {
+      "$ref": "landed_cost_shipment_input.schema.json#/$defs/hash"
+    }
+  }
+}

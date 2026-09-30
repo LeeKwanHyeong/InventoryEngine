@@ -653,6 +653,10 @@ def compare_psi_children_detailed(
 
 
 def _psi_cost(build: Mapping[str, Any], profile: Mapping[str, str]) -> Decimal:
+    return calculate_psi_operating_cost(build, profile)
+
+
+def calculate_psi_operating_cost(build: Mapping[str, Any], profile: Mapping[str, str]) -> Decimal:
     """Calculate one auditable horizon cost from PSI and constrained actions."""
 
     require(

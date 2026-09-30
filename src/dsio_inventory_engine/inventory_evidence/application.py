@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any, Mapping, TYPE_CHECKING
 
 from dsio_inventory_engine.inventory_contracts.canonical import CanonicalInputRequest
 from dsio_inventory_engine.inventory_contracts.network import DeploymentScope
@@ -31,6 +31,9 @@ from .contracts import (
     OutboxRecord,
 )
 
+if TYPE_CHECKING:
+    from dsio_inventory_engine.run_inventory.landed_cost_pipeline import RunCostEvidence
+
 
 CANONICAL_INPUT_EVIDENCE_CONTRACT_KEY = "inventory.run_canonical_input_evidence"
 PREPARED_INPUT_EVIDENCE_CONTRACT_KEY = "inventory.run_prepared_input_evidence"
@@ -56,6 +59,7 @@ class VerifiedInventoryResultBundle:
     prepared_input: PreparedInventoryInput
     outbox: OutboxRecord
     artifact_count: int
+    run_cost_evidence: RunCostEvidence | None = None
 
 
 class PersistInventoryResultBundleUseCase:
@@ -74,6 +78,8 @@ class PersistInventoryResultBundleUseCase:
         run: PsiRunBundle,
         *,
         strategy_execution_plan: Mapping[str, Any],
+        runtime_request=None,
+        run_cost_evidence: RunCostEvidence | None = None,
     ) -> PersistedInventoryResultBundle:
         require(isinstance(run, PsiRunBundle), "PSI_RUN_BUNDLE_REQUIRED")
         plan = copy.deepcopy(dict(strategy_execution_plan))
@@ -165,11 +171,23 @@ class PersistInventoryResultBundleUseCase:
                     }
                 )
         require(expected_in_memory == set(run.artifacts), "ORCHESTRATOR_ARTIFACT_SET_MISMATCH")
+        cost_bound = plan.get("landed_cost_binding") is not None
+        require(cost_bound == (run_cost_evidence is not None), "RUN_COST_EVIDENCE_BINDING_REQUIRED")
+        if cost_bound:
+            from .run_cost import revalidate_run_cost_evidence
+
+            require(runtime_request is not None, "RUN_COST_RUNTIME_REQUEST_REQUIRED")
+            verified_cost = revalidate_run_cost_evidence(
+                evidence=run_cost_evidence, request=runtime_request, run=run
+            )
+            objects.extend(verified_cost.artifacts)
         require(
             len({artifact.reference for artifact in objects}) == len(objects),
             "ARTIFACT_REFERENCE_DUPLICATE",
         )
-        outbox = _result_ready_outbox(bundle, objects, execution_sources)
+        outbox = _result_ready_outbox(
+            bundle, objects, execution_sources, run_cost_evidence=run_cost_evidence
+        )
         committed = self.repository.commit(objects, outbox)
         verified = ReadAndVerifyInventoryResultBundleUseCase(
             self.deployment,
@@ -177,6 +195,7 @@ class PersistInventoryResultBundleUseCase:
         ).execute(
             refs["bundle"],
             strategy_execution_plan=plan,
+            runtime_request=runtime_request,
         )
         require(
             verified.result_bundle["content_hash"] == bundle["content_hash"]
@@ -209,6 +228,7 @@ class ReadAndVerifyInventoryResultBundleUseCase:
         bundle_reference: str,
         *,
         strategy_execution_plan: Mapping[str, Any],
+        runtime_request=None,
     ) -> VerifiedInventoryResultBundle:
         bundle_object = self.repository.read_artifact(bundle_reference)
         require(
@@ -256,16 +276,16 @@ class ReadAndVerifyInventoryResultBundleUseCase:
         )
 
         artifact_bindings = [bundle_object, canonical_object, prepared_object]
+        in_memory_artifacts = {}
         execution_sources: list[dict[str, str]] = []
         for child in bundle["result_children"]:
             if child["status"] != "SUCCEEDED":
                 continue
             persisted = _read_child_build(self.repository, child)
             validate_psi_child_build(persisted)
-            artifact_bindings.extend(
-                self.repository.read_artifact(reference)
-                for reference, _, _ in _child_documents(persisted)
-            )
+            for reference, document, _ in _child_documents(persisted):
+                artifact_bindings.append(self.repository.read_artifact(reference))
+                in_memory_artifacts[reference] = document
             if child["strategy_type"] != "NONE":
                 source_reference = _execution_source_reference(bundle, child["child_result_id"])
                 source_object = self.repository.read_artifact(source_reference)
@@ -286,9 +306,29 @@ class ReadAndVerifyInventoryResultBundleUseCase:
                     }
                 )
 
+        cost_evidence = None
+        if strategy_execution_plan.get("landed_cost_binding") is not None:
+            from .run_cost import verify_run_cost_evidence
+
+            require(runtime_request is not None, "RUN_COST_RUNTIME_REQUEST_REQUIRED")
+            recovered_run = PsiRunBundle(
+                canonical_input=canonical,
+                prepared_input=prepared,
+                result_bundle=bundle,
+                artifacts=in_memory_artifacts,
+                child_metrics={},
+                detailed_comparisons=(),
+                execution_results={},
+            )
+            cost_evidence = verify_run_cost_evidence(
+                request=runtime_request, run=recovered_run, repository=self.repository
+            )
+            artifact_bindings.extend(cost_evidence.artifacts)
         outbox_id = _outbox_id(bundle)
         outbox = self.repository.read_outbox(outbox_id)
-        expected_message = _result_ready_outbox(bundle, artifact_bindings, execution_sources)
+        expected_message = _result_ready_outbox(
+            bundle, artifact_bindings, execution_sources, run_cost_evidence=cost_evidence
+        )
         require(
             outbox.message == expected_message,
             "RESULT_READY_OUTBOX_BINDING_MISMATCH",
@@ -300,6 +340,7 @@ class ReadAndVerifyInventoryResultBundleUseCase:
             prepared_input=prepared,
             outbox=outbox,
             artifact_count=len(artifact_bindings),
+            run_cost_evidence=cost_evidence,
         )
 
 
@@ -489,6 +530,8 @@ def _result_ready_outbox(
     bundle: Mapping[str, Any],
     artifacts: list[ArtifactObject],
     execution_sources: list[dict[str, str]],
+    *,
+    run_cost_evidence: RunCostEvidence | None = None,
 ) -> OutboxMessage:
     refs = _run_references(bundle)
     bindings = [
@@ -500,30 +543,32 @@ def _result_ready_outbox(
         }
         for artifact in sorted(artifacts, key=lambda item: item.reference)
     ]
-    return OutboxMessage.from_body(
-        {
-            "contract_id": "inventory-result-ready-outbox-v1",
-            "contract_version": _CONTRACT_VERSION,
-            "source_contract_key": RESULT_READY_OUTBOX_CONTRACT_KEY,
-            "outbox_id": _outbox_id(bundle),
-            "event_type": "inventory.result.ready",
-            "engine_run_id": bundle["engine_run_id"],
-            "attempt_no": bundle["attempt_no"],
-            "result_bundle_id": bundle["result_bundle_id"],
-            "bundle_reference": refs["bundle"],
-            "bundle_content_hash": bundle["content_hash"],
-            "canonical_input_reference": refs["canonical"],
-            "prepared_input_reference": refs["prepared"],
-            "effective_child_result_id": bundle["effective_child_result_id"],
-            "automatic_publish_allowed": bundle["automatic_publish_allowed"],
-            "automatic_order_allowed": bundle["automatic_order_allowed"],
-            "artifact_bindings": bindings,
-            "execution_source_bindings": sorted(
-                execution_sources,
-                key=lambda item: item["child_result_id"],
-            ),
-        }
-    )
+    body = {
+        "contract_id": "inventory-result-ready-outbox-v1",
+        "contract_version": _CONTRACT_VERSION,
+        "source_contract_key": RESULT_READY_OUTBOX_CONTRACT_KEY,
+        "outbox_id": _outbox_id(bundle),
+        "event_type": "inventory.result.ready",
+        "engine_run_id": bundle["engine_run_id"],
+        "attempt_no": bundle["attempt_no"],
+        "result_bundle_id": bundle["result_bundle_id"],
+        "bundle_reference": refs["bundle"],
+        "bundle_content_hash": bundle["content_hash"],
+        "canonical_input_reference": refs["canonical"],
+        "prepared_input_reference": refs["prepared"],
+        "effective_child_result_id": bundle["effective_child_result_id"],
+        "automatic_publish_allowed": bundle["automatic_publish_allowed"],
+        "automatic_order_allowed": bundle["automatic_order_allowed"],
+        "artifact_bindings": bindings,
+        "execution_source_bindings": sorted(
+            execution_sources,
+            key=lambda item: item["child_result_id"],
+        ),
+    }
+    if run_cost_evidence is not None:
+        body["run_result_manifest_reference"] = run_cost_evidence.manifest["artifact_reference"]
+        body["run_result_manifest_content_hash"] = run_cost_evidence.manifest["content_hash"]
+    return OutboxMessage.from_body(body)
 
 
 __all__ = [

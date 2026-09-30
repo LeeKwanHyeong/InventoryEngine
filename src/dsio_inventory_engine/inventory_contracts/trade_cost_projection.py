@@ -377,7 +377,13 @@ def validate_trade_cost_projection_runtime_binding(
         and header["project_id"] == claim["project_id"]
         and header["company_cd"] == claim["scope"]["company_cd"]
         and header["subs_cd"] == claim["scope"]["subs_cd"]
-        and header["origin_site_cd"] == claim["scope"]["site_cd"],
+        and header["origin_site_cd"]
+        == (
+            request.strategy_execution_plan["landed_cost_binding"]["origin_site_cd"]
+            if request.strategy_execution_plan is not None
+            and request.strategy_execution_plan.get("landed_cost_binding") is not None
+            else claim["scope"]["site_cd"]
+        ),
         "TRADE_COST_RUNTIME_SCOPE_MISMATCH",
     )
     require(

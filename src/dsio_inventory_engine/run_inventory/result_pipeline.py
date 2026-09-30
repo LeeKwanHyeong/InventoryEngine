@@ -15,6 +15,7 @@ from dsio_inventory_engine.inventory_evidence.application import (
 from dsio_inventory_engine.inventory_evidence.contracts import InventoryEvidenceUnitOfWork
 
 from .psi_orchestrator import PsiRunCommand, RunPsiBundleUseCase
+from .landed_cost_pipeline import RunLandedCostResolver, build_run_cost_evidence
 from .runtime_execution import (
     InventoryRuntimeResult,
     InventoryRuntimeStageEventReceipt,
@@ -37,11 +38,13 @@ class InventoryResultPipelineHandler:
         orchestrator: RunPsiBundleUseCase,
         persistence: PersistInventoryResultBundleUseCase,
         evidence_repository: InventoryEvidenceUnitOfWork,
+        landed_cost_resolver: RunLandedCostResolver | None = None,
     ) -> None:
         self.command_resolver = command_resolver
         self.orchestrator = orchestrator
         self.persistence = persistence
         self.evidence_repository = evidence_repository
+        self.landed_cost_resolver = landed_cost_resolver
         self.verifier = ReadAndVerifyInventoryResultBundleUseCase(
             orchestrator.deployment,
             evidence_repository,
@@ -73,6 +76,7 @@ class InventoryResultPipelineHandler:
                 self.verifier.execute,
                 payload["bundle_reference"],
                 strategy_execution_plan=request.strategy_execution_plan,
+                runtime_request=request,
             )
             await report(
                 event_type="inventory.evidence",
@@ -94,6 +98,10 @@ class InventoryResultPipelineHandler:
             and resolved_runtime.canonical_hash == request.canonical_hash,
             "RUNTIME_COMMAND_CLAIM_MISMATCH",
         )
+        resolved_cost = None
+        if request.strategy_execution_plan.get("landed_cost_binding") is not None:
+            require(self.landed_cost_resolver is not None, "RUN_COST_RESOLVER_REQUIRED")
+            resolved_cost = await self.landed_cost_resolver.resolve(request)
         await report(
             event_type="inventory.psi",
             stage="psi_execution",
@@ -112,10 +120,21 @@ class InventoryResultPipelineHandler:
                 "effective_strategy": "MATHEMATICAL",
             },
         )
+        cost_evidence = None
+        if resolved_cost is not None:
+            cost_evidence = await asyncio.to_thread(
+                build_run_cost_evidence,
+                request=request,
+                run=run,
+                resolved=resolved_cost,
+                cost_profile=command.cost_profile,
+            )
         persisted = await asyncio.to_thread(
             self.persistence.execute,
             run,
             strategy_execution_plan=request.strategy_execution_plan,
+            runtime_request=request,
+            run_cost_evidence=cost_evidence,
         )
         await report(
             event_type="inventory.evidence",
@@ -136,6 +155,7 @@ class InventoryResultPipelineHandler:
                 prepared_input=run.prepared_input,
                 outbox=persisted.outbox,
                 artifact_count=persisted.artifact_count,
+                run_cost_evidence=cost_evidence,
             ),
             persisted.outbox,
         )
@@ -148,9 +168,26 @@ class InventoryResultPipelineHandler:
             expected_payload_content_hash=result.publication_outbox_content_hash,
         )
 
+    async def verify_runtime_result(self, request, result: InventoryRuntimeResult) -> None:
+        verified = await asyncio.to_thread(
+            self.verifier.execute,
+            f"artifact:inventory:{request.engine_run_id}:{request.value['attempt_no']}:bundle",
+            strategy_execution_plan=request.strategy_execution_plan,
+            runtime_request=request,
+        )
+        expected = _runtime_result(verified, verified.outbox)
+        require(
+            result.inventory_result_content_hash == expected.inventory_result_content_hash
+            and result.run_result_manifest_reference == expected.run_result_manifest_reference
+            and result.run_result_manifest_content_hash == expected.run_result_manifest_content_hash
+            and result.run_result_manifest == expected.run_result_manifest,
+            "RUNTIME_RUN_RESULT_MANIFEST_POINTER_MISMATCH",
+        )
+
 
 def _runtime_result(verified, outbox) -> InventoryRuntimeResult:
     bundle = verified.result_bundle
+    manifest = None if verified.run_cost_evidence is None else verified.run_cost_evidence.manifest
     return InventoryRuntimeResult(
         inventory_result_snapshot_id=bundle["result_bundle_id"],
         inventory_result_content_hash=bundle["content_hash"],
@@ -163,6 +200,9 @@ def _runtime_result(verified, outbox) -> InventoryRuntimeResult:
         inventory_result_bundle=bundle,
         publication_outbox_id=outbox.message.outbox_id,
         publication_outbox_content_hash=outbox.message.payload_content_hash,
+        run_result_manifest=manifest,
+        run_result_manifest_reference=None if manifest is None else manifest["artifact_reference"],
+        run_result_manifest_content_hash=None if manifest is None else manifest["content_hash"],
     )
 
 

@@ -1,0 +1,148 @@
+{
+  "evidence_id": "inventory-runtime-landed-cost-parent-offline-20260929",
+  "recorded_date": "2026-09-29",
+  "status": "OFFLINE_VERIFIED_UNCOMMITTED",
+  "repositories": {
+    "InventoryEngine": {
+      "branch": "inventory_engine_dev",
+      "base_commit": "7e46dd65864991c1228378a6b82a18e93c3a8913"
+    },
+    "dsai-platform": {
+      "branch": "codex/inventory-psi-strategy-v2",
+      "base_commit": "c6c38373ff17e4cf7ac7c94ae144b5d48aec4e99"
+    },
+    "DemandEngine": {
+      "branch": "demand_engine_v3",
+      "base_commit": "a43ca735195605e33459620bd9eaac07ad943d3c",
+      "modified_by_this_task": false
+    }
+  },
+  "execution_boundaries": {
+    "external_database_read_or_write": false,
+    "migration_applied": false,
+    "shared_runtime_deployed": false,
+    "committed_or_pushed": false,
+    "cost_inputs": "DEVELOPMENT_FIXTURE",
+    "cost_application_mode": "DEVELOPMENT_LANE_PRICING_PROXY",
+    "operational_cost_eligible": false,
+    "pricing_scope": "INCREMENTAL_ACCEPTED_RECOMMENDATION_ORDERS",
+    "ppo_training_reward_changed": false,
+    "meio_solver_implemented": false,
+    "platform_production_callback_verifier_activated": false,
+    "existing_architecture_baselines_auto_synced": false
+  },
+  "environment": {
+    "inventory_interpreter": "/private/tmp/io-declared-extras.k6aMY8/venv/bin/python",
+    "python": "3.12.10",
+    "polars": "1.44.2",
+    "torch": "2.12.1",
+    "platform_http_interpreter": "/private/tmp/io-platform-cost-tests.8a4g4K/venv/bin/python",
+    "ruff": "0.15.22",
+    "existing_global_environment_replaced": false
+  },
+  "validation": {
+    "inventory_full_regression": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src:tests/support DEMAND_ENGINE_ROOT=/Users/igwanhyeong/PycharmProjects/DemandEngine DSAI_PLATFORM_ROOT=/Users/igwanhyeong/PycharmProjects/dsai-platform IO_READONLY_INTEGRATION=0 IO_SOURCE_READONLY_INTEGRATION=0 python -m pytest -q --tb=short -rs -p no:cacheprovider --basetemp <isolated_tmp> tests/unit tests/contract tests/integration",
+      "passed": 621,
+      "skipped": 8,
+      "subtests_passed": 651,
+      "seconds": 98.09,
+      "skip_reasons": {
+        "external_readonly_network_or_source_not_enabled": 7,
+        "full_platform_api_bcrypt_dependency_not_in_inventory_extras": 1
+      },
+      "warnings": ["Existing Starlette/httpx TestClient deprecation"]
+    },
+    "platform_related_regression": {
+      "test_files": [
+        "tests/unit/platform/test_inventory_engine_run_contract.py",
+        "tests/unit/platform/test_inventory_engine_run_repository.py",
+        "tests/unit/platform/test_inventory_engine_run_api.py",
+        "tests/unit/platform/test_inventory_run_cost_contract.py",
+        "tests/unit/platform/test_inventory_engine_run_lifecycle_migration.py",
+        "tests/unit/platform/test_inventory_trade_cost.py",
+        "tests/unit/platform/test_inventory_trade_cost_migration.py",
+        "tests/unit/platform/test_inventory_engine_http_transport.py",
+        "tests/unit/platform/test_inventory_simulation_registry.py",
+        "tests/unit/platform/test_demand_inventory_run_binding.py",
+        "tests/unit/platform/test_demand_inventory_planning_input.py",
+        "tests/unit/platform/test_inventory_classification_snapshot_publisher.py",
+        "tests/unit/platform/test_rbac_api_enforcement.py",
+        "tests/unit/platform/test_rbac_service.py"
+      ],
+      "passed": 252,
+      "seconds": 1.05,
+      "storage": "MOCKED_POSTGRESQL_NO_EXTERNAL_CONNECTION",
+      "warnings": ["Existing Starlette/anyio BlockingPortal deprecation"]
+    },
+    "cross_repository_http": {
+      "test_files": [
+        "tests/integration/test_run_cost_platform_http_offline.py",
+        "tests/integration/test_platform_runtime_dispatch_offline.py"
+      ],
+      "passed": 3,
+      "subtests_passed": 4,
+      "storage": "TEMP_SQLITE_AND_IN_MEMORY_PLATFORM_REPOSITORY",
+      "transport": "HTTPX_ASGI_IN_PROCESS_NO_NETWORK",
+      "verification": "FULL_SAVED_SOURCE_RECALCULATION_BEFORE_CALLBACK",
+      "note": "Separately run with full Platform dependencies; the Inventory-only bcrypt skip does not omit this verification. These counts overlap the full Inventory run and are not additive."
+    },
+    "new_cost_pipeline_contract_and_reader": {
+      "passed": 25,
+      "subtests_passed": 28
+    },
+    "static_validation": {
+      "inventory_ruff_check": "PASS",
+      "inventory_ruff_format_files": 197,
+      "platform_changed_python_files_ruff_check": "PASS",
+      "platform_changed_python_files_ruff_format": 7,
+      "json_schemas_valid": 23,
+      "schema_references_resolved": 425,
+      "schema_reference_method": "Existing contract-test URI aliases and local Registry; no remote fetch",
+      "fresh_contract_calculator_evidence_imports": "PASS",
+      "git_diff_check_both_repositories": "PASS",
+      "live_postgresql_sql_execution": "NOT_PERFORMED"
+    }
+  },
+  "development_golden": {
+    "scope": "C100: V100 to V101/JP",
+    "currency": "KRW",
+    "cost_input_content_hash": "05cc998d067a763c9859eedf5d0ed336cf9ee7f5bfd96fe773f68953c7157607",
+    "strategy_execution_plan_content_hash": "20e46146c85c6f9eaa875c2f8e8dcac15db145550d5d5b22ba417907a6256340",
+    "run_result_manifest_content_hash": "5785e99fe0b6e29bd0bc417d2d11713761719478335c58a7a342dff513253839",
+    "landed_cost_children": 4,
+    "cost_artifacts_including_parent_and_roots": 16,
+    "mathematical": {
+      "accepted_order_qty": "25",
+      "net_landed_cost": "665625",
+      "operating_cost": "1250",
+      "total_cost": "666875"
+    },
+    "ppo_shadow": {
+      "accepted_order_qty": "34",
+      "net_landed_cost": "848550",
+      "operating_cost": "1448",
+      "total_cost": "849998"
+    },
+    "tax_and_prices_are_actual_operating_claims": false
+  },
+  "reviewed_defenses": [
+    "Closed Plan 1.2.0 requires pricing snapshot and cost profile; Plan 1.1.0 serialization/hash retained",
+    "Claim pins exact approved hub Revision Set, destination IO Site, date, Run, Attempt and input hashes",
+    "Claim allocation stores parent requirement, Plan version and pricing ID/hash in existing JSONB",
+    "Saved source replay rejects rehashed incorrect total, pointer replacement, unknown Source and overlap",
+    "PSI, parent, cost sources/children and existing outbox commit atomically or roll back together",
+    "Callback retry restores sealed evidence without refetching external pricing inputs",
+    "REVIEW cannot be auto-published; cost-bound worker requires actual persisted verifier",
+    "GET result-reference is scoped by authenticated tenant, project, Run and engine_report.read",
+    "Unavailable price template/FX produces null totals and diagnostic evidence, never zero fallback",
+    "Cost comparison availability/null semantics agree in Python and JSON Schema",
+    "Final parent bytes count against the 64MiB evidence budget before persistence",
+    "Scenario candidates are compared separately; costs do not alter PSI, PPO actions or training"
+  ],
+  "preserved_user_changes": {
+    "inventory_personal_report_sha256": "3d0f5e9bb762b590beef00a65b39b2578b0b281f07fd1f5a2630261dfcb4835e",
+    "original_platform_untracked_list_sha256": "0b484df3b3750388e402f2699fc22d88008c070d4932dc75922bb2cdb237eddf",
+    "demand_environment_and_ide_changes_preserved": true
+  }
+}

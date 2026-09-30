@@ -24,10 +24,12 @@ from .values import (
     require,
     shape,
 )
+from .run_cost import run_cost_binding
 
 
 STRATEGY_EXECUTION_PLAN_CONTRACT_ID = "inventory-strategy-execution-plan-v1"
 STRATEGY_EXECUTION_PLAN_CONTRACT_VERSION = "1.1.0"
+LANDED_COST_STRATEGY_PLAN_VERSION = "1.2.0"
 RESULT_BUNDLE_CONTRACT_ID = "inventory-result-bundle-v1"
 RESULT_BUNDLE_CONTRACT_VERSION = "1.0.0"
 RESULT_BUNDLE_SOURCE_CONTRACT_KEY = "inventory.result_bundle"
@@ -417,7 +419,9 @@ def _cost_profile(value: Any) -> dict[str, Any]:
 
 STRATEGY_EXECUTION_PLAN_BODY_FIELDS = {
     "contract_id": choice(STRATEGY_EXECUTION_PLAN_CONTRACT_ID),
-    "contract_version": choice(STRATEGY_EXECUTION_PLAN_CONTRACT_VERSION),
+    "contract_version": choice(
+        STRATEGY_EXECUTION_PLAN_CONTRACT_VERSION, LANDED_COST_STRATEGY_PLAN_VERSION
+    ),
     "strategy_execution_plan_id": identifier,
     "classification_config_hash": hash_value,
     "effective_policy_content_hash": hash_value,
@@ -443,7 +447,8 @@ def seal_strategy_execution_plan(value: Mapping[str, Any]) -> dict[str, Any]:
 
     candidate = dict(value)
     candidate.setdefault("cost_profile_binding", None)
-    body = shape(candidate, STRATEGY_EXECUTION_PLAN_BODY_FIELDS)
+    fields = _plan_fields(candidate, include_hash=False)
+    body = shape(candidate, fields)
     hash_body = dict(body)
     if hash_body["cost_profile_binding"] is None:
         # Preserve the 1.1.0 hash of plans produced before cost profiles were
@@ -457,8 +462,9 @@ def validate_strategy_execution_plan(value: Mapping[str, Any]) -> dict[str, Any]
 
     candidate = dict(value)
     candidate.setdefault("cost_profile_binding", None)
-    normalized = shape(candidate, STRATEGY_EXECUTION_PLAN_FIELDS)
-    body = {key: normalized[key] for key in STRATEGY_EXECUTION_PLAN_BODY_FIELDS}
+    fields = _plan_fields(candidate, include_hash=True)
+    normalized = shape(candidate, fields)
+    body = {key: row for key, row in normalized.items() if key != "content_hash"}
     hash_body = dict(body)
     if hash_body["cost_profile_binding"] is None:
         hash_body.pop("cost_profile_binding")
@@ -467,6 +473,19 @@ def validate_strategy_execution_plan(value: Mapping[str, Any]) -> dict[str, Any]
         "STRATEGY_EXECUTION_PLAN_HASH_MISMATCH",
     )
     return normalized
+
+
+def _plan_fields(candidate: dict, *, include_hash: bool) -> dict:
+    fields = dict(
+        STRATEGY_EXECUTION_PLAN_FIELDS if include_hash else STRATEGY_EXECUTION_PLAN_BODY_FIELDS
+    )
+    if candidate.get("contract_version") == LANDED_COST_STRATEGY_PLAN_VERSION:
+        fields["landed_cost_binding"] = run_cost_binding
+        require(candidate.get("cost_profile_binding") is not None, "RUN_COST_PROFILE_REQUIRED")
+    else:
+        require(candidate.get("landed_cost_binding") is None, "RUN_COST_PLAN_VERSION_INVALID")
+        candidate.pop("landed_cost_binding", None)
+    return fields
 
 
 def _action_evidence(value: Any) -> dict[str, str | None]:
