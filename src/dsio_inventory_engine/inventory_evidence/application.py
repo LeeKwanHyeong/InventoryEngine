@@ -33,6 +33,7 @@ from .contracts import (
 
 if TYPE_CHECKING:
     from dsio_inventory_engine.run_inventory.landed_cost_pipeline import RunCostEvidence
+    from .policy_analysis import RunPolicyAnalysisEvidence
 
 
 CANONICAL_INPUT_EVIDENCE_CONTRACT_KEY = "inventory.run_canonical_input_evidence"
@@ -60,6 +61,7 @@ class VerifiedInventoryResultBundle:
     outbox: OutboxRecord
     artifact_count: int
     run_cost_evidence: RunCostEvidence | None = None
+    policy_analysis_evidence: RunPolicyAnalysisEvidence | None = None
 
 
 class PersistInventoryResultBundleUseCase:
@@ -80,6 +82,7 @@ class PersistInventoryResultBundleUseCase:
         strategy_execution_plan: Mapping[str, Any],
         runtime_request=None,
         run_cost_evidence: RunCostEvidence | None = None,
+        policy_analysis_evidence: RunPolicyAnalysisEvidence | None = None,
     ) -> PersistedInventoryResultBundle:
         require(isinstance(run, PsiRunBundle), "PSI_RUN_BUNDLE_REQUIRED")
         plan = copy.deepcopy(dict(strategy_execution_plan))
@@ -181,12 +184,45 @@ class PersistInventoryResultBundleUseCase:
                 evidence=run_cost_evidence, request=runtime_request, run=run
             )
             objects.extend(verified_cost.artifacts)
+        if policy_analysis_evidence is not None:
+            from .policy_analysis import verify_policy_analysis
+
+            require(runtime_request is not None, "POLICY_ANALYSIS_RUNTIME_REQUIRED")
+
+            class ArtifactMap:
+                def read_artifact(self, reference):
+                    return next(
+                        a for a in policy_analysis_evidence.artifacts if a.reference == reference
+                    )
+
+            verified_analysis = verify_policy_analysis(
+                deployment=self.deployment,
+                request=runtime_request,
+                bundle=bundle,
+                repository=ArtifactMap(),
+                pointer={
+                    "policy_analysis_reference": policy_analysis_evidence.manifest[
+                        "artifact_reference"
+                    ],
+                    "policy_analysis_content_hash": policy_analysis_evidence.manifest[
+                        "content_hash"
+                    ],
+                },
+            )
+            require(
+                verified_analysis == policy_analysis_evidence, "POLICY_ANALYSIS_REPLAY_MISMATCH"
+            )
+            objects.extend(verified_analysis.artifacts)
         require(
             len({artifact.reference for artifact in objects}) == len(objects),
             "ARTIFACT_REFERENCE_DUPLICATE",
         )
         outbox = _result_ready_outbox(
-            bundle, objects, execution_sources, run_cost_evidence=run_cost_evidence
+            bundle,
+            objects,
+            execution_sources,
+            run_cost_evidence=run_cost_evidence,
+            policy_analysis_evidence=policy_analysis_evidence,
         )
         committed = self.repository.commit(objects, outbox)
         verified = ReadAndVerifyInventoryResultBundleUseCase(
@@ -326,8 +362,25 @@ class ReadAndVerifyInventoryResultBundleUseCase:
             artifact_bindings.extend(cost_evidence.artifacts)
         outbox_id = _outbox_id(bundle)
         outbox = self.repository.read_outbox(outbox_id)
+        analysis = None
+        if "policy_analysis_reference" in outbox.message.payload():
+            from .policy_analysis import verify_policy_analysis
+
+            require(runtime_request is not None, "POLICY_ANALYSIS_RUNTIME_REQUIRED")
+            analysis = verify_policy_analysis(
+                deployment=self.deployment,
+                request=runtime_request,
+                bundle=bundle,
+                repository=self.repository,
+                pointer=outbox.message.payload(),
+            )
+            artifact_bindings.extend(analysis.artifacts)
         expected_message = _result_ready_outbox(
-            bundle, artifact_bindings, execution_sources, run_cost_evidence=cost_evidence
+            bundle,
+            artifact_bindings,
+            execution_sources,
+            run_cost_evidence=cost_evidence,
+            policy_analysis_evidence=analysis,
         )
         require(
             outbox.message == expected_message,
@@ -341,6 +394,7 @@ class ReadAndVerifyInventoryResultBundleUseCase:
             outbox=outbox,
             artifact_count=len(artifact_bindings),
             run_cost_evidence=cost_evidence,
+            policy_analysis_evidence=analysis,
         )
 
 
@@ -532,6 +586,7 @@ def _result_ready_outbox(
     execution_sources: list[dict[str, str]],
     *,
     run_cost_evidence: RunCostEvidence | None = None,
+    policy_analysis_evidence: RunPolicyAnalysisEvidence | None = None,
 ) -> OutboxMessage:
     refs = _run_references(bundle)
     bindings = [
@@ -568,6 +623,9 @@ def _result_ready_outbox(
     if run_cost_evidence is not None:
         body["run_result_manifest_reference"] = run_cost_evidence.manifest["artifact_reference"]
         body["run_result_manifest_content_hash"] = run_cost_evidence.manifest["content_hash"]
+    if policy_analysis_evidence is not None:
+        body["policy_analysis_reference"] = policy_analysis_evidence.manifest["artifact_reference"]
+        body["policy_analysis_content_hash"] = policy_analysis_evidence.manifest["content_hash"]
     return OutboxMessage.from_body(body)
 
 

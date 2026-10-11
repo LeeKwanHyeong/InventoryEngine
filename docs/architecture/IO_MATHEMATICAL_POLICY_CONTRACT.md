@@ -1,6 +1,11 @@
 # 수학적 재고정책과 보충 권고 계약
 
-기준일: 2026-09-03. 0.4.0 도입, 현재 패키지 `0.6.0`, 전략 `historical-normal-r-s / 1.0.0` 유지. 로컬 `DEVELOPMENT + LOCAL_SHADOW` 구현이다.
+기준일: 2026-09-03. 0.4.0 도입 기록이며 전략 `historical-normal-r-s / 1.0.0`은 유지한다. 현재 패키지 버전은 `pyproject.toml`을 따른다. 로컬 `DEVELOPMENT + LOCAL_SHADOW` 구현이다.
+
+2026-10-06 추가: 이 문서의 고정 정책 Profile은 유지한다. 그룹·품목별 RMOS/EMOS/CSL/점검주기
+후보를 비교하는 신규 개발 경로는 [품목별 정책 탐색 계약](IO_POLICY_SEARCH_CONTRACT.md)을 따른다.
+탐색의 주기 검토 정책은 R+L 보호기간을 사용하며, 아래 기존 Profile을 소급 변경하지 않는다.
+정책 후보 Simulation과 운영 정책의 선택·승인·발주는 서로 다른 단계다.
 
 ## 1. 완료한 범위와 선택한 계산 Profile
 

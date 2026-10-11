@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dsai:inventory-policy-analysis-manifest:1.0.0",
+  "title": "Run-bound development policy analysis companion",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_reference",
+    "engine_run_id",
+    "tenant_id",
+    "project_id",
+    "company_cd",
+    "subs_cd",
+    "site_cd",
+    "config_hash",
+    "site_binding_hash",
+    "classification_snapshot_id",
+    "classification_content_hash",
+    "classification_effective_policy_hash",
+    "canonical_input_hash",
+    "strategy_execution_plan_content_hash",
+    "result_bundle_content_hash",
+    "contract_id",
+    "contract_version",
+    "source_contract_key",
+    "attempt_no",
+    "evaluation_status",
+    "automatic_publish_allowed",
+    "automatic_order_allowed",
+    "operational_policy_approved",
+    "content_hash",
+    "children"
+  ],
+  "properties": {
+    "artifact_reference": {
+      "type": "string",
+      "minLength": 1
+    },
+    "engine_run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tenant_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "company_cd": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subs_cd": {
+      "type": "string",
+      "minLength": 1
+    },
+    "site_cd": {
+      "type": "string",
+      "minLength": 1
+    },
+    "config_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "site_binding_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "classification_snapshot_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "classification_content_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "classification_effective_policy_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "canonical_input_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "strategy_execution_plan_content_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "result_bundle_content_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "contract_id": {
+      "const": "inventory-policy-analysis-manifest"
+    },
+    "contract_version": {
+      "const": "1.0.0"
+    },
+    "source_contract_key": {
+      "const": "inventory.policy_analysis"
+    },
+    "attempt_no": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "evaluation_status": {
+      "enum": [
+        "AVAILABLE",
+        "NOT_BOUND"
+      ]
+    },
+    "automatic_publish_allowed": {
+      "const": false
+    },
+    "automatic_order_allowed": {
+      "const": false
+    },
+    "operational_policy_approved": {
+      "const": false
+    },
+    "content_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "children": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 28,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "role",
+          "artifact_reference",
+          "contract_id",
+          "contract_version",
+          "content_hash"
+        ],
+        "properties": {
+          "role": {
+            "enum": [
+              "ACTUAL_INPUT",
+              "SEARCH",
+              "SELECTION",
+              "EVALUATION",
+              "EVALUATION_SOURCE"
+            ]
+          },
+          "artifact_reference": {
+            "type": "string",
+            "minLength": 1
+          },
+          "contract_id": {
+            "enum": [
+              "inventory-policy-analysis-inputs",
+              "inventory-policy-search-result",
+              "inventory-policy-selection-result",
+              "inventory-policy-sensitivity-result"
+            ]
+          },
+          "contract_version": {
+            "const": "1.0.0"
+          },
+          "content_hash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    }
+  }
+}

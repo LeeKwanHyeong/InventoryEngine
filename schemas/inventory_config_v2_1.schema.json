@@ -1,0 +1,861 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dsai:inventory-engine-config-values:2.1.0",
+  "title": "Inventory Seven Axis Configuration with Development Policy Search",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "segmentation",
+    "policy_matrix",
+    "policy_overlays",
+    "policy_search"
+  ],
+  "properties": {
+    "segmentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "abc",
+        "xyz",
+        "ved",
+        "fsn",
+        "sde",
+        "hml",
+        "plc"
+      ],
+      "properties": {
+        "mode": {
+          "const": "SEVEN_AXIS"
+        },
+        "abc": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "enabled",
+            "basis",
+            "lookback_weeks",
+            "a_cumulative_share",
+            "b_cumulative_share",
+            "currency"
+          ],
+          "properties": {
+            "enabled": {
+              "const": true
+            },
+            "basis": {
+              "const": "REVENUE"
+            },
+            "lookback_weeks": {
+              "type": "integer",
+              "minimum": 13,
+              "maximum": 156
+            },
+            "a_cumulative_share": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "b_cumulative_share": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$"
+            }
+          }
+        },
+        "xyz": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "enabled",
+            "metric",
+            "lookback_weeks",
+            "x_max_cv2",
+            "y_max_cv2"
+          ],
+          "properties": {
+            "enabled": {
+              "const": true
+            },
+            "metric": {
+              "const": "DEMAND_CV2"
+            },
+            "lookback_weeks": {
+              "type": "integer",
+              "minimum": 13,
+              "maximum": 156
+            },
+            "x_max_cv2": {
+              "type": "number",
+              "minimum": 0
+            },
+            "y_max_cv2": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "ved": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "enabled",
+            "default_class",
+            "assignment_snapshot_id",
+            "assignment_content_hash"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "default_class": {
+              "enum": [
+                "V",
+                "E",
+                "D"
+              ]
+            },
+            "assignment_snapshot_id": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 160
+            },
+            "assignment_content_hash": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "fsn": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "enabled",
+            "application_mode",
+            "source_contract_key",
+            "lookback_weeks",
+            "fast_min_active_week_ratio",
+            "non_moving_weeks"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "application_mode": {
+              "enum": [
+                "SHADOW",
+                "OPERATIONAL"
+              ]
+            },
+            "source_contract_key": {
+              "const": "CLOSED_DEMAND_MOVEMENT_V1"
+            },
+            "lookback_weeks": {
+              "type": "integer",
+              "minimum": 13,
+              "maximum": 156
+            },
+            "fast_min_active_week_ratio": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1
+            },
+            "non_moving_weeks": {
+              "type": "integer",
+              "minimum": 4,
+              "maximum": 156
+            }
+          }
+        },
+        "sde": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "enabled",
+            "application_mode",
+            "source_contract_key",
+            "lookback_weeks",
+            "difficult_min_lead_time_days",
+            "scarce_min_lead_time_days",
+            "scarce_max_supplier_count",
+            "scarce_max_on_time_rate",
+            "difficult_max_on_time_rate",
+            "min_receipt_sample_count"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "application_mode": {
+              "enum": [
+                "SHADOW",
+                "OPERATIONAL"
+              ]
+            },
+            "source_contract_key": {
+              "const": "SUPPLIER_LEAD_TIME_V1"
+            },
+            "lookback_weeks": {
+              "type": "integer",
+              "minimum": 13,
+              "maximum": 156
+            },
+            "difficult_min_lead_time_days": {
+              "type": "number",
+              "minimum": 0
+            },
+            "scarce_min_lead_time_days": {
+              "type": "number",
+              "minimum": 0
+            },
+            "scarce_max_supplier_count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "scarce_max_on_time_rate": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "difficult_max_on_time_rate": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "min_receipt_sample_count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+            }
+          }
+        },
+        "hml": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "enabled",
+            "application_mode",
+            "source_contract_key",
+            "basis",
+            "threshold_mode",
+            "medium_min_percentile",
+            "high_min_percentile",
+            "currency",
+            "max_source_age_weeks"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "application_mode": {
+              "enum": [
+                "SHADOW",
+                "OPERATIONAL"
+              ]
+            },
+            "source_contract_key": {
+              "const": "INVENTORY_UNIT_COST_V1"
+            },
+            "basis": {
+              "const": "UNIT_COST"
+            },
+            "threshold_mode": {
+              "const": "PERCENTILE"
+            },
+            "medium_min_percentile": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "high_min_percentile": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$"
+            },
+            "max_source_age_weeks": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 156
+            }
+          }
+        },
+        "plc": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "enabled",
+            "application_mode",
+            "source_contract_key",
+            "introduction_weeks",
+            "growth_weeks",
+            "decline_horizon_weeks"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "application_mode": {
+              "const": "SHADOW"
+            },
+            "source_contract_key": {
+              "const": "SITE_PART_LIFECYCLE_V1"
+            },
+            "introduction_weeks": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 52
+            },
+            "growth_weeks": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 156
+            },
+            "decline_horizon_weeks": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 104
+            }
+          }
+        }
+      }
+    },
+    "policy_matrix": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_level_type",
+        "default_strategy",
+        "cells",
+        "ved_service_level_floor"
+      ],
+      "properties": {
+        "service_level_type": {
+          "const": "CYCLE_SERVICE_LEVEL"
+        },
+        "default_strategy": {
+          "enum": [
+            "MATHEMATICAL",
+            "PREDICTIVE_ML",
+            "DEEP_RL"
+          ]
+        },
+        "cells": {
+          "type": "array",
+          "minItems": 9,
+          "maxItems": 9,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "segment_key",
+              "target_service_level",
+              "review_cycle_weeks",
+              "strategy"
+            ],
+            "properties": {
+              "segment_key": {
+                "enum": [
+                  "AX",
+                  "AY",
+                  "AZ",
+                  "BX",
+                  "BY",
+                  "BZ",
+                  "CX",
+                  "CY",
+                  "CZ"
+                ]
+              },
+              "target_service_level": {
+                "type": "number",
+                "minimum": 0.5,
+                "maximum": 0.9999
+              },
+              "review_cycle_weeks": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 13
+              },
+              "strategy": {
+                "enum": [
+                  "MATHEMATICAL",
+                  "PREDICTIVE_ML",
+                  "DEEP_RL"
+                ]
+              }
+            }
+          }
+        },
+        "ved_service_level_floor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "V",
+            "E",
+            "D"
+          ],
+          "properties": {
+            "V": {
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 0.9999
+            },
+            "E": {
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 0.9999
+            },
+            "D": {
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 0.9999
+            }
+          }
+        }
+      }
+    },
+    "policy_overlays": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fsn_order_action",
+        "sde_lead_time_basis",
+        "hml_approval_level",
+        "plc_order_action"
+      ],
+      "properties": {
+        "fsn_order_action": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "F",
+            "S",
+            "N"
+          ],
+          "properties": {
+            "F": {
+              "enum": [
+                "ALLOW",
+                "REVIEW",
+                "BLOCK"
+              ]
+            },
+            "S": {
+              "enum": [
+                "ALLOW",
+                "REVIEW",
+                "BLOCK"
+              ]
+            },
+            "N": {
+              "enum": [
+                "ALLOW",
+                "REVIEW",
+                "BLOCK"
+              ]
+            }
+          }
+        },
+        "sde_lead_time_basis": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "S",
+            "D",
+            "E"
+          ],
+          "properties": {
+            "S": {
+              "enum": [
+                "P50",
+                "P90"
+              ]
+            },
+            "D": {
+              "enum": [
+                "P50",
+                "P90"
+              ]
+            },
+            "E": {
+              "enum": [
+                "P50",
+                "P90"
+              ]
+            }
+          }
+        },
+        "hml_approval_level": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "H",
+            "M",
+            "L"
+          ],
+          "properties": {
+            "H": {
+              "enum": [
+                "AUTO",
+                "STANDARD",
+                "HIGH_VALUE"
+              ]
+            },
+            "M": {
+              "enum": [
+                "AUTO",
+                "STANDARD",
+                "HIGH_VALUE"
+              ]
+            },
+            "L": {
+              "enum": [
+                "AUTO",
+                "STANDARD",
+                "HIGH_VALUE"
+              ]
+            }
+          }
+        },
+        "plc_order_action": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "PRE_LAUNCH",
+            "INTRODUCTION",
+            "GROWTH",
+            "MATURE",
+            "DECLINE",
+            "SERVICE_ONLY",
+            "DISCONTINUED"
+          ],
+          "properties": {
+            "PRE_LAUNCH": {
+              "enum": [
+                "ALLOW",
+                "REVIEW",
+                "BLOCK"
+              ]
+            },
+            "INTRODUCTION": {
+              "enum": [
+                "ALLOW",
+                "REVIEW",
+                "BLOCK"
+              ]
+            },
+            "GROWTH": {
+              "enum": [
+                "ALLOW",
+                "REVIEW",
+                "BLOCK"
+              ]
+            },
+            "MATURE": {
+              "enum": [
+                "ALLOW",
+                "REVIEW",
+                "BLOCK"
+              ]
+            },
+            "DECLINE": {
+              "enum": [
+                "ALLOW",
+                "REVIEW",
+                "BLOCK"
+              ]
+            },
+            "SERVICE_ONLY": {
+              "enum": [
+                "ALLOW",
+                "REVIEW",
+                "BLOCK"
+              ]
+            },
+            "DISCONTINUED": {
+              "enum": [
+                "ALLOW",
+                "REVIEW",
+                "BLOCK"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "policy_search": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "enabled",
+        "evaluation_mode",
+        "month_basis",
+        "lookback_weeks",
+        "max_candidates_per_item",
+        "minimum_fill_rate",
+        "selection_rule",
+        "group_profiles",
+        "item_overrides",
+        "cost_assumptions"
+      ],
+      "properties": {
+        "contract_version": {
+          "const": "1.0.0"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "evaluation_mode": {
+          "const": "DEVELOPMENT_SHADOW"
+        },
+        "month_basis": {
+          "const": "52_WEEKS_PER_YEAR"
+        },
+        "lookback_weeks": {
+          "enum": [
+            13,
+            26
+          ]
+        },
+        "max_candidates_per_item": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 256
+        },
+        "minimum_fill_rate": {
+          "type": "string",
+          "pattern": "^(0(\\.[0-9]{1,6})?|1(\\.0{1,6})?)$"
+        },
+        "selection_rule": {
+          "const": "SERVICE_FEASIBLE_THEN_LOWEST_COST"
+        },
+        "group_profiles": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 9,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "policy_kinds",
+              "rmos_values",
+              "emos_values",
+              "service_level_values",
+              "review_cycle_weeks",
+              "segment_key"
+            ],
+            "properties": {
+              "policy_kinds": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 2,
+                "uniqueItems": true,
+                "items": {
+                  "enum": [
+                    "ROP_FIXED_Q",
+                    "PERIODIC_ORDER_UP_TO"
+                  ]
+                }
+              },
+              "rmos_values": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 16,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+                }
+              },
+              "emos_values": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 16,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+                }
+              },
+              "service_level_values": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 16,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+                }
+              },
+              "review_cycle_weeks": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 13,
+                "uniqueItems": true,
+                "items": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 13
+                }
+              },
+              "segment_key": {
+                "enum": [
+                  "AX",
+                  "AY",
+                  "AZ",
+                  "BX",
+                  "BY",
+                  "BZ",
+                  "CX",
+                  "CY",
+                  "CZ"
+                ]
+              }
+            }
+          }
+        },
+        "item_overrides": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "policy_kinds",
+              "rmos_values",
+              "emos_values",
+              "service_level_values",
+              "review_cycle_weeks",
+              "item_id",
+              "reason"
+            ],
+            "properties": {
+              "policy_kinds": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 2,
+                "uniqueItems": true,
+                "items": {
+                  "enum": [
+                    "ROP_FIXED_Q",
+                    "PERIODIC_ORDER_UP_TO"
+                  ]
+                }
+              },
+              "rmos_values": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 16,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+                }
+              },
+              "emos_values": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 16,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+                }
+              },
+              "service_level_values": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 16,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+                }
+              },
+              "review_cycle_weeks": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 13,
+                "uniqueItems": true,
+                "items": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 13
+                }
+              },
+              "item_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              }
+            }
+          }
+        },
+        "cost_assumptions": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "currency",
+            "holding_cost_per_unit_week",
+            "backorder_cost_per_unit_week",
+            "fixed_order_cost",
+            "variable_order_cost_per_unit",
+            "source_type",
+            "allocation_basis"
+          ],
+          "properties": {
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$"
+            },
+            "source_type": {
+              "const": "DEVELOPMENT_ASSUMPTION"
+            },
+            "allocation_basis": {
+              "const": "PER_ITEM_ORDER"
+            },
+            "holding_cost_per_unit_week": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+            },
+            "backorder_cost_per_unit_week": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+            },
+            "fixed_order_cost": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+            },
+            "variable_order_cost_per_unit": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+            }
+          }
+        }
+      }
+    }
+  }
+}

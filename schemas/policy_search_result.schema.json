@@ -1,0 +1,675 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dsai:inventory-policy-search-result:1.0.0",
+  "title": "Development per-item policy candidate simulation result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_id",
+    "contract_version",
+    "status",
+    "context",
+    "search_config",
+    "search_config_hash",
+    "config_hash",
+    "classification_snapshot_id",
+    "classification_content_hash",
+    "canonical_input_hash",
+    "prepared_input_hash",
+    "mathematical_input_hash",
+    "baseline_items",
+    "candidate_evaluations",
+    "excluded_items",
+    "selection_rule",
+    "selected_policies",
+    "automatic_publish_allowed",
+    "automatic_order_allowed",
+    "terminal_condition",
+    "database_writes",
+    "durable_artifact_persisted",
+    "content_hash"
+  ],
+  "properties": {
+    "contract_id": {
+      "const": "inventory-policy-search-result"
+    },
+    "contract_version": {
+      "const": "1.0.0"
+    },
+    "status": {
+      "const": "POLICY_CANDIDATES_EVALUATED_LOCALLY"
+    },
+    "context": {
+      "type": "object"
+    },
+    "search_config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "enabled",
+        "evaluation_mode",
+        "month_basis",
+        "lookback_weeks",
+        "max_candidates_per_item",
+        "minimum_fill_rate",
+        "selection_rule",
+        "group_profiles",
+        "item_overrides",
+        "cost_assumptions"
+      ],
+      "properties": {
+        "contract_version": {
+          "const": "1.0.0"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "evaluation_mode": {
+          "const": "DEVELOPMENT_SHADOW"
+        },
+        "month_basis": {
+          "const": "52_WEEKS_PER_YEAR"
+        },
+        "lookback_weeks": {
+          "enum": [
+            13,
+            26
+          ]
+        },
+        "max_candidates_per_item": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 256
+        },
+        "minimum_fill_rate": {
+          "type": "string",
+          "pattern": "^(0(\\.[0-9]{1,6})?|1(\\.0{1,6})?)$"
+        },
+        "selection_rule": {
+          "const": "SERVICE_FEASIBLE_THEN_LOWEST_COST"
+        },
+        "group_profiles": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 9,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "policy_kinds",
+              "rmos_values",
+              "emos_values",
+              "service_level_values",
+              "review_cycle_weeks",
+              "segment_key"
+            ],
+            "properties": {
+              "policy_kinds": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 2,
+                "uniqueItems": true,
+                "items": {
+                  "enum": [
+                    "ROP_FIXED_Q",
+                    "PERIODIC_ORDER_UP_TO"
+                  ]
+                }
+              },
+              "rmos_values": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 16,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+                }
+              },
+              "emos_values": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 16,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+                }
+              },
+              "service_level_values": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 16,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+                }
+              },
+              "review_cycle_weeks": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 13,
+                "uniqueItems": true,
+                "items": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 13
+                }
+              },
+              "segment_key": {
+                "enum": [
+                  "AX",
+                  "AY",
+                  "AZ",
+                  "BX",
+                  "BY",
+                  "BZ",
+                  "CX",
+                  "CY",
+                  "CZ"
+                ]
+              }
+            }
+          }
+        },
+        "item_overrides": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "policy_kinds",
+              "rmos_values",
+              "emos_values",
+              "service_level_values",
+              "review_cycle_weeks",
+              "item_id",
+              "reason"
+            ],
+            "properties": {
+              "policy_kinds": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 2,
+                "uniqueItems": true,
+                "items": {
+                  "enum": [
+                    "ROP_FIXED_Q",
+                    "PERIODIC_ORDER_UP_TO"
+                  ]
+                }
+              },
+              "rmos_values": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 16,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+                }
+              },
+              "emos_values": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 16,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+                }
+              },
+              "service_level_values": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 16,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+                }
+              },
+              "review_cycle_weeks": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 13,
+                "uniqueItems": true,
+                "items": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 13
+                }
+              },
+              "item_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              }
+            }
+          }
+        },
+        "cost_assumptions": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "currency",
+            "holding_cost_per_unit_week",
+            "backorder_cost_per_unit_week",
+            "fixed_order_cost",
+            "variable_order_cost_per_unit",
+            "source_type",
+            "allocation_basis"
+          ],
+          "properties": {
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$"
+            },
+            "source_type": {
+              "const": "DEVELOPMENT_ASSUMPTION"
+            },
+            "allocation_basis": {
+              "const": "PER_ITEM_ORDER"
+            },
+            "holding_cost_per_unit_week": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+            },
+            "backorder_cost_per_unit_week": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+            },
+            "fixed_order_cost": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+            },
+            "variable_order_cost_per_unit": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]{1,6})?$"
+            }
+          }
+        }
+      }
+    },
+    "search_config_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "config_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "classification_content_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "canonical_input_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "prepared_input_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "mathematical_input_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "content_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "classification_snapshot_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "baseline_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "item_id",
+          "psi_rows",
+          "metrics"
+        ],
+        "properties": {
+          "item_id": {
+            "type": "string"
+          },
+          "psi_rows": {
+            "type": "array",
+            "minItems": 1
+          },
+          "metrics": {
+            "$ref": "#/$defs/metrics"
+          }
+        }
+      }
+    },
+    "candidate_evaluations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "candidate",
+          "status",
+          "failure_reason",
+          "row_count",
+          "psi_rows",
+          "decision_evidence",
+          "orders",
+          "metrics",
+          "canonical_input_hash",
+          "prepared_input_hash",
+          "candidate_execution_hash",
+          "automatic_publish_allowed",
+          "automatic_order_allowed",
+          "content_hash"
+        ],
+        "properties": {
+          "candidate": {
+            "type": "object"
+          },
+          "status": {
+            "enum": [
+              "SUCCEEDED",
+              "FAILED"
+            ]
+          },
+          "failure_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "row_count": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "psi_rows": {
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "decision_evidence": {
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "orders": {
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "metrics": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/metrics"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canonical_input_hash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "prepared_input_hash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "candidate_execution_hash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "content_hash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "automatic_publish_allowed": {
+            "const": false
+          },
+          "automatic_order_allowed": {
+            "const": false
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "status": {
+                  "const": "SUCCEEDED"
+                }
+              },
+              "required": [
+                "status"
+              ]
+            },
+            "then": {
+              "properties": {
+                "failure_reason": {
+                  "const": null
+                },
+                "row_count": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "psi_rows": {
+                  "type": "array",
+                  "minItems": 1
+                },
+                "decision_evidence": {
+                  "type": "array",
+                  "minItems": 1
+                },
+                "orders": {
+                  "type": "array"
+                },
+                "metrics": {
+                  "$ref": "#/$defs/metrics"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "failure_reason": {
+                  "type": "string"
+                },
+                "row_count": {
+                  "const": null
+                },
+                "psi_rows": {
+                  "const": null
+                },
+                "decision_evidence": {
+                  "const": null
+                },
+                "orders": {
+                  "const": null
+                },
+                "metrics": {
+                  "const": null
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "excluded_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "item_id",
+          "reason_code"
+        ],
+        "properties": {
+          "item_id": {
+            "type": "string"
+          },
+          "reason_code": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "selection_rule": {
+      "const": "SERVICE_FEASIBLE_THEN_LOWEST_COST"
+    },
+    "selected_policies": {
+      "const": null
+    },
+    "automatic_publish_allowed": {
+      "const": false
+    },
+    "automatic_order_allowed": {
+      "const": false
+    },
+    "terminal_condition": {
+      "const": "FINITE_HORIZON_NO_TERMINAL_VALUE_ARRIVALS_OUTSIDE_HORIZON_REJECTED"
+    },
+    "database_writes": {
+      "const": false
+    },
+    "durable_artifact_persisted": {
+      "const": false
+    }
+  },
+  "$defs": {
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "service_status",
+        "current_demand_qty",
+        "current_demand_fulfilled_qty",
+        "current_demand_fill_rate",
+        "stockout_free_active_bucket_ratio",
+        "average_on_hand_eoh_qty",
+        "observed_average_on_hand_mos",
+        "ending_on_hand_qty",
+        "ending_backorder_qty",
+        "backorder_unit_weeks",
+        "forecast_shortage_qty",
+        "order_count",
+        "ordered_qty",
+        "guard_rejection_count",
+        "service_feasible",
+        "cost_status",
+        "cost_components",
+        "total_cost",
+        "currency"
+      ],
+      "properties": {
+        "service_status": {
+          "enum": [
+            "AVAILABLE",
+            "NO_DEMAND_IN_HORIZON"
+          ]
+        },
+        "cost_status": {
+          "enum": [
+            "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+            "COST_PROFILE_NOT_BOUND"
+          ]
+        },
+        "current_demand_qty": {
+          "type": "string"
+        },
+        "current_demand_fulfilled_qty": {
+          "type": "string"
+        },
+        "average_on_hand_eoh_qty": {
+          "type": "string"
+        },
+        "ending_on_hand_qty": {
+          "type": "string"
+        },
+        "ending_backorder_qty": {
+          "type": "string"
+        },
+        "backorder_unit_weeks": {
+          "type": "string"
+        },
+        "forecast_shortage_qty": {
+          "type": "string"
+        },
+        "ordered_qty": {
+          "type": "string"
+        },
+        "current_demand_fill_rate": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stockout_free_active_bucket_ratio": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "observed_average_on_hand_mos": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "total_cost": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "currency": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "order_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "guard_rejection_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "service_feasible": {
+          "type": "boolean"
+        },
+        "policy_selection_eligible": {
+          "type": "boolean"
+        },
+        "cost_components": {
+          "type": [
+            "object",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

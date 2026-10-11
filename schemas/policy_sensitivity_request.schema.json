@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dsai:inventory-policy-sensitivity-request:1.0.0",
+  "title": "Development-only immutable policy sensitivity experiment",
+  "type": "object", "additionalProperties": false,
+  "required": ["contract_id", "contract_version", "evaluation_id", "source_type", "reference_case_id", "reference_cost_profile_id", "cases", "cost_profiles", "terminal_pairs"],
+  "properties": {
+    "contract_id": {"const": "inventory-policy-sensitivity-request"},
+    "contract_version": {"const": "1.0.0"},
+    "evaluation_id": {"type": "string", "minLength": 1},
+    "source_type": {"const": "SYNTHETIC_PLANNING_INPUT"},
+    "reference_case_id": {"type": "string", "minLength": 1},
+    "reference_cost_profile_id": {"type": "string", "minLength": 1},
+    "cases": {"type": "array", "minItems": 1, "maxItems": 24, "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["case_id", "trace_id", "split", "seed", "search_result"],
+      "properties": {
+        "case_id": {"type": "string", "minLength": 1}, "trace_id": {"type": "string", "minLength": 1},
+        "split": {"enum": ["VALIDATION", "HOLDOUT"]}, "seed": {"type": "integer", "minimum": 0},
+        "search_result": {"type": "object"}
+      }
+    }},
+    "cost_profiles": {"type": "array", "minItems": 1, "maxItems": 12, "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["profile_id", "cost_assumptions"],
+      "properties": {"profile_id": {"type": "string", "minLength": 1}, "cost_assumptions": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/cost"}]}}
+    }},
+    "terminal_pairs": {"type": "array", "maxItems": 24, "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["short_case_id", "extended_case_id"],
+      "properties": {"short_case_id": {"type": "string", "minLength": 1}, "extended_case_id": {"type": "string", "minLength": 1}}
+    }}
+  },
+  "$defs": {
+    "amount": {"type": "string", "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"},
+    "cost": {
+      "type": "object", "additionalProperties": false,
+      "required": ["currency", "source_type", "allocation_basis", "holding_cost_per_unit_week", "backorder_cost_per_unit_week", "fixed_order_cost", "variable_order_cost_per_unit"],
+      "properties": {
+        "currency": {"type": "string", "pattern": "^[A-Z]{3}$"},
+        "source_type": {"const": "DEVELOPMENT_ASSUMPTION"}, "allocation_basis": {"const": "PER_ITEM_ORDER"},
+        "holding_cost_per_unit_week": {"$ref": "#/$defs/amount"}, "backorder_cost_per_unit_week": {"$ref": "#/$defs/amount"},
+        "fixed_order_cost": {"$ref": "#/$defs/amount"}, "variable_order_cost_per_unit": {"$ref": "#/$defs/amount"}
+      }
+    }
+  }
+}

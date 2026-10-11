@@ -1,5 +1,68 @@
 # InventoryEngine 개발 기준선과 작업 순서
 
+## 2026-10-12 재검증 기준선 — 로컬 계산·Run 결과·화면 연결
+
+- 대상: InventoryEngine `inventory_engine_dev`, dsai-platform `codex/inventory-psi-strategy-v2`.
+  개발 입력 봉인, Config `2.1.0`, 품목별 정책 탐색·선택·장기 평가와 Run 부속 Artifact,
+  Platform 조회 API·결과 화면까지 로컬 구현을 검증했다. 상세 경계는
+  [Run 정책 분석 계약](IO_POLICY_ANALYSIS_RUN_CONTRACT.md)을 따른다.
+- `policy_analysis_inputs`를 명시적으로 전달하는 경로는 완료했다. 실제 Claim의 Config 허용은
+  여전히 `1.1.0`/`2.0.0`이며 자동 분석 Producer·Command Resolver는 미완료다.
+  Config `2.1.0` 저장·입력 묶음 검증 가능과 실제 자동 실행 가능을 구분한다.
+- 재검증: Engine **727 passed, 7 skipped, 653 subtests passed**; Platform 관련 Backend
+  **417 passed**; 관련 Frontend **28 passed**. Engine·Platform 교차 저장소 Offline 연결을 포함한다.
+- Ruff·Format, Engine JSON Schema **29개**, 양쪽 Config `2.1.0` Schema 일치,
+  `git diff --check`를 검증했다. Frontend 전체 Next 빌드도 타입 검사·페이지 생성까지 통과했다.
+  삭제된 Portal을 참조하던 기존 `.next/dev/types`는 복구 가능한 임시 경로에 보관한 뒤 재검증했다.
+- 환경: macOS arm64/Python 3.12.10, 기존 Platform 검증 환경의 Polars 1.41.2/Torch 2.12.1.
+  선언 범위와 일치하며 패키지를 설치하거나 기존 환경을 변경하지 않았다. Coverage는 측정하지 않았다.
+- 실제 DB 통합 테스트 7건은 명시적으로 비활성화했다. 이번 범위는 독립 로컬 Commit까지이며,
+  Push·MR 생성·DB 접속/Write·Migration 적용·공용 Runtime/웹 배포는 수행하지 않는다.
+  개인 보고서·환경·IDE·임시 산출물은 Commit에서 제외하고 보존한다.
+
+### 현재 남은 작업 순서
+
+1. **자동 정책 탐색 Run 계약 — 다음 작업 · InventoryEngine·dsai-platform Backend**
+   Config `2.1.0`의 탐색·평가 사양과 정확한 입력 Hash를 Claim에 봉인한다.
+   허용 Version만 넓혀 탐색 설정을 조용히 무시하는 실행은 차단한다.
+2. **개발 입력부터 분석까지 자동 생성 — 다음 작업 · 입력 Producer·Command Resolver**
+   봉인된 Site 입력에서 탐색·선택·평가 Artifact를 자동 생성하고 실패·복구·Gate를 검증한다.
+   공통 계약 확정까지 직렬이며, 이후 Engine 연결과 Frontend 상태 테스트는 병렬 검증 가능하다.
+3. **실제 개발 E2E — 승인 필요 · 개발 PostgreSQL·확정할 개발 서버/Inventory Runtime**
+   Migration 078은 초안이다. 별도 승인 후 입력 묶음 게시 → Claim → Runtime → 결과 조회를 검증한다.
+   이미 적용된 Migration 074~077은 재실행하지 않는다.
+4. **원격 기준선 전달 — 별도 요청 후 · 두 저장소의 현재 작업 브랜치**
+   InventoryEngine은 `origin/inventory_engine_dev`, Platform은 현재 Inventory 브랜치의 원격
+   대상과 `develop` MR 경계를 확인한다. 이번에는 로컬 Commit만 수행한다.
+
+아래 2026-10-06 및 2026-09-29 기록은 각 단계 당시의 상태·수치를 보존한다.
+최신 완료 범위와 실행 순서는 이 절과 Run 정책 분석 계약을 우선한다.
+
+## 2026-10-06 추가 기준선 — 품목별 정책 탐색·선택(로컬)
+
+- InventoryEngine `inventory_engine_dev`, dsai-platform `codex/inventory-psi-strategy-v2`에서
+  [정책 탐색 업무 계약](IO_POLICY_SEARCH_CONTRACT.md), Config `2.1.0`, 그룹 후보·품목 예외 설정,
+  품목×후보 Simulation과 로컬 Append-only 결과 저장을 구현했다. 아래 기록은 각 당시의 검증 이력이다.
+- 기존 `1.1.0`/`2.0.0` Config, 고정 Mathematical·PPO Shadow 기준선은 유지한다.
+  탐색 원본은 `DEVELOPMENT_SHADOW`이며 `selected_policies=null`, 자동 게시·발주 불가다.
+- Baseline과 후보는 같은 봉인 입력을 사용한다. 후보별 실제 PSI·원 행동·제약 조정·서비스·주말 평균재고·
+  발주횟수·비용을 보존한다. 비용 미입력은 0이 아니라 `COST_PROFILE_NOT_BOUND`다.
+- 신규 설정 테이블·Migration, 실제 DB Write·웹/공용 Runtime 배포, Commit·Push는 이번에 수행하지 않았다.
+- 최신 테스트 수치와 배포/Source 한계는 [정책 탐색 검증 기록](IO_POLICY_SEARCH_VERIFICATION.md)을 따른다.
+- InventoryEngine에 [품목별 선택기](IO_POLICY_SELECTION_CONTRACT.md)를 추가했다. 서비스 충족·종료
+  Backorder 0·비용 가용·주문 Gate를 만족하는 후보를 비용 → 평균재고 → 발주횟수 → Candidate ID로
+  선택한다. 동점·미선정 사유를 보존하며 REVIEW는 개발 선정만 허용한다.
+- 원본 PSR은 그대로 두고 별도 PSEL Artifact로 보존한다. 저장·조회 시 원본 PSI/Guard/지표와
+  선택을 재검증한다. 운영 승인·자동 게시·발주, Platform Run 연결은 아직 아니다.
+  최신 전체 회귀와 검증 범위는 [선택기 검증 기록](IO_POLICY_SELECTION_VERIFICATION.md)을 따른다.
+- [장기 평가·비용 민감도](IO_POLICY_SENSITIVITY_CONTRACT.md)를 별도 개발 실험 계약으로 추가했다.
+  실제 기간별 PSI 재실행, 동일 PSI 비용 재평가, 고정 정책의 새 Seed Holdout, 동일 Prefix 종료 효과를
+  구분하고 별도 PSENS Artifact를 Append-only 저장·Replay한다. 운영 정책 자동 승격은 하지 않는다.
+  실행 수치와 한계는 [장기 평가 검증 기록](IO_POLICY_SENSITIVITY_VERIFICATION.md)을 따른다.
+
+Run 및 결과 화면 연결은 이후 로컬 구현했다. 당시 후속 목록을 현재 작업으로 다시 실행하지 않으며,
+최신 자동 생성·개발 E2E·원격 전달 순서는 위 2026-10-12 절을 따른다.
+
 기준일: 2026-09-29, 로컬 패키지 0.15.0. 이 문서는 **목표 계약 확정**, **코드 구현**, **개발 DB 검증**, **운영 사용**을 구분한다. 목표 아키텍처의 전체 파일 트리가 이미 구현돼 있다고 해석하지 않는다.
 
 동일 순서의 [의존관계 계획 JSON](IO_DEVELOPMENT_PLAN.json), [Network 검증 요약](evidence/network-input-validation-20260903.json), [Canonical·PSI 검증 기록](IO_CANONICAL_PSI_VERIFICATION.md)을 함께 관리한다. 계획 파일은 향후 작업 목록이며 자동 실행 지시나 DB 변경 승인이 아니다.

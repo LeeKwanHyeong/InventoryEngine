@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dsai:inventory-policy-sensitivity-result:1.0.0",
+  "title": "Immutable local policy sensitivity results; semantic verification requires replay",
+  "type": "object", "additionalProperties": false,
+  "required": ["contract_id", "contract_version", "status", "evaluation_spec", "input_hash", "comparison_mode", "holdout_mode", "terminal_mode", "matrix", "reference_selection", "selection_changes", "holdout_evaluations", "terminal_diagnostics", "automatic_publish_allowed", "automatic_order_allowed", "operational_policy_approved", "database_writes", "content_hash"],
+  "properties": {
+    "contract_id": {"const": "inventory-policy-sensitivity-result"}, "contract_version": {"const": "1.0.0"},
+    "status": {"const": "POLICY_SENSITIVITY_EVALUATED_LOCALLY"},
+    "evaluation_spec": {"type": "object"}, "input_hash": {"$ref": "#/$defs/hash"}, "content_hash": {"$ref": "#/$defs/hash"},
+    "comparison_mode": {"const": "ACTUAL_HORIZON_SIMULATION_WITH_IMMUTABLE_PSI_REPRICING"},
+    "holdout_mode": {"const": "NEW_SEED_PLANNING_PATH_FIXED_PRE_W0_POLICY_NOT_CHRONOLOGICAL_BACKTEST"},
+    "terminal_mode": {"const": "COMMON_PREFIX_WITH_CONTINUED_POLICY_EXTENSION_NO_SALVAGE_VALUE"},
+    "automatic_publish_allowed": {"const": false}, "automatic_order_allowed": {"const": false},
+    "operational_policy_approved": {"const": false}, "database_writes": {"const": false},
+    "matrix": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/row"}},
+    "reference_selection": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/row"}},
+    "selection_changes": {"type": "array", "items": {"type": "object"}},
+    "holdout_evaluations": {"type": "array", "items": {"type": "object"}},
+    "terminal_diagnostics": {"type": "array", "items": {"type": "object"}}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "candidate": {"type": ["string", "null"], "pattern": "^PC-[0-9a-f]{64}$"},
+    "row": {
+      "type": "object", "additionalProperties": false,
+      "required": ["case_id", "cost_profile_id", "item_id", "split", "horizon_weeks", "selected_candidate_id", "reason_codes", "candidate_assessments", "candidate_metrics"],
+      "properties": {
+        "case_id": {"type": "string"}, "cost_profile_id": {"type": "string"}, "item_id": {"type": "string"},
+        "split": {"enum": ["VALIDATION", "HOLDOUT"]}, "horizon_weeks": {"type": "integer", "minimum": 1},
+        "selected_candidate_id": {"$ref": "#/$defs/candidate"},
+        "reason_codes": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "candidate_assessments": {"type": "array", "items": {"type": "object"}},
+        "candidate_metrics": {"type": "array", "items": {"type": "object"}}
+      },
+      "if": {"properties": {"split": {"const": "HOLDOUT"}}},
+      "then": {"properties": {"selected_candidate_id": {"type": "null"}}}
+    }
+  }
+}

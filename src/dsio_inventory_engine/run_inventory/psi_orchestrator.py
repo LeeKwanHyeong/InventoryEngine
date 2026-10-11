@@ -12,7 +12,10 @@ import copy
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from decimal import Decimal, localcontext
-from typing import Any, Mapping, Protocol
+from typing import Any, Mapping, Protocol, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from dsio_inventory_engine.inventory_evidence.policy_analysis import PolicyAnalysisInputs
 
 from dsio_inventory_engine.inventory_contracts.canonical import CanonicalInputRequest
 from dsio_inventory_engine.inventory_contracts.mathematical import (
@@ -229,6 +232,8 @@ class PsiRunCommand:
     ppo_challengers: Mapping[str, ResolvedPpoChallenger] = field(default_factory=dict)
     stress_scenarios: Mapping[str, ResolvedStressScenario] = field(default_factory=dict)
     cost_profile: ResolvedCostProfile | None = None
+    # A sealed search/evaluation supplied by the producer, not "latest" result discovery.
+    policy_analysis_inputs: PolicyAnalysisInputs | None = None
 
 
 @dataclass(frozen=True, slots=True)

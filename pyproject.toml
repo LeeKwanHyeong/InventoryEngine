@@ -19,6 +19,9 @@ dev = ["jsonschema>=4,<5", "ruff>=0.15,<1", "coverage>=7,<8", "mypy>=2,<3", "ban
 [project.scripts]
 inventory-engine = "dsio_inventory_engine.entrypoints.cli:main"
 inventory-classification = "dsio_inventory_engine.entrypoints.classification_snapshot:main"
+inventory-policy-search = "dsio_inventory_engine.entrypoints.policy_search:main"
+inventory-policy-selection = "dsio_inventory_engine.entrypoints.policy_selection:main"
+inventory-policy-sensitivity = "dsio_inventory_engine.entrypoints.policy_sensitivity:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

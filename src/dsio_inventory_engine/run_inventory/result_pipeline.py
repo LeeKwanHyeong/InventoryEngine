@@ -13,6 +13,7 @@ from dsio_inventory_engine.inventory_evidence.application import (
     VerifiedInventoryResultBundle,
 )
 from dsio_inventory_engine.inventory_evidence.contracts import InventoryEvidenceUnitOfWork
+from dsio_inventory_engine.inventory_evidence.policy_analysis import build_policy_analysis
 
 from .psi_orchestrator import PsiRunCommand, RunPsiBundleUseCase
 from .landed_cost_pipeline import RunLandedCostResolver, build_run_cost_evidence
@@ -121,6 +122,16 @@ class InventoryResultPipelineHandler:
             },
         )
         cost_evidence = None
+        analysis = None
+        if command.policy_analysis_inputs is not None:
+            analysis = await asyncio.to_thread(
+                build_policy_analysis,
+                deployment=self.orchestrator.deployment,
+                request=request,
+                bundle=run.result_bundle,
+                inputs=command.policy_analysis_inputs,
+                mathematical_request=command.mathematical_request,
+            )
         if resolved_cost is not None:
             cost_evidence = await asyncio.to_thread(
                 build_run_cost_evidence,
@@ -135,6 +146,7 @@ class InventoryResultPipelineHandler:
             strategy_execution_plan=request.strategy_execution_plan,
             runtime_request=request,
             run_cost_evidence=cost_evidence,
+            policy_analysis_evidence=analysis,
         )
         await report(
             event_type="inventory.evidence",
@@ -156,6 +168,7 @@ class InventoryResultPipelineHandler:
                 outbox=persisted.outbox,
                 artifact_count=persisted.artifact_count,
                 run_cost_evidence=cost_evidence,
+                policy_analysis_evidence=analysis,
             ),
             persisted.outbox,
         )

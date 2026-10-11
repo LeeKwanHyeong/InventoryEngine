@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import uuid
+import copy
 from collections import Counter
 from dataclasses import dataclass
 from datetime import date, timedelta
@@ -38,6 +39,7 @@ from dsio_inventory_engine.inventory_contracts.values import (
     require,
     yyyyww,
 )
+from dsio_inventory_engine.inventory_contracts.policy_search import normalize_policy_search
 
 
 SEGMENTS = ("AX", "AY", "AZ", "BX", "BY", "BZ", "CX", "CY", "CZ")
@@ -48,6 +50,9 @@ CONFIG_SCHEMA_HASH = "b7841bc8cbe996903a7a9b2c1bb70a0a2dc4f283019fdde5931b54c788
 CONFIG_SCHEMA_V2_ID = "urn:dsai:inventory-engine-config-values:2.0.0"
 CONFIG_SCHEMA_V2_VERSION = "2.0.0"
 CONFIG_SCHEMA_V2_HASH = "77a1ccc984d3a6296c963e09460d8ff2e252debc0e2ca6179ec2b2fcacd67e9e"
+CONFIG_SCHEMA_V21_ID = "urn:dsai:inventory-engine-config-values:2.1.0"
+CONFIG_SCHEMA_V21_VERSION = "2.1.0"
+CONFIG_SCHEMA_V21_HASH = "f39e51436cc6efdec2a4c9cb5a9f1508db7aa269f09a3b0d05c0680f51723dae"
 
 
 @dataclass(frozen=True, slots=True)
@@ -572,13 +577,16 @@ def build_snapshot(inputs: ClassificationInputs) -> dict[str, Any]:
         in {
             (CONFIG_SCHEMA_ID, CONFIG_SCHEMA_VERSION, CONFIG_SCHEMA_HASH),
             (CONFIG_SCHEMA_V2_ID, CONFIG_SCHEMA_V2_VERSION, CONFIG_SCHEMA_V2_HASH),
+            (CONFIG_SCHEMA_V21_ID, CONFIG_SCHEMA_V21_VERSION, CONFIG_SCHEMA_V21_HASH),
         },
         "CLASSIFICATION_CONFIG_SCHEMA_MISMATCH",
     )
     config = validate_config(inputs.config_values)
     seven_axis_mode = config["segmentation"]["mode"] == "SEVEN_AXIS"
     expected_schema_identity = (
-        (CONFIG_SCHEMA_V2_ID, CONFIG_SCHEMA_V2_VERSION, CONFIG_SCHEMA_V2_HASH)
+        (CONFIG_SCHEMA_V21_ID, CONFIG_SCHEMA_V21_VERSION, CONFIG_SCHEMA_V21_HASH)
+        if "policy_search" in config
+        else (CONFIG_SCHEMA_V2_ID, CONFIG_SCHEMA_V2_VERSION, CONFIG_SCHEMA_V2_HASH)
         if seven_axis_mode
         else (CONFIG_SCHEMA_ID, CONFIG_SCHEMA_VERSION, CONFIG_SCHEMA_HASH)
     )
@@ -774,6 +782,44 @@ def validate_config(value: Mapping[str, Any]) -> dict[str, Any]:
     if segmentation.get("mode") == "ABC_XYZ":
         return _validate_v1_config(value)
     if segmentation.get("mode") == "SEVEN_AXIS":
+        if "policy_search" in value:
+            base = copy.deepcopy(
+                _validate_v2_config(
+                    {key: item for key, item in value.items() if key != "policy_search"}
+                )
+            )
+            # V2.1 mirrors the producer's typed JSON. Do not change historical
+            # V1/V2 hash semantics: 28 and 28.0 normalize only in the new contract.
+            for axis, fields in {
+                "abc": ("a_cumulative_share", "b_cumulative_share"),
+                "xyz": ("x_max_cv2", "y_max_cv2"),
+                "fsn": ("fast_min_active_week_ratio",),
+                "sde": (
+                    "difficult_min_lead_time_days",
+                    "scarce_min_lead_time_days",
+                    "scarce_max_on_time_rate",
+                    "difficult_max_on_time_rate",
+                ),
+                "hml": ("medium_min_percentile", "high_min_percentile"),
+            }.items():
+                for field in fields:
+                    number = base["segmentation"][axis][field]
+                    require(type(number) in (int, float), "CLASSIFICATION_CONFIG_INVALID")
+                    base["segmentation"][axis][field] = float(number)
+            for cell in base["policy_matrix"]["cells"]:
+                require(
+                    type(cell["target_service_level"]) in (int, float),
+                    "CLASSIFICATION_CONFIG_INVALID",
+                )
+                cell["target_service_level"] = float(cell["target_service_level"])
+            for grade, number in base["policy_matrix"]["ved_service_level_floor"].items():
+                require(type(number) in (int, float), "CLASSIFICATION_CONFIG_INVALID")
+                base["policy_matrix"]["ved_service_level_floor"][grade] = float(number)
+            try:
+                base["policy_search"] = normalize_policy_search(value["policy_search"])
+            except ValueError as exc:
+                raise InventoryInputError(str(exc)) from exc
+            return base
         return _validate_v2_config(value)
     raise InventoryInputError("CLASSIFICATION_CONFIG_INVALID")
 
@@ -1267,6 +1313,8 @@ def _base_axis_result(
 
 
 def config_hash(value: Mapping[str, Any]) -> str:
+    if "policy_search" in value:
+        value = validate_config(value)
     return hashlib.sha256(canonical_json(value).encode("utf-8")).hexdigest()
 
 
