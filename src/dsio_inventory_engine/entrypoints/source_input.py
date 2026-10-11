@@ -5,9 +5,13 @@ from pathlib import Path
 from dsio_inventory_engine.infrastructure.source_files import (
     FileSourceSnapshotReader,
 )
+from dsio_inventory_engine.inventory_contracts.canonical import CanonicalInputRequest
 from dsio_inventory_engine.inventory_contracts.network import DeploymentScope
 from dsio_inventory_engine.inventory_contracts.source import SourceInputRequest, SourceSnapshot
-from dsio_inventory_engine.inventory_contracts.values import require
+from dsio_inventory_engine.inventory_contracts.values import digest, require
+from dsio_inventory_engine.infrastructure.canonical_snapshot_publisher import (
+    LocalCanonicalSnapshotPublisher,
+)
 from dsio_inventory_engine.prepare_inventory.application.source_input import (
     PrepareSourceInputUseCase,
 )
@@ -56,3 +60,32 @@ async def prepare_source(
         return prepared
     finally:
         await connection.close()
+
+
+async def seal_site_sources(
+    request: SourceInputRequest,
+    deployment: DeploymentScope,
+    source_root: Path,
+    canonical_root: Path,
+    *,
+    read_postgres: bool = False,
+    dsn: str = "",
+) -> dict:
+    """Publish only after all eight pinned Sources pass the existing admission."""
+
+    require(
+        source_root.resolve() != canonical_root.resolve(),
+        "SOURCE_AND_CANONICAL_CATALOG_MUST_DIFFER",
+    )
+    prepared = await prepare_source(
+        request, deployment, source_root, read_postgres=read_postgres, dsn=dsn
+    )
+    canonical = CanonicalInputRequest.from_dict(prepared["canonical_request"])
+    published = LocalCanonicalSnapshotPublisher(canonical_root).publish(canonical, deployment)
+    return {
+        **published,
+        "source_bindings_hash": prepared["source_bindings_hash"],
+        "source_mapping_evidence_hash": digest(prepared["source_mapping_evidence"]),
+        "source_mapping_evidence": prepared["source_mapping_evidence"],
+        "forecast_database_corroborated": read_postgres,
+    }

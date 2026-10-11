@@ -98,4 +98,35 @@ IO_COMPANY_CD=DSE IO_ENVIRONMENT=DEVELOPMENT \
 3. **다음 작업 — 공통 Run/Configuration/Cycle·Evidence 연결:** 이미 결정된 실행 계약을 구현하고 두 Hash와 원본/제외 근거를 저장 계약에 연결한다. Source 읽기 완료와 전체 Run 성공을 구분한다.
 4. **승인 필요 — 지정 개발 환경 Migration·실제 E2E DB Write·Runtime 배포:** 별도 승인 후 수행한다. P0-14/18/19 보류는 유지한다.
 
-ML/PPO 개선은 기존 공통 DTO를 바꾸지 않으면 병렬로 진행 가능하다. Source Export/공유 Binding을 바꾸는 작업과 통합 검증은 직렬이다. InventoryEngine은 Git 저장소가 아니므로 이번에 Commit/Push/MR은 하지 않는다.
+ML/PPO 개선은 기존 공통 DTO를 바꾸지 않으면 병렬로 진행 가능하다. Source Export/공유 Binding을 바꾸는 작업과 통합 검증은 직렬이다.
+
+## 8. 개발용 Canonical Site Snapshot 봉인 (2026-10-01)
+
+`seal-site-sources`는 기존 `prepare-source`의 8개 Source 검증을 그대로 통과한
+뒤, Inventory 소유 Canonical Snapshot 다섯 종류(`inventory`,
+`prior_inventory`, `policies`, `receipts`, `customer_orders`)를 별도 파일
+Catalog에 파일별 원자적·Append-only 방식으로 기록한다. 다섯 파일이 모두
+성공했을 때만 Receipt를 반환하며, 중간 실패의 고아 파일은 같은 입력 재시도로
+재사용한다. Calendar·Master·Forecast는
+기존 Demand Handoff 참조를 유지한다. 두 Catalog는 같은 디렉터리일 수 없다.
+
+```sh
+IO_COMPANY_CD=DSE IO_ENVIRONMENT=DEVELOPMENT inventory-engine \
+  seal-site-sources --request /absolute/source-request.json \
+  --snapshot-root /absolute/source-snapshots \
+  --canonical-root /absolute/canonical-snapshots
+```
+
+결과 Receipt에는 다섯 Canonical Snapshot의 정확한 ID·Hash, 전체 Canonical
+Input Hash, Source Binding Hash, Source Mapping Evidence Hash가 들어간다.
+동일 ID·동일 바이트는 멱등이며 같은 ID에 다른 바이트가 있으면 충돌한다.
+`--read-postgres`는 기존의 지정 Forecast Run 대조를 추가할 뿐, BOH·공급·주문
+Source의 업무 확약을 대신하지 않는다. 출력은 `database_writes=false`이고
+`source_attestation=TRUSTED_UPSTREAM_REQUIRED_NOT_AUTHENTICATED_BY_HASH`다.
+이 봉인은 개발 입력의 형식과 계보를 검증한 것이지 ERP 자료의 운영 승인이나
+Inventory Run Claim이 아니다.
+
+현재 개발 DB에서 실제 BOH·확정 입고·고객 주문과 비NULL 승인 정책 Source가
+확인되지 않은 상태는 변하지 않았다. 해당 Source가 없으면 무조건 `ACTUAL_BOH`,
+`CONFIRMED`, `COMPLETE`를 생성하지 않는다. 명시적 합성 패키지로 테스트할 때는
+`SYNTHETIC_SOURCE`/`DEVELOPMENT_FIXTURE`와 Simulation 계보를 유지한다.

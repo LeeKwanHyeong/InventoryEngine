@@ -59,6 +59,7 @@ def main(argv: list[str] | None = None) -> int:
         "action",
         choices=[
             "prepare-source",
+            "seal-site-sources",
             "prepare-network",
             "simulate-baseline",
             "recommend-mathematical",
@@ -71,11 +72,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--request", required=True, type=Path)
     parser.add_argument("--read-postgres", action="store_true")
     parser.add_argument("--snapshot-root", type=Path)
+    parser.add_argument("--canonical-root", type=Path)
     args = parser.parse_args(argv)
     try:
-        if args.action == "prepare-source":
+        if args.action in ("prepare-source", "seal-site-sources"):
             from dsio_inventory_engine.inventory_contracts.source import SourceInputRequest
-            from dsio_inventory_engine.entrypoints.source_input import prepare_source
+            from dsio_inventory_engine.entrypoints.source_input import (
+                prepare_source,
+                seal_site_sources,
+            )
 
             require(args.snapshot_root is not None, "SOURCE_ROOT_REQUIRED")
             require(args.request.stat().st_size <= 65536, "REQUEST_SIZE_LIMIT")
@@ -85,13 +90,26 @@ def main(argv: list[str] | None = None) -> int:
             deployment = DeploymentScope(
                 os.environ.get("IO_COMPANY_CD", ""), os.environ.get("IO_ENVIRONMENT", "")
             )
+            if args.action == "seal-site-sources":
+                require(args.canonical_root is not None, "CANONICAL_ROOT_REQUIRED")
             result = asyncio.run(
-                prepare_source(
-                    source_request,
-                    deployment,
-                    args.snapshot_root,
-                    read_postgres=args.read_postgres,
-                    dsn=os.environ.get("IO_POSTGRES_DSN", ""),
+                (
+                    seal_site_sources(
+                        source_request,
+                        deployment,
+                        args.snapshot_root,
+                        args.canonical_root,
+                        read_postgres=args.read_postgres,
+                        dsn=os.environ.get("IO_POSTGRES_DSN", ""),
+                    )
+                    if args.action == "seal-site-sources"
+                    else prepare_source(
+                        source_request,
+                        deployment,
+                        args.snapshot_root,
+                        read_postgres=args.read_postgres,
+                        dsn=os.environ.get("IO_POSTGRES_DSN", ""),
+                    )
                 )
             )
             print(json.dumps(result, ensure_ascii=False, sort_keys=True))
