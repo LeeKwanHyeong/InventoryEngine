@@ -6,6 +6,7 @@ import argparse
 import asyncio
 import json
 import os
+from pathlib import Path
 from typing import Any
 
 from dsio_inventory_engine.classify_inventory.application import (
@@ -32,9 +33,19 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
             PostgresClassificationSource,
         )
 
+        original_catalog = None
+        if getattr(args, "original_artifact_root", None):
+            from dsio_inventory_engine.infrastructure.policy_analysis_inputs import (
+                LocalPolicyAnalysisInputCatalog,
+            )
+            from dsio_inventory_engine.inventory_contracts.network import DeploymentScope
+
+            original_catalog = LocalPolicyAnalysisInputCatalog(
+                Path(args.original_artifact_root), DeploymentScope(args.company_cd, "DEVELOPMENT")
+            )
         lifecycle = InventoryClassificationLifecycleUseCase(
             PostgresClassificationSource(connection),
-            PostgresClassificationPublisher(connection),
+            PostgresClassificationPublisher(connection, original_catalog=original_catalog),
         )
         scope = InventoryScope(
             project_id=args.project_id,
@@ -81,6 +92,9 @@ def parser() -> argparse.ArgumentParser:
     value.add_argument("--site-cd", required=True)
     value.add_argument("--approved-by", default=os.getenv("IO_APPROVED_BY", "admin"))
     value.add_argument("--apply", action="store_true")
+    value.add_argument(
+        "--original-artifact-root", default=os.getenv("IO_CLASSIFICATION_ARTIFACT_ROOT")
+    )
     return value
 
 

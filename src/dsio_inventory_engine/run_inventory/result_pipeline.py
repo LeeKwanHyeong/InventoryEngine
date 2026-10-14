@@ -99,6 +99,13 @@ class InventoryResultPipelineHandler:
             and resolved_runtime.canonical_hash == request.canonical_hash,
             "RUNTIME_COMMAND_CLAIM_MISMATCH",
         )
+        analysis_spec = request.strategy_execution_plan.get("policy_analysis_spec")
+        if analysis_spec is not None:
+            require(
+                (command.policy_analysis_inputs is not None)
+                == analysis_spec["search_spec"]["enabled"],
+                "POLICY_ANALYSIS_PRODUCER_BINDING_REQUIRED",
+            )
         resolved_cost = None
         if request.strategy_execution_plan.get("landed_cost_binding") is not None:
             require(self.landed_cost_resolver is not None, "RUN_COST_RESOLVER_REQUIRED")

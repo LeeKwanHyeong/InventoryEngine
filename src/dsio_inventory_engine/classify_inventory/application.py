@@ -175,6 +175,8 @@ class ClassificationInputs:
     ved_assignments: tuple[VedAssignment, ...] = ()
     actual_close_window_start_yyyyww: str | None = None
     actual_close_history_hash: str | None = None
+    decision_yyyyww: str | None = None
+    history_source_type: str = "ACTUAL_CLOSE"
 
 
 class ClassificationSource(Protocol):
@@ -596,7 +598,29 @@ def build_snapshot(inputs: ClassificationInputs) -> dict[str, Any]:
     )
     require(config_hash(config) == inputs.config_hash, "CLASSIFICATION_CONFIG_HASH_MISMATCH")
     hash_value(inputs.source_manifest_sha256)
-    as_of_yyyyww = yyyyww(inputs.actual_yyyyww)
+    history_yyyyww = yyyyww(inputs.actual_yyyyww)
+    as_of_yyyyww = yyyyww(inputs.decision_yyyyww) if inputs.decision_yyyyww else history_yyyyww
+    if inputs.decision_yyyyww:
+        require(
+            date.fromisocalendar(int(as_of_yyyyww[:4]), int(as_of_yyyyww[4:]), 1)
+            == date.fromisocalendar(int(history_yyyyww[:4]), int(history_yyyyww[4:]), 1)
+            + timedelta(weeks=1),
+            "CLASSIFICATION_HISTORY_MUST_PRECEDE_DECISION",
+        )
+    require(
+        inputs.history_source_type in {"ACTUAL_CLOSE", "DEVELOPMENT_PINNED"},
+        "CLASSIFICATION_HISTORY_SOURCE_TYPE",
+    )
+    if inputs.history_source_type == "DEVELOPMENT_PINNED":
+        require(
+            seven_axis_mode
+            and inputs.decision_yyyyww is not None
+            and inputs.source_relation.startswith("DEVELOPMENT_")
+            and all(m.fsn_source_status != "VERIFIED" for m in inputs.metrics),
+            "CLASSIFICATION_DEVELOPMENT_HISTORY_NOT_OPERATIONAL_CLOSE",
+        )
+    else:
+        require(inputs.decision_yyyyww is None, "CLASSIFICATION_DECISION_VERSION_UNSUPPORTED")
 
     abc = config["segmentation"]["abc"]
     xyz = config["segmentation"]["xyz"]
@@ -616,9 +640,9 @@ def build_snapshot(inputs: ClassificationInputs) -> dict[str, Any]:
                 lineage_lookbacks.append(int(fsn["lookback_weeks"]))
     lookback_weeks = max(demand_lookbacks)
     lineage_lookback_weeks = max(lineage_lookbacks)
-    start_monday, end_monday = classification_window(as_of_yyyyww, lookback_weeks)
+    start_monday, end_monday = classification_window(history_yyyyww, lookback_weeks)
     if seven_axis_mode:
-        lineage_start, _ = classification_window(as_of_yyyyww, lineage_lookback_weeks)
+        lineage_start, _ = classification_window(history_yyyyww, lineage_lookback_weeks)
         require(
             inputs.actual_close_window_start_yyyyww is not None
             and yyyyww(inputs.actual_close_window_start_yyyyww) == lineage_start.strftime("%G%V"),
@@ -701,10 +725,14 @@ def build_snapshot(inputs: ClassificationInputs) -> dict[str, Any]:
             }
             for item in classified_items
         )
-    axis_windows = _axis_window_evidence(config, as_of_yyyyww)
+    axis_windows = _axis_window_evidence(config, history_yyyyww)
     source_revision = (
-        "ACTUAL-CLOSE-WINDOW-"
-        f"{inputs.actual_close_window_start_yyyyww}-{as_of_yyyyww}-"
+        (
+            "DEVELOPMENT-PINNED-WINDOW-"
+            if inputs.history_source_type == "DEVELOPMENT_PINNED"
+            else "ACTUAL-CLOSE-WINDOW-"
+        )
+        + f"{inputs.actual_close_window_start_yyyyww}-{history_yyyyww}-"
         f"{inputs.actual_close_history_hash}"
         if seven_axis_mode
         else f"ACTUAL-CLOSE-{as_of_yyyyww}-R{inputs.closure_revision_no}-{inputs.publication_id}"

@@ -138,6 +138,10 @@
           "contract_version",
           "content_hash"
         ],
+        "allOf": [{
+          "if": { "properties": { "role": { "const": "ACTUAL_INPUT" } } },
+          "else": { "properties": { "contract_version": { "const": "1.0.0" } } }
+        }],
         "properties": {
           "role": {
             "enum": [
@@ -160,9 +164,7 @@
               "inventory-policy-sensitivity-result"
             ]
           },
-          "contract_version": {
-            "const": "1.0.0"
-          },
+          "contract_version": { "enum": ["1.0.0", "1.1.0"] },
           "content_hash": {
             "type": "string",
             "pattern": "^[0-9a-f]{64}$"

@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dsai:inventory-runtime-input-manifest:1.0.0",
+  "title": "Pre-Claim sealed Runtime input Manifest; approval is checked separately against the Run Ledger",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "contract_id": {
+      "const": "inventory-runtime-input-manifest"
+    },
+    "contract_version": {
+      "const": "1.0.0"
+    },
+    "environment_scope": {
+      "const": "DEVELOPMENT"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "company_cd",
+        "subs_cd",
+        "plant_cd",
+        "site_cd"
+      ],
+      "properties": {
+        "company_cd": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,159}$"
+        },
+        "subs_cd": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,159}$"
+        },
+        "plant_cd": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,159}$"
+        },
+        "site_cd": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,159}$"
+        }
+      }
+    },
+    "resources": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "snapshot_id",
+          "binding_content_hash",
+          "document",
+          "document_content_hash",
+          "approval_reference"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "CONFIG",
+              "CLASSIFICATION",
+              "MATHEMATICAL_TEMPLATE",
+              "MATHEMATICAL_EVALUATION",
+              "PPO_MODEL",
+              "COST_PROFILE",
+              "STRESS_SCENARIO",
+              "RUN_COST_INPUT"
+            ]
+          },
+          "snapshot_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,159}$"
+          },
+          "binding_content_hash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "document": {
+            "type": "object"
+          },
+          "document_content_hash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "approval_reference": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,159}$"
+              }
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "PPO_MODEL",
+                    "COST_PROFILE",
+                    "STRESS_SCENARIO"
+                  ]
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "approval_reference": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,159}$"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "snapshot_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,159}$"
+    },
+    "tenant_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,159}$"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,159}$"
+    },
+    "planning_cycle_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,159}$"
+    },
+    "planning_cycle_revision_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,159}$"
+    },
+    "demand_run_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,159}$"
+    },
+    "config_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,159}$"
+    },
+    "config_revision_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,159}$"
+    },
+    "config_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "canonical_input_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "plan_resources_content_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "content_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "contract_id",
+    "contract_version",
+    "environment_scope",
+    "scope",
+    "resources",
+    "snapshot_id",
+    "tenant_id",
+    "project_id",
+    "planning_cycle_id",
+    "planning_cycle_revision_id",
+    "demand_run_id",
+    "config_id",
+    "config_revision_id",
+    "config_hash",
+    "canonical_input_hash",
+    "plan_resources_content_hash",
+    "content_hash"
+  ]
+}

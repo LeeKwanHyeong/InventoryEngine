@@ -232,7 +232,7 @@ class PsiRunCommand:
     ppo_challengers: Mapping[str, ResolvedPpoChallenger] = field(default_factory=dict)
     stress_scenarios: Mapping[str, ResolvedStressScenario] = field(default_factory=dict)
     cost_profile: ResolvedCostProfile | None = None
-    # A sealed search/evaluation supplied by the producer, not "latest" result discovery.
+    # Automatic analysis uses exact claimed Source; legacy manual replay remains supported.
     policy_analysis_inputs: PolicyAnalysisInputs | None = None
 
 

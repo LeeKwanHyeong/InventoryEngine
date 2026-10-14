@@ -327,6 +327,37 @@ def v2_snapshot() -> dict:
 
 
 class PostgresClassificationPublisherTests(unittest.IsolatedAsyncioTestCase):
+    async def test_original_artifact_is_preserved_before_db_projection(self):
+        value = v2_snapshot()
+        connection = Connection(None)
+        saved = []
+
+        class Catalog:
+            def publish(self, **kwargs):
+                assert connection.transactions == []
+                saved.append(kwargs)
+
+        await PostgresClassificationPublisher(connection, original_catalog=Catalog()).publish(
+            value, approved_by="admin"
+        )
+        self.assertEqual(saved[0]["payload"], value)
+        self.assertEqual(saved[0]["payload"]["segments"][0]["revenue_share"], "1.000000000000")
+        self.assertEqual(saved[0]["snapshot_id"], value["classification_snapshot_id"])
+
+    async def test_original_archive_failure_prevents_db_approval(self):
+        connection = Connection(None)
+
+        class Catalog:
+            def publish(self, **kwargs):
+                raise OSError("offline archive unavailable")
+
+        with self.assertRaises(OSError):
+            await PostgresClassificationPublisher(connection, original_catalog=Catalog()).publish(
+                v2_snapshot(), approved_by="admin"
+            )
+        self.assertEqual(connection.transactions, [])
+        connection.execute.assert_not_awaited()
+
     async def test_v2_projection_writes_closed_review_evidence(self):
         value = v2_snapshot()
         connection = Connection(None)

@@ -174,6 +174,11 @@ def validate_universe(
     for row in all_master:
         same_scope(row, context)
     master = {r["item_id"]: r for r in all_master if r["active"] and r["stock_managed"]}
+    from dsio_inventory_engine.inventory_contracts.development_universe import (
+        admitted_development_master,
+    )
+
+    master = admitted_development_master(data, master, deployment)
     require(bool(master), "EMPTY_BUFFER_UNIVERSE")
     require(len(master) * len(calendar) <= 200_000, "PSI_GRID_LIMIT")
     weeks = {row["yyyyww"] for row in calendar}

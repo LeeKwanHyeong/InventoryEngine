@@ -1,0 +1,422 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dsai.ds-etrade.co.kr/contracts/inventory-development-calculation-manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_id",
+    "contract_version",
+    "source_contract_key",
+    "artifact_reference",
+    "status",
+    "command",
+    "source_artifact",
+    "parts",
+    "item_count",
+    "row_count",
+    "blocked_item_count",
+    "metrics",
+    "automatic_publish_allowed",
+    "automatic_order_allowed",
+    "engine_run_claimed",
+    "content_hash"
+  ],
+  "properties": {
+    "contract_id": {
+      "const": "inventory-development-calculation-manifest"
+    },
+    "contract_version": {
+      "const": "1.0.0"
+    },
+    "source_contract_key": {
+      "const": "inventory.development_calculation_manifest"
+    },
+    "artifact_reference": {
+      "type": "string",
+      "pattern": "^artifact:inventory-development:"
+    },
+    "status": {
+      "const": "CALCULATED"
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_id",
+        "contract_version",
+        "environment",
+        "execution_purpose",
+        "calculation_id",
+        "attempt_no",
+        "tenant_id",
+        "project_id",
+        "scope",
+        "demand_run_id",
+        "plan_yyyyww",
+        "source_binding",
+        "canonical_input_hash",
+        "config_revision_id",
+        "config_hash",
+        "classification_snapshot_id",
+        "classification_content_hash",
+        "effective_policy_content_hash",
+        "mathematical_implementation_hash",
+        "psi_implementation_hash",
+        "client_request_hash",
+        "max_items_per_part",
+        "automatic_publish_allowed",
+        "automatic_order_allowed",
+        "engine_run_claimed",
+        "content_hash"
+      ],
+      "properties": {
+        "contract_id": {
+          "const": "inventory-development-calculation"
+        },
+        "contract_version": {
+          "const": "1.0.0"
+        },
+        "environment": {
+          "const": "DEVELOPMENT"
+        },
+        "execution_purpose": {
+          "const": "CALCULATION_ONLY"
+        },
+        "calculation_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$"
+        },
+        "attempt_no": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "tenant_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "project_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+        },
+        "scope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "company_cd",
+            "subs_cd",
+            "site_cd"
+          ],
+          "properties": {
+            "company_cd": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "subs_cd": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "site_cd": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            }
+          }
+        },
+        "demand_run_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$"
+        },
+        "plan_yyyyww": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{3}(0[1-9]|[1-4][0-9]|5[0-3])$"
+        },
+        "source_binding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "bundle_id",
+            "content_hash"
+          ],
+          "properties": {
+            "bundle_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+            },
+            "content_hash": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "canonical_input_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "config_revision_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$"
+        },
+        "config_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "classification_snapshot_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$"
+        },
+        "classification_content_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "effective_policy_content_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "mathematical_implementation_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "psi_implementation_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "client_request_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "max_items_per_part": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        },
+        "automatic_publish_allowed": {
+          "const": false
+        },
+        "automatic_order_allowed": {
+          "const": false
+        },
+        "engine_run_claimed": {
+          "const": false
+        },
+        "content_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "source_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reference",
+        "content_hash"
+      ],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "pattern": "^artifact:inventory-development:"
+        },
+        "content_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "parts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "reference",
+          "content_hash",
+          "index",
+          "item_ids",
+          "row_count"
+        ],
+        "properties": {
+          "reference": {
+            "type": "string",
+            "pattern": "^artifact:inventory-development:"
+          },
+          "content_hash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "item_ids": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 64,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160,
+              "pattern": "^[^\\s\\u0000](?:[^\\u0000]*[^\\s\\u0000])?$"
+            }
+          },
+          "row_count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000000
+          }
+        }
+      }
+    },
+    "item_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "row_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "blocked_item_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "baseline",
+        "recommended",
+        "cost_status",
+        "cost_reason"
+      ],
+      "properties": {
+        "baseline": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "horizon_demand_qty",
+            "on_time_fulfilled_qty",
+            "ending_available_inventory_qty",
+            "ending_on_hand_inventory_qty",
+            "ending_backorder_qty",
+            "forecast_shortage_qty",
+            "projected_service_level",
+            "service_status"
+          ],
+          "properties": {
+            "horizon_demand_qty": {
+              "type": "string",
+              "pattern": "^[0-9]+([.][0-9]+)?$"
+            },
+            "on_time_fulfilled_qty": {
+              "type": "string",
+              "pattern": "^[0-9]+([.][0-9]+)?$"
+            },
+            "ending_available_inventory_qty": {
+              "type": "string",
+              "pattern": "^[0-9]+([.][0-9]+)?$"
+            },
+            "ending_on_hand_inventory_qty": {
+              "type": "string",
+              "pattern": "^[0-9]+([.][0-9]+)?$"
+            },
+            "ending_backorder_qty": {
+              "type": "string",
+              "pattern": "^[0-9]+([.][0-9]+)?$"
+            },
+            "forecast_shortage_qty": {
+              "type": "string",
+              "pattern": "^[0-9]+([.][0-9]+)?$"
+            },
+            "projected_service_level": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[01][.][0-9]{6}$"
+            },
+            "service_status": {
+              "enum": [
+                "AVAILABLE",
+                "NO_DEMAND_IN_HORIZON"
+              ]
+            }
+          }
+        },
+        "recommended": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "horizon_demand_qty",
+            "on_time_fulfilled_qty",
+            "ending_available_inventory_qty",
+            "ending_on_hand_inventory_qty",
+            "ending_backorder_qty",
+            "forecast_shortage_qty",
+            "projected_service_level",
+            "service_status"
+          ],
+          "properties": {
+            "horizon_demand_qty": {
+              "type": "string",
+              "pattern": "^[0-9]+([.][0-9]+)?$"
+            },
+            "on_time_fulfilled_qty": {
+              "type": "string",
+              "pattern": "^[0-9]+([.][0-9]+)?$"
+            },
+            "ending_available_inventory_qty": {
+              "type": "string",
+              "pattern": "^[0-9]+([.][0-9]+)?$"
+            },
+            "ending_on_hand_inventory_qty": {
+              "type": "string",
+              "pattern": "^[0-9]+([.][0-9]+)?$"
+            },
+            "ending_backorder_qty": {
+              "type": "string",
+              "pattern": "^[0-9]+([.][0-9]+)?$"
+            },
+            "forecast_shortage_qty": {
+              "type": "string",
+              "pattern": "^[0-9]+([.][0-9]+)?$"
+            },
+            "projected_service_level": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[01][.][0-9]{6}$"
+            },
+            "service_status": {
+              "enum": [
+                "AVAILABLE",
+                "NO_DEMAND_IN_HORIZON"
+              ]
+            }
+          }
+        },
+        "cost_status": {
+          "const": "NOT_AVAILABLE"
+        },
+        "cost_reason": {
+          "const": "COST_PROFILE_NOT_BOUND"
+        }
+      }
+    },
+    "automatic_publish_allowed": {
+      "const": false
+    },
+    "automatic_order_allowed": {
+      "const": false
+    },
+    "engine_run_claimed": {
+      "const": false
+    },
+    "content_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

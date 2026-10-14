@@ -184,6 +184,7 @@ class PersistInventoryResultBundleUseCase:
                 evidence=run_cost_evidence, request=runtime_request, run=run
             )
             objects.extend(verified_cost.artifacts)
+        _require_policy_analysis_presence(plan, policy_analysis_evidence is not None)
         if policy_analysis_evidence is not None:
             from .policy_analysis import verify_policy_analysis
 
@@ -363,6 +364,9 @@ class ReadAndVerifyInventoryResultBundleUseCase:
         outbox_id = _outbox_id(bundle)
         outbox = self.repository.read_outbox(outbox_id)
         analysis = None
+        _require_policy_analysis_presence(
+            strategy_execution_plan, "policy_analysis_reference" in outbox.message.payload()
+        )
         if "policy_analysis_reference" in outbox.message.payload():
             from .policy_analysis import verify_policy_analysis
 
@@ -395,6 +399,14 @@ class ReadAndVerifyInventoryResultBundleUseCase:
             artifact_count=len(artifact_bindings),
             run_cost_evidence=cost_evidence,
             policy_analysis_evidence=analysis,
+        )
+
+
+def _require_policy_analysis_presence(plan, present: bool) -> None:
+    spec = plan.get("policy_analysis_spec")
+    if spec is not None:
+        require(
+            spec["search_spec"]["enabled"] == present, "POLICY_ANALYSIS_EVIDENCE_BINDING_REQUIRED"
         )
 
 

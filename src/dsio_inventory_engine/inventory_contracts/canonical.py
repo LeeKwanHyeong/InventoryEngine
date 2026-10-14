@@ -22,11 +22,13 @@ from .values import (
     timestamp,
     yyyyww,
 )
+from .development_universe import seal_development_universe
 
 CONTRACT_ID = "io-canonical-input-v1"
 CONTRACT_VERSION = "1.0.0"
 V2_ID = "io-canonical-input-v2"
 V2_VERSION = "2.0.0"
+V21_VERSION = "2.1.0"
 V2_MAX_BYTES = 128_000_000
 SCOPE = {"company_cd": identifier, "subs_cd": identifier, "site_cd": identifier}
 ITEM = {**SCOPE, "item_id": identifier, "uom": identifier}
@@ -193,7 +195,10 @@ def read_canonical_envelope(document: str, path: tuple[str, ...]) -> dict:
     nested = result
     for key in path:
         nested = nested.get(key, {}) if isinstance(nested, dict) else {}
-    v2 = nested.get("contract_id") == V2_ID and nested.get("contract_version") == V2_VERSION
+    v2 = nested.get("contract_id") == V2_ID and nested.get("contract_version") in {
+        V2_VERSION,
+        V21_VERSION,
+    }
     require(len(document.encode()) <= (V2_MAX_BYTES if v2 else 8_000_000), "INPUT_SIZE_LIMIT")
     return result
 
@@ -238,6 +243,7 @@ class CanonicalInputRequest:
     @classmethod
     def from_dict(cls, value: dict) -> "CanonicalInputRequest":
         v2 = value.get("contract_id") == V2_ID
+        v21 = v2 and value.get("contract_version") == V21_VERSION
         rule_fields = {
             "uom": identifier,
             "tolerance_qty": decimal_string,
@@ -265,7 +271,9 @@ class CanonicalInputRequest:
             value,
             {
                 "contract_id": choice(V2_ID if v2 else CONTRACT_ID),
-                "contract_version": choice(V2_VERSION if v2 else CONTRACT_VERSION),
+                "contract_version": choice(
+                    V21_VERSION if v21 else V2_VERSION if v2 else CONTRACT_VERSION
+                ),
                 "context": lambda data: shape(data, CONTEXT_FIELDS),
                 "quantity_rules": lambda data: records(
                     data,
@@ -274,6 +282,22 @@ class CanonicalInputRequest:
                 ),
                 "input_bindings": bindings,
                 "snapshots": snapshots,
+                **(
+                    {
+                        "development_universe": seal_development_universe,
+                        "upstream_bindings": lambda data: shape(
+                            data,
+                            {
+                                kind: lambda row: shape(
+                                    row, {"snapshot_id": identifier, "content_hash": hash_value}
+                                )
+                                for kind in ("calendar", "master", "forecast")
+                            },
+                        ),
+                    }
+                    if v21
+                    else {}
+                ),
             },
         )
         result["quantity_rules"].sort(key=lambda row: row["uom"])

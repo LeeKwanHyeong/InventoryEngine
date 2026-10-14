@@ -7,6 +7,9 @@ from dsio_inventory_engine.inventory_contracts.canonical import (
     CanonicalInputRequest,
     V2_ID,
     V2_VERSION,
+    V21_VERSION,
+    METADATA_FIELDS,
+    normalize_snapshot,
     snapshot_content,
 )
 from dsio_inventory_engine.inventory_contracts.values import canonical_json, digest, require
@@ -17,11 +20,14 @@ def _canonical_shared_snapshot(kind: str, snapshot: dict, *, plant_cd: str) -> d
     """Project Demand's plant-aware shared scope into Inventory's site grain."""
     projected = deepcopy(snapshot)
     require(projected["metadata"].get("plant_cd") == plant_cd, "HANDOFF_PLANT_SCOPE_MISMATCH")
-    del projected["metadata"]["plant_cd"]
+    projected["metadata"] = {
+        key: value for key, value in projected["metadata"].items() if key in METADATA_FIELDS[kind]
+    }
     if kind == "master":
         for row in projected["rows"]:
             require(row.get("plant_cd") == plant_cd, "HANDOFF_PLANT_SCOPE_MISMATCH")
             del row["plant_cd"]
+    projected = normalize_snapshot(kind, projected, row_limit=200_000)
     projected["content_hash"] = digest(snapshot_content(kind, projected))
     return projected
 
@@ -47,7 +53,8 @@ class PrepareForecastHandoffUseCase:
         )
         value = deepcopy(template)
         require(
-            value["contract_id"] == V2_ID and value["contract_version"] == V2_VERSION,
+            value["contract_id"] == V2_ID
+            and value["contract_version"] in {V2_VERSION, V21_VERSION},
             "CANONICAL_V2_REQUIRED",
         )
         request = export["manifest"]["request"]
@@ -109,8 +116,21 @@ class PrepareForecastHandoffUseCase:
                 key=canonical_json,
             ),
         }
+        mapped["content_hash"] = "0" * 64
+        mapped = normalize_snapshot("forecast", mapped, row_limit=200_000)
         mapped["content_hash"] = digest(snapshot_content("forecast", mapped))
         snapshots["forecast"] = mapped
+        if value["contract_version"] == V21_VERSION:
+            value["upstream_bindings"] = {
+                **{
+                    kind: {
+                        "snapshot_id": shared[kind]["snapshot_id"],
+                        "content_hash": shared[kind]["content_hash"],
+                    }
+                    for kind in ("calendar", "master")
+                },
+                "forecast": {"snapshot_id": snapshot_id, "content_hash": content_hash},
+            }
         value["input_bindings"]["forecast"] = {
             k: mapped[k] for k in ("snapshot_id", "content_hash")
         }

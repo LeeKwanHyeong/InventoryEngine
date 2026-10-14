@@ -42,6 +42,7 @@ class PolicyAnalysisInputs:
     classification_snapshot: dict
     evaluation_result: dict | None = None
     evaluation_sources: Mapping[str, dict] = field(default_factory=dict)
+    evaluation_requests: Mapping[str, dict] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -66,6 +67,28 @@ def build_policy_analysis(
     raw = {**dispatch["claim"], **dispatch["claim"]["scope"], "attempt_no": dispatch["attempt_no"]}
     search = copy.deepcopy(inputs.search_result)
     config_values = validate_config(inputs.config_values)
+    analysis_spec = request.strategy_execution_plan.get("policy_analysis_spec")
+    if analysis_spec is not None:
+        require(
+            inputs.classification_snapshot["tenant_id"] == request.tenant_id
+            and inputs.classification_snapshot["project_id"] == request.project_id,
+            "POLICY_ANALYSIS_SOURCE_SCOPE_MISMATCH",
+        )
+        from dsio_inventory_engine.run_inventory.policy_analysis_producer import (
+            produce_policy_analysis_inputs,
+        )
+
+        regenerated = produce_policy_analysis_inputs(
+            deployment=deployment,
+            specification=analysis_spec,
+            mathematical_request=mathematical_request,
+            config_values=config_values,
+            classification_snapshot=inputs.classification_snapshot,
+            evaluation_requests=inputs.evaluation_requests,
+        )
+        require(regenerated == inputs, "POLICY_ANALYSIS_SPEC_REPLAY_MISMATCH")
+    else:
+        require(not inputs.evaluation_requests, "POLICY_ANALYSIS_UNBOUND_EVALUATION_INPUTS")
     require(
         mathematical_request.to_dict()["policy_input"]["content_hash"]
         == request.strategy_execution_plan["operational_strategy"]["strategy_input_binding"][
@@ -111,6 +134,12 @@ def build_policy_analysis(
         "config_values": config_values,
         "classification_snapshot": copy.deepcopy(inputs.classification_snapshot),
     }
+    if analysis_spec is not None:
+        source_body.update(
+            contract_version="1.1.0",
+            policy_analysis_spec_content_hash=analysis_spec["content_hash"],
+            evaluation_requests=copy.deepcopy(dict(inputs.evaluation_requests)),
+        )
     source_document = {**source_body, "content_hash": digest(source_body)}
     documents = [("ACTUAL_INPUT", source_document), ("SEARCH", search), ("SELECTION", selection)]
     evaluation = copy.deepcopy(inputs.evaluation_result)
@@ -272,6 +301,7 @@ def verify_policy_analysis(*, deployment, request, bundle, repository, pointer):
             source["classification_snapshot"],
             by_role["EVALUATION"][0] if by_role["EVALUATION"] else None,
             sources if by_role["EVALUATION"] else {},
+            source.get("evaluation_requests", {}),
         ),
     )
     require(expected.manifest == manifest, "POLICY_ANALYSIS_MANIFEST_REPLAY_MISMATCH")

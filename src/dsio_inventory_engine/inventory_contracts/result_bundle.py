@@ -25,11 +25,15 @@ from .values import (
     shape,
 )
 from .run_cost import run_cost_binding
+from .policy_analysis_spec import validate_policy_analysis_spec
+from .runtime_inputs import input_manifest_binding
 
 
 STRATEGY_EXECUTION_PLAN_CONTRACT_ID = "inventory-strategy-execution-plan-v1"
 STRATEGY_EXECUTION_PLAN_CONTRACT_VERSION = "1.1.0"
 LANDED_COST_STRATEGY_PLAN_VERSION = "1.2.0"
+POLICY_ANALYSIS_STRATEGY_PLAN_VERSION = "1.3.0"
+RUNTIME_INPUT_STRATEGY_PLAN_VERSION = "1.4.0"
 RESULT_BUNDLE_CONTRACT_ID = "inventory-result-bundle-v1"
 RESULT_BUNDLE_CONTRACT_VERSION = "1.0.0"
 RESULT_BUNDLE_SOURCE_CONTRACT_KEY = "inventory.result_bundle"
@@ -420,7 +424,10 @@ def _cost_profile(value: Any) -> dict[str, Any]:
 STRATEGY_EXECUTION_PLAN_BODY_FIELDS = {
     "contract_id": choice(STRATEGY_EXECUTION_PLAN_CONTRACT_ID),
     "contract_version": choice(
-        STRATEGY_EXECUTION_PLAN_CONTRACT_VERSION, LANDED_COST_STRATEGY_PLAN_VERSION
+        STRATEGY_EXECUTION_PLAN_CONTRACT_VERSION,
+        LANDED_COST_STRATEGY_PLAN_VERSION,
+        POLICY_ANALYSIS_STRATEGY_PLAN_VERSION,
+        RUNTIME_INPUT_STRATEGY_PLAN_VERSION,
     ),
     "strategy_execution_plan_id": identifier,
     "classification_config_hash": hash_value,
@@ -479,7 +486,35 @@ def _plan_fields(candidate: dict, *, include_hash: bool) -> dict:
     fields = dict(
         STRATEGY_EXECUTION_PLAN_FIELDS if include_hash else STRATEGY_EXECUTION_PLAN_BODY_FIELDS
     )
-    if candidate.get("contract_version") == LANDED_COST_STRATEGY_PLAN_VERSION:
+    manifest_version = candidate.get("contract_version") == RUNTIME_INPUT_STRATEGY_PLAN_VERSION
+    if manifest_version:
+        fields["runtime_input_binding"] = input_manifest_binding
+    else:
+        require(
+            candidate.get("runtime_input_binding") is None, "RUNTIME_INPUT_PLAN_VERSION_INVALID"
+        )
+        candidate.pop("runtime_input_binding", None)
+    analysis_version = candidate.get("contract_version") in {
+        POLICY_ANALYSIS_STRATEGY_PLAN_VERSION,
+        RUNTIME_INPUT_STRATEGY_PLAN_VERSION,
+    }
+    if analysis_version:
+        fields["policy_analysis_spec"] = validate_policy_analysis_spec
+        spec = validate_policy_analysis_spec(candidate.get("policy_analysis_spec"))
+        require(
+            spec["config_hash"] == candidate.get("classification_config_hash")
+            and spec["effective_policy_content_hash"]
+            == candidate.get("effective_policy_content_hash"),
+            "POLICY_ANALYSIS_PLAN_POLICY_MISMATCH",
+        )
+    else:
+        require(
+            candidate.get("policy_analysis_spec") is None, "POLICY_ANALYSIS_PLAN_VERSION_INVALID"
+        )
+        candidate.pop("policy_analysis_spec", None)
+    if candidate.get("contract_version") == LANDED_COST_STRATEGY_PLAN_VERSION or (
+        analysis_version and candidate.get("landed_cost_binding") is not None
+    ):
         fields["landed_cost_binding"] = run_cost_binding
         require(candidate.get("cost_profile_binding") is not None, "RUN_COST_PROFILE_REQUIRED")
     else:

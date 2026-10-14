@@ -393,6 +393,14 @@ def _claim(value: Any) -> dict[str, Any]:
             == classification["source_content_hash"],
             "RUNTIME_STRATEGY_EXECUTION_PLAN_POLICY_MISMATCH",
         )
+        spec = strategy_execution_plan.get("policy_analysis_spec")
+        if spec is not None:
+            require(
+                spec["config_id"] == result["config_id"]
+                and spec["config_revision_id"] == result["config_revision_id"]
+                and spec["classification_snapshot_id"] == classification["source_snapshot_id"],
+                "RUNTIME_POLICY_ANALYSIS_BINDING_MISMATCH",
+            )
         cost = strategy_execution_plan.get("landed_cost_binding")
         if cost is not None:
             trade = by_type.get("TRADE_COST_REVISION_SET")
@@ -513,12 +521,17 @@ def validate_canonical_runtime_binding(
     )
 
     by_type = {row["input_type"]: row for row in claim["input_bindings"]}
+    upstream_bindings = canonical.get("upstream_bindings", {})
     for input_type, (
         canonical_kind,
         source_key,
         contract_version,
     ) in CANONICAL_INPUT_BINDING_TYPES.items():
-        canonical = input_bindings.get(canonical_kind)
+        canonical = (
+            upstream_bindings.get(canonical_kind)
+            if canonical_kind in {"calendar", "master", "forecast"} and upstream_bindings
+            else input_bindings.get(canonical_kind)
+        )
         claimed = by_type[input_type]
         require(
             isinstance(canonical, Mapping)

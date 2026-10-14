@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dsai:inventory-mathematical-request-template:1.0.0",
+  "title": "Sealed mathematical request template; Engine admission validates nested domain contracts",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_id",
+    "contract_version",
+    "mathematical_request",
+    "content_hash"
+  ],
+  "properties": {
+    "contract_id": {
+      "const": "inventory-mathematical-request-template"
+    },
+    "contract_version": {
+      "const": "1.0.0"
+    },
+    "content_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "mathematical_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_input",
+        "recommendation"
+      ],
+      "properties": {
+        "policy_input": {
+          "type": "object"
+        },
+        "recommendation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "canonical_input",
+            "execution"
+          ],
+          "properties": {
+            "canonical_input": {
+              "type": "object",
+              "required": [
+                "context"
+              ],
+              "properties": {
+                "context": {
+                  "type": "object",
+                  "required": [
+                    "engine_run_id"
+                  ],
+                  "properties": {
+                    "engine_run_id": {
+                      "const": "PLATFORM_ASSIGNED_RUN_ID"
+                    }
+                  }
+                }
+              }
+            },
+            "execution": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    }
+  }
+}

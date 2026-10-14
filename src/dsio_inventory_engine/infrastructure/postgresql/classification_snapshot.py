@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import re
@@ -776,8 +777,9 @@ class PostgresClassificationSource:
 
 
 class PostgresClassificationPublisher:
-    def __init__(self, connection: Any) -> None:
+    def __init__(self, connection: Any, *, original_catalog=None) -> None:
         self.connection = connection
+        self.original_catalog = original_catalog
 
     async def publish(self, snapshot: Mapping[str, Any], *, approved_by: str) -> Mapping[str, Any]:
         contract_version = _validate_publishable_snapshot(snapshot)
@@ -785,6 +787,15 @@ class PostgresClassificationPublisher:
             isinstance(approved_by, str) and bool(approved_by.strip()) and len(approved_by) <= 64,
             "CLASSIFICATION_APPROVER_INVALID",
         )
+        if self.original_catalog is not None:
+            await asyncio.to_thread(
+                self.original_catalog.publish,
+                kind="CLASSIFICATION",
+                snapshot_id=snapshot["classification_snapshot_id"],
+                tenant_id=snapshot["tenant_id"],
+                project_id=snapshot["project_id"],
+                payload=dict(snapshot),
+            )
         scope = snapshot["scope"]
         lock_key = ":".join(
             (
@@ -1330,11 +1341,27 @@ def _validate_v2_header(snapshot: Mapping[str, Any]) -> None:
     )
     window_start = _iso_date(snapshot["window_start"], "CLASSIFICATION_V2_HEADER_INVALID")
     window_end = _iso_date(snapshot["window_end_exclusive"], "CLASSIFICATION_V2_HEADER_INVALID")
+    pinned_development = snapshot["source_revision"].startswith("DEVELOPMENT-PINNED-WINDOW-")
+    if pinned_development:
+        match = re.fullmatch(
+            r"DEVELOPMENT-PINNED-WINDOW-(\d{6})-(\d{6})-([0-9a-f]{64})", snapshot["source_revision"]
+        )
+        require(
+            match is not None
+            and match[3] == snapshot["actual_close_history_hash"]
+            and _iso_week_monday(match[2], "CLASSIFICATION_V2_HEADER_INVALID") + timedelta(weeks=1)
+            == as_of_monday,
+            "CLASSIFICATION_V2_HEADER_INVALID",
+        )
     require(
         window_start < window_end
         and window_start.weekday() == 0
         and window_end.weekday() == 0
-        and window_end - timedelta(days=7) == as_of_monday
+        and (
+            window_end == as_of_monday
+            if pinned_development
+            else window_end - timedelta(days=7) == as_of_monday
+        )
         and snapshot["abc_basis"] == "REVENUE"
         and snapshot["xyz_metric"] == "DEMAND_CV2"
         and snapshot["service_level_type"] == "CYCLE_SERVICE_LEVEL"
