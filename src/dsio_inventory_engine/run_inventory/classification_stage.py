@@ -9,6 +9,7 @@ from typing import Any, Mapping, Protocol
 from dsio_inventory_engine.classify_inventory.application import (
     InventoryClassificationLifecycleUseCase,
     InventoryScope,
+    previous_actual_week,
 )
 from dsio_inventory_engine.inventory_contracts.values import (
     InventoryInputError,
@@ -24,6 +25,7 @@ class InventoryRunContext:
     tenant_id: str
     project_id: str
     scope: InventoryScope
+    decision_yyyyww: str | None = None
 
     def __post_init__(self) -> None:
         try:
@@ -32,6 +34,8 @@ class InventoryRunContext:
             raise InventoryInputError("INVENTORY_RUN_ID_INVALID") from exc
         identifier(self.tenant_id)
         identifier(self.project_id)
+        if self.decision_yyyyww is not None:
+            previous_actual_week(self.decision_yyyyww)
         require(
             self.project_id == self.scope.project_id,
             "INVENTORY_RUN_SCOPE_MISMATCH",
@@ -90,8 +94,18 @@ class InventoryClassificationStageUseCase:
                 context.scope,
                 approved_by=approved_by,
                 publish=True,
+                **(
+                    {"decision_yyyyww": context.decision_yyyyww}
+                    if context.decision_yyyyww is not None
+                    else {}
+                ),
             )
             _validate_publication_receipt(receipt)
+            if context.decision_yyyyww is not None:
+                require(
+                    receipt.get("as_of_yyyyww") == context.decision_yyyyww,
+                    "CLASSIFICATION_DECISION_WEEK_MISMATCH",
+                )
         except Exception as exc:
             code = (
                 str(exc)

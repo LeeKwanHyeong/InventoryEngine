@@ -206,9 +206,17 @@ class InventoryClassificationLifecycleUseCase:
         *,
         approved_by: str,
         publish: bool = False,
+        decision_yyyyww: str | None = None,
     ) -> dict[str, Any]:
         identifier(approved_by)
+        if decision_yyyyww is not None:
+            previous_actual_week(decision_yyyyww)
         inputs = await self.source.load_inputs(scope)
+        if decision_yyyyww is not None:
+            require(
+                inputs.scope == scope and inputs.decision_yyyyww == decision_yyyyww,
+                "CLASSIFICATION_DECISION_WEEK_MISMATCH",
+            )
         snapshot = build_snapshot(inputs)
         publication: Mapping[str, Any] = {"publication_status": "dry_run"}
         if publish:
@@ -599,12 +607,12 @@ def build_snapshot(inputs: ClassificationInputs) -> dict[str, Any]:
     require(config_hash(config) == inputs.config_hash, "CLASSIFICATION_CONFIG_HASH_MISMATCH")
     hash_value(inputs.source_manifest_sha256)
     history_yyyyww = yyyyww(inputs.actual_yyyyww)
-    as_of_yyyyww = yyyyww(inputs.decision_yyyyww) if inputs.decision_yyyyww else history_yyyyww
-    if inputs.decision_yyyyww:
+    as_of_yyyyww = (
+        yyyyww(inputs.decision_yyyyww) if inputs.decision_yyyyww is not None else history_yyyyww
+    )
+    if inputs.decision_yyyyww is not None:
         require(
-            date.fromisocalendar(int(as_of_yyyyww[:4]), int(as_of_yyyyww[4:]), 1)
-            == date.fromisocalendar(int(history_yyyyww[:4]), int(history_yyyyww[4:]), 1)
-            + timedelta(weeks=1),
+            history_yyyyww == previous_actual_week(as_of_yyyyww),
             "CLASSIFICATION_HISTORY_MUST_PRECEDE_DECISION",
         )
     require(
@@ -619,8 +627,16 @@ def build_snapshot(inputs: ClassificationInputs) -> dict[str, Any]:
             and all(m.fsn_source_status != "VERIFIED" for m in inputs.metrics),
             "CLASSIFICATION_DEVELOPMENT_HISTORY_NOT_OPERATIONAL_CLOSE",
         )
-    else:
-        require(inputs.decision_yyyyww is None, "CLASSIFICATION_DECISION_VERSION_UNSUPPORTED")
+    elif inputs.decision_yyyyww is not None:
+        require(seven_axis_mode, "CLASSIFICATION_DECISION_VERSION_UNSUPPORTED")
+        require(
+            inputs.source_relation == "dsdm.tb_dyn_demand_dtl"
+            and type(inputs.closure_revision_no) is int
+            and inputs.closure_revision_no > 0
+            and isinstance(inputs.publication_id, str)
+            and bool(inputs.publication_id.strip()),
+            "CLASSIFICATION_ACTUAL_CLOSE_INVALID",
+        )
 
     abc = config["segmentation"]["abc"]
     xyz = config["segmentation"]["xyz"]
@@ -730,6 +746,8 @@ def build_snapshot(inputs: ClassificationInputs) -> dict[str, Any]:
         (
             "DEVELOPMENT-PINNED-WINDOW-"
             if inputs.history_source_type == "DEVELOPMENT_PINNED"
+            else "ACTUAL-CLOSE-DECISION-WINDOW-"
+            if inputs.decision_yyyyww is not None
             else "ACTUAL-CLOSE-WINDOW-"
         )
         + f"{inputs.actual_close_window_start_yyyyww}-{history_yyyyww}-"
@@ -1385,6 +1403,17 @@ def publication_receipt(
         receipt["actual_close_window_start_yyyyww"] = snapshot["actual_close_window_start_yyyyww"]
         receipt["actual_close_history_hash"] = snapshot["actual_close_history_hash"]
     return receipt
+
+
+def previous_actual_week(decision_yyyyww: str) -> str:
+    """Resolve the exact prior ISO week, including ISO-year boundaries."""
+
+    yyyyww(decision_yyyyww)
+    try:
+        monday = date.fromisocalendar(int(decision_yyyyww[:4]), int(decision_yyyyww[4:]), 1)
+        return (monday - timedelta(weeks=1)).strftime("%G%V")
+    except ValueError as exc:
+        raise InventoryInputError("CLASSIFICATION_DECISION_WEEK_INVALID") from exc
 
 
 def classification_window(value: str, lookback_weeks: int) -> tuple[date, date]:

@@ -12,6 +12,7 @@ from typing import Any
 from dsio_inventory_engine.classify_inventory.application import (
     InventoryClassificationLifecycleUseCase,
     InventoryScope,
+    previous_actual_week,
 )
 from dsio_inventory_engine.inventory_contracts.values import InventoryInputError, require
 from dsio_inventory_engine.run_inventory.classification_stage import (
@@ -21,6 +22,7 @@ from dsio_inventory_engine.run_inventory.classification_stage import (
 
 
 async def run(args: argparse.Namespace) -> dict[str, Any]:
+    validate_args(args)
     try:
         import asyncpg
     except ImportError as exc:
@@ -44,7 +46,9 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
                 Path(args.original_artifact_root), DeploymentScope(args.company_cd, "DEVELOPMENT")
             )
         lifecycle = InventoryClassificationLifecycleUseCase(
-            PostgresClassificationSource(connection),
+            PostgresClassificationSource(
+                connection, decision_yyyyww=getattr(args, "decision_yyyyww", None)
+            ),
             PostgresClassificationPublisher(connection, original_catalog=original_catalog),
         )
         scope = InventoryScope(
@@ -68,6 +72,7 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
                     tenant_id=args.tenant_id,
                     project_id=args.project_id,
                     scope=scope,
+                    decision_yyyyww=getattr(args, "decision_yyyyww", None),
                 ),
                 approved_by=args.approved_by,
             )
@@ -75,6 +80,7 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
             scope,
             approved_by=args.approved_by,
             publish=args.apply,
+            decision_yyyyww=getattr(args, "decision_yyyyww", None),
         )
     finally:
         await connection.close()
@@ -90,6 +96,10 @@ def parser() -> argparse.ArgumentParser:
     value.add_argument("--subs-cd", required=True)
     value.add_argument("--plant-cd", required=True)
     value.add_argument("--site-cd", required=True)
+    value.add_argument(
+        "--decision-yyyyww",
+        help="Plan/W0 ISO week; read only the exact preceding week's latest Revision.",
+    )
     value.add_argument("--approved-by", default=os.getenv("IO_APPROVED_BY", "admin"))
     value.add_argument("--apply", action="store_true")
     value.add_argument(
@@ -133,6 +143,12 @@ def validate_args(args: argparse.Namespace) -> None:
     require(bool(args.dsn and args.dsn.strip()), "IO_POSTGRES_DSN_REQUIRED")
     if args.engine_run_id:
         require(args.apply, "INVENTORY_RUN_CLASSIFICATION_APPLY_REQUIRED")
+        require(
+            getattr(args, "decision_yyyyww", None) is not None,
+            "INVENTORY_RUN_CLASSIFICATION_DECISION_WEEK_REQUIRED",
+        )
+    if getattr(args, "decision_yyyyww", None) is not None:
+        previous_actual_week(args.decision_yyyyww)
 
 
 if __name__ == "__main__":

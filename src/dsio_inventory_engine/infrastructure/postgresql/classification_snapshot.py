@@ -19,6 +19,7 @@ from dsio_inventory_engine.classify_inventory.application import (
     ItemMetric,
     VedAssignment,
     classification_window,
+    previous_actual_week,
 )
 from dsio_inventory_engine.inventory_contracts.classification import (
     validate_effective_item_policy,
@@ -211,6 +212,20 @@ WHERE tenant_id = $1
   AND site_cd = $5
   AND actual_yyyyww BETWEEN $6 AND $7
 ORDER BY actual_yyyyww, closure_revision_no DESC
+"""
+
+ACTUAL_CLOSE_FOR_DECISION_SQL = """
+SELECT actual_yyyyww, closure_revision_no, status_cd, source_relation,
+       source_manifest_sha256, publication_id
+FROM dsdm.ctl_actual_week_close
+WHERE tenant_id = $1
+  AND company_cd = $2
+  AND subs_cd = $3
+  AND plant_cd = $4
+  AND site_cd = $5
+  AND actual_yyyyww = $6
+ORDER BY closure_revision_no DESC
+LIMIT 1
 """
 
 ITEM_METRICS_SQL = """
@@ -496,8 +511,12 @@ INSERT INTO dsai.inventory_classification_snapshot_item_policy_reasons (
 
 
 class PostgresClassificationSource:
-    def __init__(self, connection: Any) -> None:
+    def __init__(self, connection: Any, *, decision_yyyyww: str | None = None) -> None:
         self.connection = connection
+        self._decision_yyyyww = decision_yyyyww
+        self._actual_yyyyww = (
+            previous_actual_week(decision_yyyyww) if decision_yyyyww is not None else None
+        )
 
     async def load_inputs(self, scope: InventoryScope) -> ClassificationInputs:
         async with self.connection.transaction(isolation="repeatable_read", readonly=True):
@@ -513,15 +532,26 @@ class PostgresClassificationSource:
             require(config is not None, "CLASSIFICATION_ACTIVE_CONFIG_MISSING")
             require(str(config["project_id"]) == scope.project_id, "CLASSIFICATION_SCOPE_MISMATCH")
 
-            authority = await self.connection.fetchrow(
-                ACTUAL_CLOSE_SQL,
+            authority_args = (
                 config["tenant_id"],
                 scope.company_cd,
                 scope.subs_cd,
                 scope.plant_cd,
                 scope.site_cd,
             )
+            authority = await self.connection.fetchrow(
+                ACTUAL_CLOSE_FOR_DECISION_SQL
+                if self._actual_yyyyww is not None
+                else ACTUAL_CLOSE_SQL,
+                *authority_args,
+                *((self._actual_yyyyww,) if self._actual_yyyyww is not None else ()),
+            )
             require(authority is not None, "CLASSIFICATION_ACTUAL_CLOSE_MISSING")
+            require(
+                self._actual_yyyyww is None
+                or str(authority["actual_yyyyww"]) == self._actual_yyyyww,
+                "CLASSIFICATION_ACTUAL_CLOSE_WEEK_MISMATCH",
+            )
             require(
                 str(authority["status_cd"]).strip().upper() in {"CLOSED", "REVISED"},
                 "CLASSIFICATION_ACTUAL_CLOSE_NOT_TERMINAL",
@@ -773,6 +803,7 @@ class PostgresClassificationSource:
             ved_assignments=ved_assignments,
             actual_close_window_start_yyyyww=lineage_weeks[0],
             actual_close_history_hash=actual_close_history_hash,
+            decision_yyyyww=self._decision_yyyyww,
         )
 
 
@@ -1342,24 +1373,37 @@ def _validate_v2_header(snapshot: Mapping[str, Any]) -> None:
     window_start = _iso_date(snapshot["window_start"], "CLASSIFICATION_V2_HEADER_INVALID")
     window_end = _iso_date(snapshot["window_end_exclusive"], "CLASSIFICATION_V2_HEADER_INVALID")
     pinned_development = snapshot["source_revision"].startswith("DEVELOPMENT-PINNED-WINDOW-")
-    if pinned_development:
+    pinned_actual_decision = snapshot["source_revision"].startswith("ACTUAL-CLOSE-DECISION-WINDOW-")
+    if pinned_development or pinned_actual_decision:
+        prefix = (
+            "DEVELOPMENT-PINNED-WINDOW-" if pinned_development else "ACTUAL-CLOSE-DECISION-WINDOW-"
+        )
         match = re.fullmatch(
-            r"DEVELOPMENT-PINNED-WINDOW-(\d{6})-(\d{6})-([0-9a-f]{64})", snapshot["source_revision"]
+            re.escape(prefix) + r"(\d{6})-(\d{6})-([0-9a-f]{64})",
+            snapshot["source_revision"],
         )
         require(
             match is not None
             and match[3] == snapshot["actual_close_history_hash"]
+            and match[1] == snapshot["actual_close_window_start_yyyyww"]
+            and _iso_week_monday(match[2], "CLASSIFICATION_V2_HEADER_INVALID") + timedelta(weeks=1)
+            == window_end
             and _iso_week_monday(match[2], "CLASSIFICATION_V2_HEADER_INVALID") + timedelta(weeks=1)
             == as_of_monday,
             "CLASSIFICATION_V2_HEADER_INVALID",
         )
+        if pinned_actual_decision:
+            require(
+                snapshot["source_relation"] == "dsdm.tb_dyn_demand_dtl",
+                "CLASSIFICATION_V2_HEADER_INVALID",
+            )
     require(
         window_start < window_end
         and window_start.weekday() == 0
         and window_end.weekday() == 0
         and (
             window_end == as_of_monday
-            if pinned_development
+            if pinned_development or pinned_actual_decision
             else window_end - timedelta(days=7) == as_of_monday
         )
         and snapshot["abc_basis"] == "REVENUE"
