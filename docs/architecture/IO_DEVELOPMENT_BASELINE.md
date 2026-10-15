@@ -1,6 +1,201 @@
 # InventoryEngine 개발 기준선과 작업 순서
 
-## 2026-10-14 실제 로컬 서비스 실행·조회·재기동 복구 — 현재 기준선
+## 2026-10-15 Source·설치 Build·Projection 실행 조립 — 현재 로컬 기준선
+
+- [Source 실행 계약](IO_DSIM_SOURCE_EXECUTION.md)에 설치 Build·정확한 Manifest·분류·Bundle·Projection
+  포인터를 연결했다. 분석 OFF여도 원본 분류 Header와 전체 품목 근거를 별도 봉인한다.
+- 원 Header Hash/UUID·Effective Policy Hash·Config/Scope·품목 Coverage를 검사하고 새 조립 경로는
+  판단 주차와 Plan 주차를 계산 전에 대조한다. 기존 FSN/운영 Gate는 유지한다.
+- 고정 Source Execution Artifact로 재기동·저장 실패·commit 응답 유실을 복구한다.
+  복구 시 원천 조회·PSI 재계산은 하지 않으며 과거 Header 없는 Outbox를 수정하지 않는다.
+- 격리 Wheel 설치의 신규 Source/Platform 조립 **19 passed**, Platform 관련 **293 passed**.
+  전체 Engine **873 passed / 9 skipped / 669 subtests passed**, 기존 Framework 경고 3건.
+  Ruff·Format·Catalog/DDL 생성물·Diff Check 통과. 설치 후보 Hash는 Source 실행 계약에 기록했다.
+- 실제 승인 Authority/Audit/Writer는 Offline 대역이다. 실제 DB 조회·적용·승인·기본 Route/Runtime 활성화·
+  기존 설치 교체·공용 배포·V100 실제 Claim E2E·실제 발주·Commit·Push는 수행하지 않았다.
+
+**다음 작업 — 저장소별 변경과 설치 후보 검토**
+
+- InventoryEngine `inventory_engine_dev`, Platform `codex/inventory-psi-strategy-v2`의 관련 변경을 선별한다.
+  개인 보고서·환경·임시 Wheel은 제외한다. Commit·Push는 별도 요청 후 수행한다.
+
+**승인 필요 — 개발 PostgreSQL Canary와 실제 Source/Claim 연결**
+
+- Schema/Role 대사 → Rollback·FK/Trigger·동시성 → 필요한 Migration → 실제 입력·Claim·조회/복구 순서다.
+  079와 Evidence DDL은 별개이며 074~078 재실행·공용 배포·실제 발주는 포함하지 않는다.
+- 아래 동일 날짜 절은 검증 이력이다. 완료한 Source 조립/Writer 작업을 다시 실행하지 않는다.
+
+## 2026-10-15 DSIM Projection Writer·Verifier — 선행 구현 이력
+
+- [구현·검증 계약](IO_DSIM_PROJECTION_WRITER_VERIFIER.md)에 봉인 Artifact → 20개 논리 Table →
+  검증 Receipt의 Writer/Verifier·분할 저장·재생성 대사·복구를 정리했다.
+- Platform Callback 권한·Scope·원 Claim Hash·배정 Row Version·전체 입력 Binding을 검사하고,
+  Source 검증은 Transaction 밖에서 수행한 뒤 저장 직전에 Claim을 다시 검사한다.
+- 실제 Artifact와 대조해 미적용 초안의 NO_ORDER·입고일/Source 시각 null·Site 공통 Cut-off·
+  원 HML 수준/별도 주문 Gate·장기 평가 FK를 보정했다. 신규 초안은 21개 Table·277개 컬럼이다.
+- 분류 Effective Policy Hash와 Header Hash를 혼동하지 않는다. 원문 Header 없는 Bundle는 차단하며
+  분석이 꺼진 실행의 별도 Header 봉인/Resolver는 다음 실제 Source 조립 범위다.
+- InventoryEngine 전체 **854 passed / 9 skipped / 669 subtests passed**, 기존 Framework 경고 3건.
+  신규 Projection/복구 19건, Platform 관련 273건·Catalog/DDL 대사·파싱·Ruff/Format 통과.
+- **실제 DB 접속/DDL/DML·079/신규 Migration·V100 실제 Claim E2E·HTTP/Runtime 기본 활성화·
+  기존 Wheel 교체·공용 배포·Commit·Push는 미수행**이다. 기존 FSN·운영 Gate와 개인 보고서는 보존했다.
+
+**다음 작업 — InventoryEngine·Platform 실제 봉인 Source·설치 Build 대사**
+
+- 적용할 분류 원문·정확한 Artifact 포인터와 조립 경로를 고정한다. 아래 이전 절의 Writer 구현은
+  완료된 이력이며 다시 실행하지 않는다. Read API 계약은 Source 조립 계약 고정 후 병렬 준비할 수 있다.
+
+**승인 필요 — 개발 PostgreSQL Canary·동시성·권한·실제 적용**
+
+- 기존 Schema와 초안을 대사한 뒤 별도 승인으로 검증한다. 079와 Evidence Migration을 합쳐
+  자동 적용하거나 기존 074~078을 재실행하지 않는다.
+
+
+## 2026-10-15 DSIM 관계형 Evidence 물리 초안 — 현재 설계 기준선
+
+- [물리 계약 초안](IO_DSIM_PHYSICAL_CONTRACT.md)과 `schemas/inventory-dsim-physical-contract-v1.json`에
+  Modified Table 후보 24개를 대사했다. 기존 Run·승인 입력·Config·7축·Network·Trade/비용은 재사용하고,
+  신규 21개 Evidence Table의 컬럼·Grain·PK/FK·Hash·Receipt를 로컬 초안으로 정리했다.
+- 정책 승인/배정 Master 2개와 DB 업무 게시 Outbox는 보류한다. 선정은 업무 승인이 아니며,
+  새 `publication_receipt`는 Evidence Projection 완료만 의미한다. 자동 발주·Effective Run CAS는 변경하지 않는다.
+- Platform `infra/migrations/drafts/UNASSIGNED_dsim_inventory_evidence_v1.sql`은 적용 번호가 없고,
+  검토 Flag가 없으면 중단하며 마지막은 ROLLBACK이다. 실제 DB 접속·적용·적재·배포·Commit·Push는 하지 않았다.
+- 기존 `CALCULATION_ONLY`는 영속 Artifact를 유지한다. 정식 Run Claim 없이 새 Ledger를 만들지 않는다.
+  아래 079 미적용·V100 새 분류/승인/Handoff 차단과 기존 FSN/운영 Gate는 그대로다.
+- 검증: InventoryEngine Unit·Contract·Offline Integration **835 passed / 9 skipped / 669 subtests passed**,
+  기존 Framework 경고 3건. Platform 관련 Migration **114 passed**(신규 물리 초안 57건 포함),
+  pglast DDL/PLpgSQL 구문·Ruff·Format·Catalog byte 대사·생성 SQL 대사 통과.
+  구문 분석/SQLite CHECK 검사는 실제 PostgreSQL FK·Trigger·동시성 Canary가 아니다.
+
+**다음 작업 — InventoryEngine·Platform의 Projection Writer/Verifier를 Offline으로 연결한다.**
+
+- 원 Artifact/Binding/Policy/Scenario Hash, 전체 품목·후보·주차 Coverage, Chunk 건수·멱등 Receipt를 검증한다.
+  Reader 권한 계약은 공통 계약 고정 후 병렬 준비할 수 있다. DB 적용이나 발주는 포함하지 않는다.
+
+**승인 필요 — 개발 PostgreSQL Rollback Canary·권한·동시성을 검증한다.**
+
+- 실제 Schema/Index/Role 대사 후 필요한 Table만 번호가 있는 적용 후보로 정리한다.
+  079 판단 주차 제약과 신규 Evidence DDL은 별개이며 자동 적용·기존 Migration 재실행은 하지 않는다.
+
+## 2026-10-15 Plan 판단 주차·직전 마감 보정 — 기존 실행 기준선
+
+**Plan `202512`의 판단 주차와 직전 마감 `202511`을 고정하는 구현·회귀·실제 DB 읽기 전용 검증을 완료했다.**
+신규 분류 게시·Config 승인·실제 Claim·Runtime 배포는 완료하지 않았다. 이 절의 Plan·분류 실행 기준선은 유지하며,
+신규 Evidence 물리 초안과 다음 작업은 위 설계 기준선 절을 따른다.
+
+- 코드 기준: InventoryEngine `inventory_engine_dev` HEAD `919201b820b0e42174e8c3eebc12b4f617445a88`,
+  Platform `codex/inventory-psi-strategy-v2` HEAD `8bc60f8210c72e91fac0a7374597565c9b2f7eff` 위 로컬 변경이다.
+  이번 보정은 아직 Commit·Push하지 않았다. 개인 보고서·환경·임시 산출물은 대상에서 제외한다.
+- 선행 승인 작업으로 누락 23주 `202438~202508`의 개발 마감을 게시했고,
+  기존 3주 `202509~202511`을 보존해 26주 전체를 충족했다. 마감 Header만 게시했으며 원본 수요를 변경하지 않았다.
+  개발 합성 Full Load 기반 증적이지 실제 ERP 마감의 정확성 검증은 아니다. 이 게시를 다시 실행하지 않는다.
+- 기존 Source의 전체 최신 마감 선택과 Builder의 실제 Source 판단 주차 거부를 보정했다.
+  Plan 호출은 정확한 직전 주차의 최신 Revision만 읽고, 누락·미마감이면 다른 주차나 과거 Revision으로 우회하지 않는다.
+  Claim된 Run CLI의 `--decision-yyyyww`는 필수다. Source·Context·Receipt의 판단 주차 불일치도 차단한다.
+- `as_of_yyyyww=202512`, 실제 마감 `202511`, 26주 `202438~202511`, 날짜 범위
+  `[2024-09-16, 2025-03-17)`을 유지한다. 새 V2 Source Revision은
+  `ACTUAL-CLOSE-DECISION-WINDOW-*`로 구분하며, 기간·이력 Hash·Source Relation을 게시 전에 검증한다.
+  기존 개발 합성 입력·V1 의미·FSN 설정·운영 Gate는 유지한다. 후속 Migration 079는 아래와 같이 준비했으며 실제 적용하지 않았다.
+- 판단 주차를 생략한 독립 분류는 이전 최신 마감 동작을 호환용으로 유지한다. Plan 실행·재현에는 사용하지 않는다.
+  기존 승인 Snapshot을 수정하지 않으며 확정 Run은 기존 Snapshot ID·Revision·Hash로 재현한다.
+
+### 이번 검증과 적용 경계
+
+| 확인 항목 | 결과 |
+|---|---|
+| 실제 개발 DB 조회 | 연결을 읽기 전용으로 강제. 최신 마감 `202601`이 있어도 `202511` Revision 1 선택 |
+| 기존 활성 설정 | Config 2.0.0 Revision `d4be4ad6-9e2e-47ce-84fa-d0c0b870fa4b` 유지 |
+| 순수 계산 범위 | 전체 Master 7,000품목, 분류 6,991 / 미분류 9, FSN 7,000품목 분류 |
+| 후보 검증 | Content Hash·Snapshot ID 재계산과 Python 게시 전 Validator 통과. DB INSERT 검증·게시 없음 |
+| 전체 회귀 | Unit·Contract·Offline Integration **828 passed / 16 skipped / 669 subtests passed**, 기존 Framework 경고 3건 |
+| 관련 회귀·정적 검사 | 69 passed / 24 subtests, Ruff·Format·Diff Check 통과 |
+| 실행 경계 | 신규 DB Write·Migration·승인·Claim·Forecast 재실행·실제 발주·Runtime 배포·Commit·Push 없음 |
+
+이 실제 Source 검증은 **Config 2.1 Draft·Forecast 3,622품목 개발 범위의 신규 승인 결과가 아니다.**
+기존 원문 Snapshot `bbdc697b-bf7c-5765-b5d8-09a27c260948`은 자동 갱신하지 않았으며,
+그 원문의 FSN 미검증·미분류 3품목과 운영 Gate는 그대로다. 26주 마감 충족이 기존 Snapshot·Handoff를 자동 승격하지 않는다.
+실제 조회에 사용한 임시 SSH 터널은 검증 후 종료했고 로컬 주소·포트는 문서에 기록하지 않는다.
+
+**추가 발견 — DB 게시 차단:** 실제 개발 DB의 `chk_inventory_classification_v2_lineage`는
+이력 종료일을 `as_of 주차 + 7일`로 강제한다. 새 판단 주차 계약은 이력 종료일이 `as_of 주차 시작일`이므로
+Python 검증을 통과해도 현재 DB 제약을 만족하지 않는다. `pg_constraint`를 읽어 실제 적용 상태도 확인했다.
+기존 Migration 076은 그대로 보존하고, 구형 Snapshot과 새 실제 마감 판단 주차 형식을 구분하는
+후속 079 SQL·회귀 테스트 준비는 완료했지만 실제 적용하지 않았으므로 새 Snapshot DB 게시는 여전히 차단 상태다.
+
+### Migration 079 준비와 DB 변경 범위 — 완료 / DB 미적용
+
+- dsai-platform `codex/inventory-psi-strategy-v2`에
+  `infra/migrations/drafts/079_inventory_classification_decision_week.sql`과
+  `tests/unit/platform/test_inventory_classification_decision_week_migration.py`를 준비했다.
+  기존 076 SHA-256은 `7829281813f544581d7fdd9d238f190ef5d47dec3f0267946d805c8aaaf9ab60`으로 유지했다.
+- 079의 스키마 변경은 `dsai.inventory_classification_snapshots`의
+  `chk_inventory_classification_v2_lineage` 하나다. 테이블·컬럼·키·Index·Trigger·권한 추가와 기존 업무 행 변경은 없다.
+  유효한 V1·기존 V2 기간을 유지하며 새 실제 마감 판단 주차 Marker에만 새 종료일을 허용한다.
+  Version 누락과 채워진 V2 이력이 CHECK의 UNKNOWN으로 통과하는 경로도 차단했다.
+- 관련 **46 passed**, Platform Inventory **538 passed**, 기존 Framework 경고 25건이며 Ruff·Format·Diff Check 통과다.
+  pglast 7.20으로 PostgreSQL 문장 8개·PL/pgSQL 본문 2개를 파싱했다. Parser는 임시 경로에만 설치했고
+  프로젝트 의존성은 변경하지 않았다. SQLite Offline 식 검증은 PostgreSQL DDL·잠금·Trigger 실행 검증이 아니다.
+- 실제 개발 PostgreSQL의 읽기 전용 SELECT 평가에서 기존 Header 2건의 부적합은 0건이었다.
+  기존 활성 Config·전체 Master 7,000품목의 `202512` 후보도 새 식을 만족했다. Config 2.1 Draft·3,622품목 후보 승인은 아니다.
+  조회 당시 Header 테이블은 41컬럼·5 Index·사용자 Trigger 4개, 079 적용 이력 0건이었다.
+- 제약은 테이블 전체에 적용되며 단일 Transaction·`ACCESS EXCLUSIVE`, `lock_timeout=5s`,
+  `statement_timeout=120s`를 사용한다. 기존 행 검사와 잠금 영향을 실제 Rollback Canary에서 확인해야 한다.
+  적용 전 Schema·제약·Ledger·Snapshot ID/Hash를 보존하고 Commit 전 오류는 전체 Rollback한다.
+  새 형식 게시 후 076 복귀를 위해 불변 결과를 삭제·수정하지 않는다. 백업 주기·보존기간은 변경하거나 검증 완료로 주장하지 않는다.
+
+| 앞으로 승인받아 실행할 단계 | 대상 테이블 | 실제 변경 |
+|---|---|---|
+| 079 적용 | `dsai.inventory_classification_snapshots` | CHECK 하나 교체·기존 행 검사. 업무 행 변경 없음 |
+| 적용 이력 기록 | `dsai._migrations` | 승인된 적용 절차가 정확한 079 파일명·상태 기록. Draft SQL 자체의 INSERT는 없음 |
+| Config 승인·활성화 | `dsai.demand_engine_config_revision`, `dsai.demand_engine_config` | 검증·게시 정보와 명시적 활성화 CAS. FSN 값 변경은 별도 범위 |
+| 신규 분류 게시 | 기존 `dsai.inventory_classification_*` 7개 | 새 Snapshot Aggregate 추가. 기존 행·Hash 보존, Exact Replay 중복 없음 |
+| 승인 입력 묶음 | `dsai.inventory_site_input_sets` | Source·Config·분류 권위 검증 통과 후 새 승인 Binding 추가 |
+| Cycle·Site 준비 | `dsai.planning_cycle_revisions`, `dsai.planning_cycle_site_executions` | 정확한 Binding 추가, 상태·Attempt와 검증 후 유효 Run CAS |
+| Claim·실행 증적 | `dsai.engine_runtime_runs`, `dsai.engine_run_input_bindings`, `dsai.engine_runtime_run_events` | 신규 Inventory Attempt·입력·Event. 기존 성공 Demand Run 수정 없음 |
+
+분류 7개 테이블의 정확한 목록은 [분류 Lifecycle](IO_CLASSIFICATION_SNAPSHOT_LIFECYCLE.md)의 2.2절,
+승인·Claim의 상세 물리 경계는 Platform `docs/backend/dsim/inventory-policy-analysis-run-contract-v1.md`에 기록했다.
+원 수요·마감·Master·Network·Forecast와 `TB_IO_*`는 이번 보정으로 변경하지 않는다.
+임시 증적은 `/private/tmp/inventory-week-constraint-20261015.PjFYsk/`의 회귀 XML·`read-only-preflight.json`·
+`db-change-impact.json`이다. 실제 DDL·Rollback Canary·Snapshot 게시·Config 승인·Claim·Runtime 배포·Commit·Push는 하지 않았다.
+
+- 로컬 후보 Snapshot ID: `65a7c371-7a8e-58a9-bad6-dfaff655f60c`.
+  Content Hash: `910c63cf4128422029f06c9bc183961771bd9621865062c00f6a3746b2d886af`.
+  History Hash: `70d3cb63c7a9a63fe1dc8bad33cf55db98a28901c50029c71b035a2b54bf622e`.
+  모두 미게시 후보의 검증값이며 승인된 DB Snapshot ID로 사용하지 않는다.
+- 이번 회귀 XML과 읽기 전용 Receipt는 `/private/tmp/inventory-decision-week-20261015.SYJfz2/`에 보존한다.
+  이전 마감 게시 Receipt는 `/private/tmp/v100-weekly-close-publish-20261014.XnHMTS/`의 원본을 유지한다.
+  임시 증적은 Commit 대상이 아니다. 전체 테스트는 Fixture 경로를 포함한 `PYTHONPATH=src:tests/support:tests/unit`과
+  Platform 테스트 의존성 환경에서 실행했다. 이전 검증과 환경·수집 방식이 달라 총 건수만으로 신규 테스트 수를 계산하지 않는다.
+
+### 남은 작업 순서 — 현재 실행 대상
+
+**1. V100의 새 분류 후보와 남은 차단을 대사 — 다음 작업 / 읽기 전용·로컬 계산**
+
+- 대상: InventoryEngine·Platform Backend. 079 준비 완료를 기준선으로 삼는다.
+  Config 2.1 Draft, 3,622품목 범위의 분류 원문·8종 Source Mapping·Template/Manifest를
+  판단 주차 계약과 맞추고 미분류 3품목·Handoff 입장 제한을 대사한다.
+  전체 Master 7,000품목 검증과 개발 범위를 구분한다. 완료 조건은 승인할 후보와 추가 결정·보완이 필요한 차단 사유가 분리되는 것이다.
+
+**2. Migration 079의 Rollback Canary·실제 적용 검증 — 승인 필요**
+
+- 대상: 개발 PostgreSQL·Platform Backend. 정확한 079 SQL·제약·잠금·Ledger 변경 범위를 승인받아 검증한다.
+  1번의 Source 대사와 준비는 독립적으로 가능하지만 새 분류의 실제 게시는 079 적용 후다. 기존 076은 재실행하지 않는다.
+
+**3. 확정 후보를 승인 입력에 연결하고 로컬 Claim E2E 검증 — 별도 승인 필요 / 1·2번 후 직렬**
+
+- 대상: 개발 PostgreSQL·Platform Backend·로컬 Inventory Runtime. Config·신규 분류·입력 묶음의 승인 대상을 확인한 뒤
+  Claim·계산·조회·게시 차단·복구를 검증한다. FSN 설정과 운영 Gate를 우회하지 않는다.
+  기존 074~078은 재실행하지 않는다. 공용 Runtime 재배포·신규 Migration·실제 발주는 별도 승인 대상이다.
+
+**4. 검증한 변경을 저장소별로 고정 — 별도 Commit·Push 요청 후**
+
+- 대상: InventoryEngine `inventory_engine_dev`, Platform `codex/inventory-psi-strategy-v2`.
+  관련 코드·테스트·승인된 문서만 선별하며 개인 보고서·환경·IDE·임시 증적은 제외한다.
+  제약 보정안·Source 대사·문서 확인은 독립 검증 가능하지만 Migration 적용·신규 분류 승인·입력 묶음·Claim은 직렬로 진행한다.
+  비용/PPO/Stress는 수학적 V100 Claim 이후 별도 입력·Plan으로 검증한다.
+
+## 2026-10-14 실제 로컬 서비스 실행·조회·재기동 복구 — 선행 이력
 
 **맥북 내부에서 dsai-platform Backend와 Inventory Runtime을 별도 프로세스로 기동하고 실제 HTTP API 실행·조회·복구를 검증했다.**
 외부 접속 주소는 공개하지 않으며 이 문서에도 로컬 호스트·포트는 기록하지 않는다.
@@ -57,7 +252,7 @@
 - 이번 작업에는 PostgreSQL Write·Migration·공용 Runtime 배포·실제 발주·Secret/권한 변경·Commit·Push가 없다.
   로컬 SQLite의 계산 증적 저장만 수행했다. 기존 개인 보고서 변경은 보존했다.
 
-### 남은 작업 순서 — 현재 실행 대상
+### 당시 남은 작업 순서 — 로컬 서비스 검증 이력
 
 **1. 검증한 코드·증적·문서의 저장소별 기준선을 고정 — 다음 작업 / Commit·Push는 별도 요청**
 
@@ -174,7 +369,7 @@
 대상은 InventoryEngine `inventory_engine_dev`, Platform Backend `codex/inventory-psi-strategy-v2`다.
 Plan `20250317_DSE_P12` / W0 `202512` / Horizon 26주이며, 기존 성공 Demand Run
 `e5b43229-c69e-4e08-a8ab-5515bfb0f2f3`의 봉인 Export를 재사용했다. Forecast와 Export를 다시 실행하지 않았다.
-아래 과거 절의 완료·미완료 상태와 작업 순서는 당시 이력이다. 현재 실행 순서는 위 2026-10-14 절을 우선한다.
+아래 과거 절의 완료·미완료 상태와 작업 순서는 당시 이력이다. 현재 실행 순서는 위 2026-10-15 절을 우선한다.
 
 | 대상 | 완료한 개발 검증 | 미완료·적용 경계 |
 |---|---|---|
