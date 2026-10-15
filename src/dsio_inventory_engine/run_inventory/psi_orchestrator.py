@@ -234,6 +234,7 @@ class PsiRunCommand:
     cost_profile: ResolvedCostProfile | None = None
     # Automatic analysis uses exact claimed Source; legacy manual replay remains supported.
     policy_analysis_inputs: PolicyAnalysisInputs | None = None
+    classification_source: Mapping[str, Any] | None = None
 
 
 @dataclass(frozen=True, slots=True)

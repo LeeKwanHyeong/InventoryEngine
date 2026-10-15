@@ -409,6 +409,7 @@ class ApprovedInputCommandResolver:
             stress,
             cost,
             inputs,
+            classification,
         )
 
 

@@ -154,6 +154,7 @@ class InventoryResultPipelineHandler:
             runtime_request=request,
             run_cost_evidence=cost_evidence,
             policy_analysis_evidence=analysis,
+            classification_source=command.classification_source,
         )
         await report(
             event_type="inventory.evidence",
