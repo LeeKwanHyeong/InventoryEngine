@@ -62,6 +62,7 @@ class VerifiedInventoryResultBundle:
     artifact_count: int
     run_cost_evidence: RunCostEvidence | None = None
     policy_analysis_evidence: RunPolicyAnalysisEvidence | None = None
+    classification_source_artifact: ArtifactObject | None = None
 
 
 class PersistInventoryResultBundleUseCase:
@@ -83,6 +84,7 @@ class PersistInventoryResultBundleUseCase:
         runtime_request=None,
         run_cost_evidence: RunCostEvidence | None = None,
         policy_analysis_evidence: RunPolicyAnalysisEvidence | None = None,
+        classification_source=None,
     ) -> PersistedInventoryResultBundle:
         require(isinstance(run, PsiRunBundle), "PSI_RUN_BUNDLE_REQUIRED")
         plan = copy.deepcopy(dict(strategy_execution_plan))
@@ -218,12 +220,22 @@ class PersistInventoryResultBundleUseCase:
             len({artifact.reference for artifact in objects}) == len(objects),
             "ARTIFACT_REFERENCE_DUPLICATE",
         )
+        classification_artifact = None
+        if classification_source is not None:
+            from .classification_source import build_classification_source
+
+            require(runtime_request is not None, "CLASSIFICATION_SOURCE_RUNTIME_REQUIRED")
+            classification_artifact = build_classification_source(
+                request=runtime_request, snapshot=classification_source, canonical=canonical
+            )
+            objects.append(classification_artifact)
         outbox = _result_ready_outbox(
             bundle,
             objects,
             execution_sources,
             run_cost_evidence=run_cost_evidence,
             policy_analysis_evidence=policy_analysis_evidence,
+            classification_artifact=classification_artifact,
         )
         committed = self.repository.commit(objects, outbox)
         verified = ReadAndVerifyInventoryResultBundleUseCase(
@@ -379,12 +391,37 @@ class ReadAndVerifyInventoryResultBundleUseCase:
                 pointer=outbox.message.payload(),
             )
             artifact_bindings.extend(analysis.artifacts)
+        classification_artifact = None
+        if "classification_source" in outbox.message.payload():
+            from .classification_source import verify_classification_source
+
+            require(runtime_request is not None, "CLASSIFICATION_SOURCE_RUNTIME_REQUIRED")
+            classification_artifact = verify_classification_source(
+                request=runtime_request,
+                canonical=canonical,
+                repository=self.repository,
+                pointer=outbox.message.payload()["classification_source"],
+            )
+            if analysis is not None:
+                actual = next(
+                    c for c in analysis.manifest["children"] if c["role"] == "ACTUAL_INPUT"
+                )
+                require(
+                    classification_artifact.document()["classification_snapshot"]
+                    == self.repository.read_artifact(actual["artifact_reference"]).document()[
+                        "classification_snapshot"
+                    ],
+                    "CLASSIFICATION_ANALYSIS_SOURCE_MISMATCH",
+                )
+            artifact_bindings.append(classification_artifact)
         expected_message = _result_ready_outbox(
+            # Optional for historical evidence; required by the new Source execution assembler.
             bundle,
             artifact_bindings,
             execution_sources,
             run_cost_evidence=cost_evidence,
             policy_analysis_evidence=analysis,
+            classification_artifact=classification_artifact,
         )
         require(
             outbox.message == expected_message,
@@ -399,6 +436,7 @@ class ReadAndVerifyInventoryResultBundleUseCase:
             artifact_count=len(artifact_bindings),
             run_cost_evidence=cost_evidence,
             policy_analysis_evidence=analysis,
+            classification_source_artifact=classification_artifact,
         )
 
 
@@ -599,6 +637,7 @@ def _result_ready_outbox(
     *,
     run_cost_evidence: RunCostEvidence | None = None,
     policy_analysis_evidence: RunPolicyAnalysisEvidence | None = None,
+    classification_artifact: ArtifactObject | None = None,
 ) -> OutboxMessage:
     refs = _run_references(bundle)
     bindings = [
@@ -638,6 +677,10 @@ def _result_ready_outbox(
     if policy_analysis_evidence is not None:
         body["policy_analysis_reference"] = policy_analysis_evidence.manifest["artifact_reference"]
         body["policy_analysis_content_hash"] = policy_analysis_evidence.manifest["content_hash"]
+    if classification_artifact is not None:
+        from .classification_source import classification_pointer
+
+        body["classification_source"] = classification_pointer(classification_artifact)
     return OutboxMessage.from_body(body)
 
 

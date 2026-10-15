@@ -1,0 +1,2964 @@
+{
+  "contract_key": "inventory.dsim.evidence-physical-draft",
+  "contract_version": "1.0.0",
+  "status": "DRAFT_NOT_APPLIED",
+  "as_of_date": "2026-10-15",
+  "scope": "정식 Inventory Run Claim에 연결된 단일 Site 계산 Evidence의 관계형 조회 Projection. CALCULATION_ONLY 및 ERP 발주 제외.",
+  "source_mapping": {
+    "url": "https://app.notion.com/p/3fabbe40561380918894f8b899aefa79",
+    "observed_last_edited_at": "2026-10-15T01:16:59.051Z",
+    "candidate_role_count": 24,
+    "ddl_table_count": 21
+  },
+  "reuse": [
+    {
+      "tables": [
+        "dsai.engine_runtime_runs",
+        "dsai.engine_runtime_run_events",
+        "dsai.engine_run_input_bindings",
+        "dsai.planning_cycle_revisions",
+        "dsai.planning_cycle_site_executions"
+      ],
+      "role": "Run·Scope·Attempt·입력 Binding·Effective Run·Cycle 상태; 추가/변경하지 않음"
+    },
+    {
+      "tables": [
+        "dsai.demand_engine_config",
+        "dsai.demand_engine_config_revision"
+      ],
+      "role": "승인 설정과 Config Hash; 신규 정책 Master로 복제하지 않음"
+    },
+    {
+      "tables": [
+        "dsai.inventory_site_input_sets"
+      ],
+      "role": "Migration 078의 승인 Site 입력 묶음·상태 재사용. 신규 Manifest는 Run에 소비된 원본 Binding/Artifact의 조회 사본"
+    },
+    {
+      "tables": [
+        "dsai.inventory_classification_snapshots",
+        "dsai.inventory_classification_snapshot_items",
+        "dsai.inventory_classification_snapshot_item_axes",
+        "dsai.inventory_classification_snapshot_item_policy_reasons",
+        "dsai.inventory_classification_snapshot_axis_windows"
+      ],
+      "role": "7축 분류·품목 유효 정책 입력·Gate 재사용; policy_result는 계산된 SS/ROP/목표재고만 저장"
+    },
+    {
+      "tables": [
+        "dsdm.tb_mst_site_country",
+        "dsdm.tb_mst_oper_part",
+        "dsdm.tb_com_calendar"
+      ],
+      "role": "Source Master 재사용. 과거 실행 FK는 변경 가능한 현행 Master 대신 Run별 frozen item/location/calendar를 참조"
+    },
+    {
+      "tables": [
+        "dsim.tb_mst_inventory_network",
+        "dsim.tb_mst_inventory_network_node",
+        "dsim.tb_mst_inventory_network_lane"
+      ],
+      "role": "Network Master 재사용. 버전·Hash는 기존 Input Binding과 원 Artifact로 추적"
+    },
+    {
+      "tables": [
+        "dsim.tb_mst_trade_cost_source_revision",
+        "dsim.tb_mst_trade_cost_source_document",
+        "dsim.tb_mst_trade_cost_item_classification",
+        "dsim.tb_mst_trade_cost_item_origin",
+        "dsim.tb_mst_trade_cost_item_physical_attribute",
+        "dsim.tb_mst_trade_cost_tariff_rule",
+        "dsim.tb_mst_trade_cost_customs_fx",
+        "dsim.tb_mst_trade_cost_tax_profile",
+        "dsim.tb_mst_trade_cost_lane_charge",
+        "dsim.tb_mst_trade_cost_revision_set",
+        "dsim.tb_mst_trade_cost_revision_set_member",
+        "dsim.tb_io_landed_cost_assessment",
+        "dsim.tb_io_landed_cost_component"
+      ],
+      "role": "Migration 077의 Trade/비용 Source·계산 결과 재사용; 이번 DDL이 생성·변경하지 않음"
+    }
+  ],
+  "deferred": [
+    {
+      "role": "dsim.tb_mst_inventory_policy_revision",
+      "decision": "DEFERRED",
+      "reason": "선정 결과의 업무 승인·정기 적용 계약은 별도. 이번에는 후보/평가/선정 Evidence만 만들며 기존 Config Revision 재사용"
+    },
+    {
+      "role": "dsim.tb_mst_inventory_policy_assignment",
+      "decision": "DEFERRED",
+      "reason": "정책 적용기간·재승인·Override 승인 Workflow 확정 전 신규 영속 Master는 생성하지 않음"
+    },
+    {
+      "role": "dsim.tb_io_publication_outbox",
+      "decision": "DEFERRED",
+      "reason": "현재 Artifact Durable Outbox와 Platform Event/Publish Receipt 재사용을 유지. DB 원자 업무 게시 Outbox 구현 완료로 간주하지 않음"
+    }
+  ],
+  "reused_cost": "Migration 077의 기존 Trade Revision 및 Landed Cost Child/Run 연결 테이블은 변경하지 않는다. 일반 Registry의 LANDED_COST는 원 Reference만 연결하며 금액을 이중 저장하지 않는다.",
+  "domains": [
+    {
+      "name": "dsim.io_sha256",
+      "type": "CHAR(64)",
+      "check": "VALUE ~ '^[0-9a-f]{64}$'"
+    },
+    {
+      "name": "dsim.io_quantity",
+      "type": "NUMERIC",
+      "check": "VALUE >= 0 AND VALUE::text NOT IN ('NaN', 'Infinity', '-Infinity')"
+    },
+    {
+      "name": "dsim.io_signed_quantity",
+      "type": "NUMERIC",
+      "check": "VALUE::text NOT IN ('NaN', 'Infinity', '-Infinity')"
+    },
+    {
+      "name": "dsim.io_ratio",
+      "type": "NUMERIC",
+      "check": "VALUE BETWEEN 0 AND 1 AND VALUE::text NOT IN ('NaN', 'Infinity', '-Infinity')"
+    }
+  ],
+  "transaction_contract": {
+    "isolation": "READ COMMITTED",
+    "scope": "동일 Run의 21개 Projection과 검증 Receipt를 1 transaction으로 기록; Artifact 선봉인은 별도 기존 절차",
+    "serialization": "Run ID 기반 pg_advisory_xact_lock; Receipt 이후 INSERT 금지; UPDATE/DELETE/TRUNCATE 거부",
+    "idempotency": "Writer가 잠금 후 기존 Receipt의 Bundle·Projection Hash·Version을 비교. 동일하면 기존 Receipt 반환, 다르면 충돌. SQL은 UPSERT하지 않음",
+    "effective_run": "기존 dsai Repository의 Evidence 검증·CAS를 별도 사용. 본 DDL이 Effective Run 또는 자동 주문을 갱신하지 않음"
+  },
+  "hash_contract": {
+    "algorithm": "SHA-256",
+    "encoding": "UTF-8",
+    "normalization": "InventoryEngine values.canonical_json/digest; 숫자는 quantity_text 문자열, UTC 시각 및 DATE는 해당 원 계약 형식",
+    "source": "원 Source content_hash, Artifact byte_content_hash, Projection row_content_hash를 서로 구분",
+    "projection": "receipt 제외 20개 Table을 qualified name 순, 각 Table Row를 PK 순으로 정규화. created_at 제외. domain 값은 문자열. 테이블별 []도 포함. projection_content_hash/receipt Hash/집계 자체를 입력에 넣지 않음",
+    "evaluation_id": "digest({engine_run_id, child_result_id, search_child_result_id, buffer_id, candidate_id, evaluation_context_id}); 원 Artifact ID는 변경하지 않음",
+    "db_limit": "Hash 정규형/형식만 DB가 검사. 암호학적 재계산·원 Artifact byte 검증은 향후 Writer/Verifier 책임"
+  },
+  "tables": [
+    {
+      "name": "dsim.tb_io_plan_context",
+      "prefix": "ctx",
+      "purpose": "정식 Run의 Canonical 실행 Context. 공통 Plan/Run/Site 상태는 dsai에서 재사용.",
+      "grain": "한 Inventory engine_run_id",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "기존 dsai Inventory Attempt 식별자",
+          "nullable": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR(64)",
+          "description": "Run Tenant",
+          "nullable": false
+        },
+        {
+          "name": "project_id",
+          "type": "VARCHAR(64)",
+          "description": "Run Project",
+          "nullable": false
+        },
+        {
+          "name": "canonical_contract_version",
+          "type": "VARCHAR(32)",
+          "description": "실제 봉인 Canonical 계약 Version",
+          "nullable": false
+        },
+        {
+          "name": "canonical_input_hash",
+          "type": "dsim.io_sha256",
+          "description": "전체 Canonical 입력 Hash",
+          "nullable": false
+        },
+        {
+          "name": "prepared_input_hash",
+          "type": "dsim.io_sha256",
+          "description": "준비 완료 입력 Hash",
+          "nullable": false
+        },
+        {
+          "name": "plan_type",
+          "type": "VARCHAR(8)",
+          "description": "POSM 또는 TGSM",
+          "nullable": false
+        },
+        {
+          "name": "plan_yyyyww",
+          "type": "CHAR(6)",
+          "description": "판단 W0",
+          "nullable": false
+        },
+        {
+          "name": "plan_start_date",
+          "type": "DATE",
+          "description": "계획 시작일",
+          "nullable": false
+        },
+        {
+          "name": "plan_end_date",
+          "type": "DATE",
+          "description": "Canonical 계획 종료일",
+          "nullable": false
+        },
+        {
+          "name": "master_as_of_date",
+          "type": "DATE",
+          "description": "Plan Version 기준 Master 시점",
+          "nullable": false
+        },
+        {
+          "name": "business_timezone",
+          "type": "VARCHAR(128)",
+          "description": "Source 업무 시간대",
+          "nullable": false
+        },
+        {
+          "name": "inventory_cutoff_at",
+          "type": "TIMESTAMPTZ",
+          "description": "재고 Cut-off",
+          "nullable": false
+        },
+        {
+          "name": "inventory_source_watermark",
+          "type": "TEXT",
+          "description": "원천 Watermark",
+          "nullable": false
+        },
+        {
+          "name": "source_artifact_reference",
+          "type": "TEXT",
+          "description": "원 Canonical/Prepared 입력 Artifact",
+          "nullable": false
+        },
+        {
+          "name": "source_artifact_hash",
+          "type": "dsim.io_sha256",
+          "description": "원본 Artifact Hash",
+          "nullable": false
+        },
+        {
+          "name": "config_id",
+          "type": "UUID",
+          "description": "기존 Config",
+          "nullable": false
+        },
+        {
+          "name": "config_revision_id",
+          "type": "UUID",
+          "description": "기존 불변 Config Revision",
+          "nullable": false
+        },
+        {
+          "name": "config_hash",
+          "type": "dsim.io_sha256",
+          "description": "Config Hash",
+          "nullable": false
+        },
+        {
+          "name": "classification_snapshot_id",
+          "type": "UUID",
+          "description": "기존 승인 분류 Snapshot",
+          "nullable": true
+        },
+        {
+          "name": "classification_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "분류 Hash",
+          "nullable": true
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMPTZ",
+          "description": "Projection 적재 시각",
+          "nullable": false,
+          "default": "clock_timestamp()"
+        }
+      ],
+      "primary_key": [
+        "engine_run_id"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id",
+            "tenant_id",
+            "project_id"
+          ],
+          "table": "dsai.engine_runtime_runs",
+          "target": [
+            "engine_run_id",
+            "tenant_id",
+            "project_id"
+          ]
+        },
+        {
+          "columns": [
+            "config_id",
+            "config_revision_id",
+            "config_hash"
+          ],
+          "table": "dsai.demand_engine_config_revision",
+          "target": [
+            "config_id",
+            "config_revision_id",
+            "config_hash"
+          ]
+        },
+        {
+          "columns": [
+            "classification_snapshot_id"
+          ],
+          "table": "dsai.inventory_classification_snapshots",
+          "target": [
+            "classification_snapshot_id"
+          ]
+        }
+      ],
+      "checks": [
+        "canonical_contract_version IN ('1.0.0', '2.0.0', '2.1.0')",
+        "plan_type IN ('POSM', 'TGSM')",
+        "plan_yyyyww ~ '^[1-9][0-9]{3}(0[1-9]|[1-4][0-9]|5[0-3])$'",
+        "plan_start_date <= plan_end_date",
+        "btrim(business_timezone) <> '' AND btrim(inventory_source_watermark) <> ''",
+        "btrim(source_artifact_reference) <> ''",
+        "(classification_snapshot_id IS NULL) = (classification_content_hash IS NULL)",
+        "btrim(tenant_id) <> ''",
+        "btrim(project_id) <> ''",
+        "btrim(canonical_contract_version) <> ''",
+        "btrim(plan_type) <> ''",
+        "btrim(business_timezone) <> ''"
+      ],
+      "indexes": [
+        [
+          "tenant_id",
+          "project_id",
+          "plan_yyyyww"
+        ]
+      ],
+      "lifecycle": "run_append_only"
+    },
+    {
+      "name": "dsim.tb_io_snapshot_manifest",
+      "prefix": "snap",
+      "purpose": "기존 Run Input Binding에 고정된 Dataset의 불변 온라인 Manifest.",
+      "grain": "Run + input_type",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "기존 dsai Inventory Attempt 식별자",
+          "nullable": false
+        },
+        {
+          "name": "input_type",
+          "type": "VARCHAR(64)",
+          "description": "기존 074 입력 종류",
+          "nullable": false
+        },
+        {
+          "name": "source_snapshot_id",
+          "type": "VARCHAR(160)",
+          "description": "정확한 Source Snapshot",
+          "nullable": false
+        },
+        {
+          "name": "source_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "Source 논리 Hash",
+          "nullable": false
+        },
+        {
+          "name": "source_contract_key",
+          "type": "VARCHAR(128)",
+          "description": "Source 계약 Key",
+          "nullable": false
+        },
+        {
+          "name": "source_contract_version",
+          "type": "VARCHAR(32)",
+          "description": "Source Version",
+          "nullable": false
+        },
+        {
+          "name": "artifact_reference",
+          "type": "TEXT",
+          "description": "봉인 파일/객체 Reference",
+          "nullable": false
+        },
+        {
+          "name": "byte_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "파일 바이트 Hash",
+          "nullable": false
+        },
+        {
+          "name": "source_row_count",
+          "type": "BIGINT",
+          "description": "원 Dataset 행수; Projection 행수와 별개",
+          "nullable": false
+        },
+        {
+          "name": "sealed_at",
+          "type": "TIMESTAMPTZ",
+          "description": "원 Source가 명시한 봉인 시각; 미제공이면 null (검증 시각을 대입하지 않음)",
+          "nullable": true
+        },
+        {
+          "name": "source_metadata",
+          "type": "JSONB",
+          "description": "버전 고정된 Source Metadata; 원 Row 전체나 EAV 아님",
+          "nullable": false,
+          "default": "'{}'::jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMPTZ",
+          "description": "적재 시각",
+          "nullable": false,
+          "default": "clock_timestamp()"
+        }
+      ],
+      "primary_key": [
+        "engine_run_id",
+        "input_type"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id"
+          ],
+          "table": "dsim.tb_io_plan_context",
+          "target": [
+            "engine_run_id"
+          ]
+        },
+        {
+          "columns": [
+            "engine_run_id",
+            "input_type"
+          ],
+          "table": "dsai.engine_run_input_bindings",
+          "target": [
+            "engine_run_id",
+            "input_type"
+          ]
+        }
+      ],
+      "checks": [
+        "source_row_count >= 0",
+        "btrim(source_snapshot_id) <> '' AND btrim(artifact_reference) <> ''",
+        "source_contract_version ~ '^[0-9]+\\.[0-9]+\\.[0-9]+$'",
+        "input_type IN ('DEMAND_FORECAST', 'INVENTORY_POSITION', 'PRIOR_INVENTORY', 'REPLENISHMENT_POLICY', 'SUPPLY_RECEIPTS', 'CUSTOMER_ORDERS', 'CALENDAR', 'MASTER', 'INVENTORY_CLASSIFICATION', 'INVENTORY_NETWORK')",
+        "jsonb_typeof(source_metadata) = 'object' AND octet_length(source_metadata::text) <= 1048576",
+        "btrim(input_type) <> ''",
+        "btrim(source_snapshot_id) <> ''",
+        "btrim(source_contract_key) <> ''",
+        "btrim(source_contract_version) <> ''"
+      ],
+      "indexes": [],
+      "lifecycle": "run_append_only"
+    },
+    {
+      "name": "dsim.tb_io_calendar_bucket",
+      "prefix": "cal",
+      "purpose": "실행 당시 주차 날짜·순서·월 귀속.",
+      "grain": "Run + yyyyww",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "기존 dsai Inventory Attempt 식별자",
+          "nullable": false
+        },
+        {
+          "name": "source_input_type",
+          "type": "VARCHAR(64)",
+          "description": "Calendar Source",
+          "nullable": false,
+          "default": "'CALENDAR'"
+        },
+        {
+          "name": "yyyyww",
+          "type": "CHAR(6)",
+          "description": "Canonical Bucket",
+          "nullable": false
+        },
+        {
+          "name": "seq",
+          "type": "INTEGER",
+          "description": "0 기반 순서",
+          "nullable": false
+        },
+        {
+          "name": "start_date",
+          "type": "DATE",
+          "description": "Bucket 시작",
+          "nullable": false
+        },
+        {
+          "name": "end_date",
+          "type": "DATE",
+          "description": "Bucket 종료(포함)",
+          "nullable": false
+        },
+        {
+          "name": "base_month",
+          "type": "CHAR(6)",
+          "description": "Source 월 귀속",
+          "nullable": false
+        },
+        {
+          "name": "row_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "정규화한 Projection Row Hash; Source/Artifact Hash와 구분",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "engine_run_id",
+        "yyyyww"
+      ],
+      "unique": [
+        [
+          "engine_run_id",
+          "seq"
+        ]
+      ],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id",
+            "source_input_type"
+          ],
+          "table": "dsim.tb_io_snapshot_manifest",
+          "target": [
+            "engine_run_id",
+            "input_type"
+          ]
+        }
+      ],
+      "checks": [
+        "source_input_type = 'CALENDAR'",
+        "yyyyww ~ '^[1-9][0-9]{3}(0[1-9]|[1-4][0-9]|5[0-3])$'",
+        "seq >= 0 AND start_date <= end_date",
+        "base_month ~ '^[1-9][0-9]{3}(0[1-9]|1[0-2])$'",
+        "btrim(source_input_type) <> ''"
+      ],
+      "indexes": [],
+      "lifecycle": "run_append_only"
+    },
+    {
+      "name": "dsim.tb_io_location",
+      "prefix": "loc",
+      "purpose": "단일 Run Site의 frozen 거점 속성. 현재 Source Site Table을 재조회하지 않음.",
+      "grain": "Run + location_id",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "기존 dsai Inventory Attempt 식별자",
+          "nullable": false
+        },
+        {
+          "name": "source_input_type",
+          "type": "VARCHAR(64)",
+          "description": "Master Source",
+          "nullable": false,
+          "default": "'MASTER'"
+        },
+        {
+          "name": "location_id",
+          "type": "VARCHAR(160)",
+          "description": "Canonical Location",
+          "nullable": false
+        },
+        {
+          "name": "site_cd",
+          "type": "VARCHAR(64)",
+          "description": "Run Site",
+          "nullable": false
+        },
+        {
+          "name": "location_name",
+          "type": "TEXT",
+          "description": "Source 표시명",
+          "nullable": true
+        },
+        {
+          "name": "country_code",
+          "type": "VARCHAR(2)",
+          "description": "검증된 국가 코드",
+          "nullable": true
+        },
+        {
+          "name": "row_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "정규화한 Projection Row Hash; Source/Artifact Hash와 구분",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "engine_run_id",
+        "location_id"
+      ],
+      "unique": [
+        [
+          "engine_run_id"
+        ]
+      ],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id",
+            "source_input_type"
+          ],
+          "table": "dsim.tb_io_snapshot_manifest",
+          "target": [
+            "engine_run_id",
+            "input_type"
+          ]
+        }
+      ],
+      "checks": [
+        "source_input_type = 'MASTER'",
+        "btrim(location_id) <> '' AND btrim(site_cd) <> ''",
+        "btrim(source_input_type) <> ''",
+        "btrim(location_id) <> ''",
+        "btrim(site_cd) <> ''"
+      ],
+      "indexes": [],
+      "lifecycle": "run_append_only"
+    },
+    {
+      "name": "dsim.tb_io_item",
+      "prefix": "item",
+      "purpose": "실제 실행 대상 품목 Snapshot. 원 Source Coverage는 별도 Manifest에 보존.",
+      "grain": "Run + item_id",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "기존 dsai Inventory Attempt 식별자",
+          "nullable": false
+        },
+        {
+          "name": "source_input_type",
+          "type": "VARCHAR(64)",
+          "description": "Master Source",
+          "nullable": false,
+          "default": "'MASTER'"
+        },
+        {
+          "name": "item_id",
+          "type": "VARCHAR(160)",
+          "description": "불투명 외부 품목 Key; 임의 문자 치환 금지",
+          "nullable": false
+        },
+        {
+          "name": "uom",
+          "type": "VARCHAR(16)",
+          "description": "V1 EA",
+          "nullable": false
+        },
+        {
+          "name": "active",
+          "type": "BOOLEAN",
+          "description": "유효 여부",
+          "nullable": false
+        },
+        {
+          "name": "stock_managed",
+          "type": "BOOLEAN",
+          "description": "재고관리 여부",
+          "nullable": false
+        },
+        {
+          "name": "item_name",
+          "type": "TEXT",
+          "description": "Source 명칭",
+          "nullable": true
+        },
+        {
+          "name": "item_group_id",
+          "type": "VARCHAR(160)",
+          "description": "제품유형/그룹",
+          "nullable": true
+        },
+        {
+          "name": "row_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "정규화한 Projection Row Hash; Source/Artifact Hash와 구분",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "engine_run_id",
+        "item_id"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id",
+            "source_input_type"
+          ],
+          "table": "dsim.tb_io_snapshot_manifest",
+          "target": [
+            "engine_run_id",
+            "input_type"
+          ]
+        }
+      ],
+      "checks": [
+        "source_input_type = 'MASTER'",
+        "uom = 'EA'",
+        "btrim(item_id) = item_id AND length(item_id) > 0",
+        "btrim(source_input_type) <> ''",
+        "btrim(item_id) <> ''",
+        "btrim(uom) <> ''"
+      ],
+      "indexes": [],
+      "lifecycle": "run_append_only"
+    },
+    {
+      "name": "dsim.tb_io_buffer",
+      "prefix": "buf",
+      "purpose": "유효 품목과 단일 Location의 계산 집합. Legacy Buffer ID는 증적으로 보존.",
+      "grain": "Run + buffer_id; Run + item_id도 유일",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "기존 dsai Inventory Attempt 식별자",
+          "nullable": false
+        },
+        {
+          "name": "buffer_id",
+          "type": "VARCHAR(160)",
+          "description": "Canonical Buffer",
+          "nullable": false
+        },
+        {
+          "name": "item_id",
+          "type": "VARCHAR(160)",
+          "description": "대상 품목",
+          "nullable": false
+        },
+        {
+          "name": "location_id",
+          "type": "VARCHAR(160)",
+          "description": "실행 Location",
+          "nullable": false
+        },
+        {
+          "name": "legacy_buffer_id",
+          "type": "TEXT",
+          "description": "ITEM@SITE/ITEMV_SITE 원 Key",
+          "nullable": true
+        },
+        {
+          "name": "row_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "정규화한 Projection Row Hash; Source/Artifact Hash와 구분",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "engine_run_id",
+        "buffer_id"
+      ],
+      "unique": [
+        [
+          "engine_run_id",
+          "item_id"
+        ]
+      ],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id",
+            "item_id"
+          ],
+          "table": "dsim.tb_io_item",
+          "target": [
+            "engine_run_id",
+            "item_id"
+          ]
+        },
+        {
+          "columns": [
+            "engine_run_id",
+            "location_id"
+          ],
+          "table": "dsim.tb_io_location",
+          "target": [
+            "engine_run_id",
+            "location_id"
+          ]
+        }
+      ],
+      "checks": [
+        "btrim(buffer_id) <> ''",
+        "btrim(buffer_id) <> ''",
+        "btrim(item_id) <> ''",
+        "btrim(location_id) <> ''"
+      ],
+      "indexes": [
+        [
+          "engine_run_id",
+          "location_id"
+        ]
+      ],
+      "lifecycle": "run_append_only"
+    },
+    {
+      "name": "dsim.tb_io_demand",
+      "prefix": "dmd",
+      "purpose": "한 주차 Forecast 또는 확정 고객주문 Row. Forecast 소비 후 수량은 PSI에서 별도 저장.",
+      "grain": "Run + Buffer + Bucket + demand_type",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "기존 dsai Inventory Attempt 식별자",
+          "nullable": false
+        },
+        {
+          "name": "buffer_id",
+          "type": "VARCHAR(160)",
+          "description": "Buffer",
+          "nullable": false
+        },
+        {
+          "name": "yyyyww",
+          "type": "CHAR(6)",
+          "description": "주차",
+          "nullable": false
+        },
+        {
+          "name": "demand_type",
+          "type": "VARCHAR(32)",
+          "description": "FORECAST/CUSTOMER_ORDER",
+          "nullable": false
+        },
+        {
+          "name": "source_input_type",
+          "type": "VARCHAR(64)",
+          "description": "기존 engine_run_input_bindings 입력 종류",
+          "nullable": false
+        },
+        {
+          "name": "source_qty",
+          "type": "dsim.io_quantity",
+          "description": "원본 수량",
+          "nullable": false
+        },
+        {
+          "name": "forecast_netting_mode",
+          "type": "VARCHAR(32)",
+          "description": "Forecast일 때만",
+          "nullable": true
+        },
+        {
+          "name": "upstream_gross_forecast_qty",
+          "type": "dsim.io_quantity",
+          "description": "상위 Gross 제공값",
+          "nullable": true
+        },
+        {
+          "name": "upstream_consumed_qty",
+          "type": "dsim.io_quantity",
+          "description": "상위 소비 제공값",
+          "nullable": true
+        },
+        {
+          "name": "row_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "정규화한 Projection Row Hash; Source/Artifact Hash와 구분",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "engine_run_id",
+        "buffer_id",
+        "yyyyww",
+        "demand_type"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id",
+            "buffer_id"
+          ],
+          "table": "dsim.tb_io_buffer",
+          "target": [
+            "engine_run_id",
+            "buffer_id"
+          ]
+        },
+        {
+          "columns": [
+            "engine_run_id",
+            "yyyyww"
+          ],
+          "table": "dsim.tb_io_calendar_bucket",
+          "target": [
+            "engine_run_id",
+            "yyyyww"
+          ]
+        },
+        {
+          "columns": [
+            "engine_run_id",
+            "source_input_type"
+          ],
+          "table": "dsim.tb_io_snapshot_manifest",
+          "target": [
+            "engine_run_id",
+            "input_type"
+          ]
+        }
+      ],
+      "checks": [
+        "(demand_type = 'FORECAST' AND source_input_type = 'DEMAND_FORECAST' AND forecast_netting_mode IS NOT NULL AND forecast_netting_mode IN ('SAME_BUCKET_CONSUMPTION', 'UPSTREAM_NETTED')) OR (demand_type = 'CUSTOMER_ORDER' AND source_input_type = 'CUSTOMER_ORDERS' AND forecast_netting_mode IS NULL AND upstream_gross_forecast_qty IS NULL AND upstream_consumed_qty IS NULL)",
+        "(upstream_gross_forecast_qty IS NULL) = (upstream_consumed_qty IS NULL)",
+        "upstream_gross_forecast_qty IS NULL OR upstream_gross_forecast_qty >= upstream_consumed_qty",
+        "btrim(buffer_id) <> ''",
+        "btrim(demand_type) <> ''",
+        "btrim(source_input_type) <> ''"
+      ],
+      "indexes": [],
+      "lifecycle": "run_append_only"
+    },
+    {
+      "name": "dsim.tb_io_inventory_position",
+      "prefix": "pos",
+      "purpose": "시작 Position과 prior EOH. 기존 주문 BO는 현재 Position에 보존.",
+      "grain": "Run + Buffer + position_type",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "기존 dsai Inventory Attempt 식별자",
+          "nullable": false
+        },
+        {
+          "name": "buffer_id",
+          "type": "VARCHAR(160)",
+          "description": "Buffer",
+          "nullable": false
+        },
+        {
+          "name": "position_type",
+          "type": "VARCHAR(16)",
+          "description": "CURRENT 또는 PRIOR",
+          "nullable": false
+        },
+        {
+          "name": "source_input_type",
+          "type": "VARCHAR(64)",
+          "description": "기존 engine_run_input_bindings 입력 종류",
+          "nullable": false
+        },
+        {
+          "name": "position_date",
+          "type": "DATE",
+          "description": "기준일",
+          "nullable": false
+        },
+        {
+          "name": "position_source_type",
+          "type": "VARCHAR(24)",
+          "description": "실제/합성/Proxy",
+          "nullable": false
+        },
+        {
+          "name": "on_hand_qty",
+          "type": "dsim.io_quantity",
+          "description": "실재고 또는 prior EOH",
+          "nullable": false
+        },
+        {
+          "name": "reserved_qty",
+          "type": "dsim.io_quantity",
+          "description": "현재 예약 수량",
+          "nullable": true
+        },
+        {
+          "name": "available_qty",
+          "type": "dsim.io_quantity",
+          "description": "현재 가용 수량",
+          "nullable": true
+        },
+        {
+          "name": "backorder_qty",
+          "type": "dsim.io_quantity",
+          "description": "현재 기존 주문 BO",
+          "nullable": true
+        },
+        {
+          "name": "simulation_run_id",
+          "type": "VARCHAR(160)",
+          "description": "합성 생성 실행",
+          "nullable": true
+        },
+        {
+          "name": "generator_version",
+          "type": "VARCHAR(128)",
+          "description": "합성 Generator",
+          "nullable": true
+        },
+        {
+          "name": "row_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "정규화한 Projection Row Hash; Source/Artifact Hash와 구분",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "engine_run_id",
+        "buffer_id",
+        "position_type"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id",
+            "buffer_id"
+          ],
+          "table": "dsim.tb_io_buffer",
+          "target": [
+            "engine_run_id",
+            "buffer_id"
+          ]
+        },
+        {
+          "columns": [
+            "engine_run_id",
+            "source_input_type"
+          ],
+          "table": "dsim.tb_io_snapshot_manifest",
+          "target": [
+            "engine_run_id",
+            "input_type"
+          ]
+        }
+      ],
+      "checks": [
+        "position_source_type IN ('ACTUAL_BOH', 'SYNTHETIC_BOH', 'POLICY_PROXY')",
+        "(position_type = 'CURRENT' AND source_input_type = 'INVENTORY_POSITION' AND reserved_qty IS NOT NULL AND available_qty IS NOT NULL AND backorder_qty IS NOT NULL AND on_hand_qty = reserved_qty + available_qty) OR (position_type = 'PRIOR' AND source_input_type = 'PRIOR_INVENTORY' AND reserved_qty IS NULL AND available_qty IS NULL AND backorder_qty IS NULL)",
+        "(simulation_run_id IS NULL) = (generator_version IS NULL)",
+        "position_source_type <> 'SYNTHETIC_BOH' OR simulation_run_id IS NOT NULL",
+        "btrim(buffer_id) <> ''",
+        "btrim(position_type) <> ''",
+        "btrim(source_input_type) <> ''",
+        "btrim(position_source_type) <> ''"
+      ],
+      "indexes": [],
+      "lifecycle": "run_append_only"
+    },
+    {
+      "name": "dsim.tb_io_scheduled_receipt",
+      "prefix": "rcpt",
+      "purpose": "Source Receipt 단위 공급. 미확인 공급도 원 수량/예정일을 보존.",
+      "grain": "Run + receipt_id",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "기존 dsai Inventory Attempt 식별자",
+          "nullable": false
+        },
+        {
+          "name": "source_input_type",
+          "type": "VARCHAR(64)",
+          "description": "Receipt Source",
+          "nullable": false,
+          "default": "'SUPPLY_RECEIPTS'"
+        },
+        {
+          "name": "receipt_id",
+          "type": "VARCHAR(160)",
+          "description": "원 공급 ID",
+          "nullable": false
+        },
+        {
+          "name": "buffer_id",
+          "type": "VARCHAR(160)",
+          "description": "Buffer",
+          "nullable": false
+        },
+        {
+          "name": "due_date",
+          "type": "DATE",
+          "description": "원 예정일",
+          "nullable": false
+        },
+        {
+          "name": "due_qty",
+          "type": "dsim.io_quantity",
+          "description": "원 예정 수량",
+          "nullable": false
+        },
+        {
+          "name": "source_status",
+          "type": "VARCHAR(32)",
+          "description": "원 공급 상태",
+          "nullable": false
+        },
+        {
+          "name": "supply_type",
+          "type": "VARCHAR(32)",
+          "description": "구매 또는 합성 PO",
+          "nullable": false
+        },
+        {
+          "name": "included_in_baseline",
+          "type": "BOOLEAN",
+          "description": "Baseline 편입 여부",
+          "nullable": false
+        },
+        {
+          "name": "exclusion_reason",
+          "type": "VARCHAR(128)",
+          "description": "제외 근거",
+          "nullable": true
+        },
+        {
+          "name": "row_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "정규화한 Projection Row Hash; Source/Artifact Hash와 구분",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "engine_run_id",
+        "receipt_id"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id",
+            "buffer_id"
+          ],
+          "table": "dsim.tb_io_buffer",
+          "target": [
+            "engine_run_id",
+            "buffer_id"
+          ]
+        },
+        {
+          "columns": [
+            "engine_run_id",
+            "source_input_type"
+          ],
+          "table": "dsim.tb_io_snapshot_manifest",
+          "target": [
+            "engine_run_id",
+            "input_type"
+          ]
+        }
+      ],
+      "checks": [
+        "source_input_type = 'SUPPLY_RECEIPTS'",
+        "source_status IN ('PLANNED', 'ORDERED', 'CONFIRMED', 'IN_TRANSIT', 'RECEIVED', 'CANCELLED', 'UNVERIFIED_DUE_IN', 'LEGACY_ASSUMED_CONFIRMED')",
+        "supply_type IN ('PURCHASE_ORDER', 'SYNTHETIC_PURCHASE_ORDER')",
+        "NOT included_in_baseline OR source_status IN ('CONFIRMED', 'IN_TRANSIT')",
+        "(included_in_baseline AND exclusion_reason IS NULL) OR (NOT included_in_baseline AND exclusion_reason IS NOT NULL AND btrim(exclusion_reason) <> '')",
+        "btrim(source_input_type) <> ''",
+        "btrim(receipt_id) <> ''",
+        "btrim(buffer_id) <> ''",
+        "btrim(source_status) <> ''",
+        "btrim(supply_type) <> ''"
+      ],
+      "indexes": [
+        [
+          "engine_run_id",
+          "buffer_id",
+          "due_date"
+        ]
+      ],
+      "lifecycle": "run_append_only"
+    },
+    {
+      "name": "dsim.tb_io_inventory_policy",
+      "prefix": "pol",
+      "purpose": "Source 정책/제약과 Legacy 비교값. 계산 결과 Table과 구분.",
+      "grain": "Run + Buffer + policy_id",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "기존 dsai Inventory Attempt 식별자",
+          "nullable": false
+        },
+        {
+          "name": "source_input_type",
+          "type": "VARCHAR(64)",
+          "description": "정책 Source",
+          "nullable": false,
+          "default": "'REPLENISHMENT_POLICY'"
+        },
+        {
+          "name": "buffer_id",
+          "type": "VARCHAR(160)",
+          "description": "Buffer",
+          "nullable": false
+        },
+        {
+          "name": "policy_id",
+          "type": "VARCHAR(160)",
+          "description": "Source 정책",
+          "nullable": false
+        },
+        {
+          "name": "effective_from",
+          "type": "DATE",
+          "description": "적용 시작(포함)",
+          "nullable": false
+        },
+        {
+          "name": "effective_to",
+          "type": "DATE",
+          "description": "적용 종료(포함); Canonical 의미 유지",
+          "nullable": false
+        },
+        {
+          "name": "lead_time_days",
+          "type": "INTEGER",
+          "description": "물리 Lead Time",
+          "nullable": false
+        },
+        {
+          "name": "moq",
+          "type": "dsim.io_quantity",
+          "description": "Source MOQ",
+          "nullable": false
+        },
+        {
+          "name": "order_multiple",
+          "type": "dsim.io_quantity",
+          "description": "Source 발주배수",
+          "nullable": false
+        },
+        {
+          "name": "physical_max_capacity",
+          "type": "dsim.io_quantity",
+          "description": "물리 최대 한도",
+          "nullable": true
+        },
+        {
+          "name": "approved_service_level",
+          "type": "dsim.io_ratio",
+          "description": "정책 입력 서비스수준; Fill Rate와 구분",
+          "nullable": false
+        },
+        {
+          "name": "source_target_inventory_qty",
+          "type": "dsim.io_quantity",
+          "description": "Source 목표재고",
+          "nullable": true
+        },
+        {
+          "name": "source_rop_qty",
+          "type": "dsim.io_quantity",
+          "description": "Source ROP",
+          "nullable": true
+        },
+        {
+          "name": "policy_source_type",
+          "type": "VARCHAR(24)",
+          "description": "Source/합성",
+          "nullable": false
+        },
+        {
+          "name": "source_semantics_cd",
+          "type": "VARCHAR(128)",
+          "description": "원 값 의미 코드",
+          "nullable": false
+        },
+        {
+          "name": "row_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "정규화한 Projection Row Hash; Source/Artifact Hash와 구분",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "engine_run_id",
+        "buffer_id",
+        "policy_id"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id",
+            "buffer_id"
+          ],
+          "table": "dsim.tb_io_buffer",
+          "target": [
+            "engine_run_id",
+            "buffer_id"
+          ]
+        },
+        {
+          "columns": [
+            "engine_run_id",
+            "source_input_type"
+          ],
+          "table": "dsim.tb_io_snapshot_manifest",
+          "target": [
+            "engine_run_id",
+            "input_type"
+          ]
+        }
+      ],
+      "checks": [
+        "source_input_type = 'REPLENISHMENT_POLICY'",
+        "effective_from <= effective_to",
+        "lead_time_days >= 0 AND order_multiple > 0",
+        "approved_service_level > 0 AND approved_service_level < 1",
+        "policy_source_type IN ('SOURCE_MASTER', 'SYNTHETIC_POLICY')",
+        "btrim(source_semantics_cd) <> ''",
+        "btrim(source_input_type) <> ''",
+        "btrim(buffer_id) <> ''",
+        "btrim(policy_id) <> ''",
+        "btrim(policy_source_type) <> ''",
+        "btrim(source_semantics_cd) <> ''"
+      ],
+      "indexes": [
+        [
+          "engine_run_id",
+          "buffer_id",
+          "effective_from"
+        ]
+      ],
+      "lifecycle": "run_append_only"
+    },
+    {
+      "name": "dsim.tb_io_inventory_reconciliation",
+      "prefix": "recon",
+      "purpose": "Cut-off/연속성/UOM/고아 Fact 검증 발생별 증적.",
+      "grain": "Run + reconciliation_id",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "기존 dsai Inventory Attempt 식별자",
+          "nullable": false
+        },
+        {
+          "name": "reconciliation_id",
+          "type": "VARCHAR(160)",
+          "description": "검증 발생 ID",
+          "nullable": false
+        },
+        {
+          "name": "buffer_id",
+          "type": "VARCHAR(160)",
+          "description": "유효 Buffer면 참조, 고아는 null",
+          "nullable": true
+        },
+        {
+          "name": "subject_item_id",
+          "type": "VARCHAR(160)",
+          "description": "고아를 포함한 원 품목 Key",
+          "nullable": true
+        },
+        {
+          "name": "reconciliation_type",
+          "type": "VARCHAR(40)",
+          "description": "대사 종류",
+          "nullable": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(16)",
+          "description": "PASS/FAIL/NOT_APPLICABLE",
+          "nullable": false
+        },
+        {
+          "name": "previous_actual_eoh_qty",
+          "type": "dsim.io_quantity",
+          "description": "직전 실제 EOH",
+          "nullable": true
+        },
+        {
+          "name": "approved_adjustment_qty",
+          "type": "dsim.io_signed_quantity",
+          "description": "승인 조정",
+          "nullable": true
+        },
+        {
+          "name": "expected_boh_qty",
+          "type": "dsim.io_quantity",
+          "description": "기대 BOH",
+          "nullable": true
+        },
+        {
+          "name": "reported_boh_qty",
+          "type": "dsim.io_quantity",
+          "description": "신고 BOH",
+          "nullable": true
+        },
+        {
+          "name": "variance_qty",
+          "type": "dsim.io_signed_quantity",
+          "description": "신고-기대",
+          "nullable": true
+        },
+        {
+          "name": "tolerance_qty",
+          "type": "dsim.io_quantity",
+          "description": "허용 오차",
+          "nullable": true
+        },
+        {
+          "name": "late_event_count",
+          "type": "BIGINT",
+          "description": "늦은 Event 수",
+          "nullable": false
+        },
+        {
+          "name": "reason_code",
+          "type": "VARCHAR(128)",
+          "description": "원인 코드",
+          "nullable": true
+        },
+        {
+          "name": "evidence_reference",
+          "type": "TEXT",
+          "description": "상세 대사/Movement 증적",
+          "nullable": false
+        },
+        {
+          "name": "evidence_hash",
+          "type": "dsim.io_sha256",
+          "description": "상세 Hash",
+          "nullable": false
+        },
+        {
+          "name": "row_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "정규화한 Projection Row Hash; Source/Artifact Hash와 구분",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "engine_run_id",
+        "reconciliation_id"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id"
+          ],
+          "table": "dsim.tb_io_plan_context",
+          "target": [
+            "engine_run_id"
+          ]
+        },
+        {
+          "columns": [
+            "engine_run_id",
+            "buffer_id"
+          ],
+          "table": "dsim.tb_io_buffer",
+          "target": [
+            "engine_run_id",
+            "buffer_id"
+          ]
+        }
+      ],
+      "checks": [
+        "reconciliation_type IN ('EOH_BOH_CONTINUITY', 'SOURCE_LEDGER_BALANCE', 'CUT_OFF_COMPLETENESS', 'UOM_CONSISTENCY', 'ORPHAN_BUFFER')",
+        "status IN ('PASS', 'FAIL', 'NOT_APPLICABLE')",
+        "late_event_count >= 0",
+        "status <> 'FAIL' OR reason_code IS NOT NULL",
+        "(variance_qty IS NULL) OR (expected_boh_qty IS NOT NULL AND reported_boh_qty IS NOT NULL AND variance_qty = reported_boh_qty - expected_boh_qty)",
+        "btrim(reconciliation_id) <> ''",
+        "subject_item_id IS NULL OR btrim(subject_item_id) <> ''",
+        "btrim(reconciliation_type) <> ''",
+        "btrim(status) <> ''",
+        "reconciliation_type = 'CUT_OFF_COMPLETENESS' OR subject_item_id IS NOT NULL"
+      ],
+      "indexes": [
+        [
+          "engine_run_id",
+          "status",
+          "subject_item_id"
+        ]
+      ],
+      "lifecycle": "run_append_only"
+    },
+    {
+      "name": "dsim.tb_io_result_bundle",
+      "prefix": "bundle",
+      "purpose": "봉인된 실행 결과 묶음의 조회 포인터; 기존 Run 상태/Effective Run은 복제하지 않음.",
+      "grain": "Run당 결과 묶음 1건",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "기존 Inventory Run",
+          "nullable": false
+        },
+        {
+          "name": "bundle_id",
+          "type": "VARCHAR(160)",
+          "description": "원 Artifact Bundle ID",
+          "nullable": false
+        },
+        {
+          "name": "contract_version",
+          "type": "VARCHAR(32)",
+          "description": "원 Result Bundle 계약 Version",
+          "nullable": false
+        },
+        {
+          "name": "canonical_input_hash",
+          "type": "dsim.io_sha256",
+          "description": "계산 Canonical 입력 Hash",
+          "nullable": false
+        },
+        {
+          "name": "prepared_input_hash",
+          "type": "dsim.io_sha256",
+          "description": "준비 입력 Hash",
+          "nullable": false
+        },
+        {
+          "name": "bundle_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "논리 Bundle Hash",
+          "nullable": false
+        },
+        {
+          "name": "artifact_reference",
+          "type": "TEXT",
+          "description": "원 Bundle Manifest",
+          "nullable": false
+        },
+        {
+          "name": "byte_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "저장 Byte Hash",
+          "nullable": false
+        },
+        {
+          "name": "effective_child_result_id",
+          "type": "VARCHAR(160)",
+          "description": "운영 수학 PSI Child",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMPTZ",
+          "description": "Projection 기록시각",
+          "nullable": false,
+          "default": "clock_timestamp()"
+        }
+      ],
+      "primary_key": [
+        "engine_run_id"
+      ],
+      "unique": [
+        [
+          "engine_run_id",
+          "bundle_id"
+        ]
+      ],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id"
+          ],
+          "table": "dsim.tb_io_plan_context",
+          "target": [
+            "engine_run_id"
+          ]
+        },
+        {
+          "columns": [
+            "engine_run_id",
+            "effective_child_result_id"
+          ],
+          "table": "dsim.tb_io_result_child",
+          "target": [
+            "engine_run_id",
+            "child_result_id"
+          ],
+          "deferred": true
+        }
+      ],
+      "checks": [
+        "btrim(bundle_id) <> ''",
+        "btrim(artifact_reference) <> ''",
+        "btrim(bundle_id) <> ''",
+        "btrim(contract_version) <> ''",
+        "btrim(effective_child_result_id) <> ''"
+      ],
+      "indexes": [],
+      "lifecycle": "run_append_only"
+    },
+    {
+      "name": "dsim.tb_io_result_child",
+      "prefix": "child",
+      "purpose": "성공/실패/건너뜀 Artifact Registry. PSI 외 분석 Artifact는 원 Bundle wire 계약과 별도 Registry kind로 구분.",
+      "grain": "Run + child_result_id",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "기존 Inventory Run",
+          "nullable": false
+        },
+        {
+          "name": "child_result_id",
+          "type": "VARCHAR(160)",
+          "description": "원 Child 또는 분석 Artifact ID",
+          "nullable": false
+        },
+        {
+          "name": "child_kind",
+          "type": "VARCHAR(32)",
+          "description": "PSI/정책 탐색·선택·평가/비용 Registry kind",
+          "nullable": false
+        },
+        {
+          "name": "execution_role",
+          "type": "VARCHAR(16)",
+          "description": "OPERATIONAL/SHADOW/EVIDENCE_ONLY",
+          "nullable": false
+        },
+        {
+          "name": "strategy_type",
+          "type": "VARCHAR(24)",
+          "description": "NONE/MATHEMATICAL/DEEP_RL",
+          "nullable": false
+        },
+        {
+          "name": "scenario_id",
+          "type": "VARCHAR(160)",
+          "description": "BASE 또는 봉인 Stress Scenario ID",
+          "nullable": false
+        },
+        {
+          "name": "scenario_hash",
+          "type": "dsim.io_sha256",
+          "description": "Scenario Hash",
+          "nullable": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(16)",
+          "description": "SUCCEEDED/FAILED/SKIPPED",
+          "nullable": false
+        },
+        {
+          "name": "row_count",
+          "type": "BIGINT",
+          "description": "성공 논리 Row 수",
+          "nullable": true
+        },
+        {
+          "name": "artifact_reference",
+          "type": "TEXT",
+          "description": "성공 Artifact",
+          "nullable": true
+        },
+        {
+          "name": "content_hash",
+          "type": "dsim.io_sha256",
+          "description": "성공 Content Hash",
+          "nullable": true
+        },
+        {
+          "name": "artifact_contract_key",
+          "type": "VARCHAR(128)",
+          "description": "원 Artifact 계약 Key",
+          "nullable": true
+        },
+        {
+          "name": "artifact_contract_version",
+          "type": "VARCHAR(32)",
+          "description": "원 Artifact Version",
+          "nullable": true
+        },
+        {
+          "name": "failure_reason",
+          "type": "VARCHAR(128)",
+          "description": "실패/건너뜀 원인",
+          "nullable": true
+        },
+        {
+          "name": "model_id",
+          "type": "VARCHAR(160)",
+          "description": "승인 PPO Model ID",
+          "nullable": true
+        },
+        {
+          "name": "model_hash",
+          "type": "dsim.io_sha256",
+          "description": "PPO Model Hash",
+          "nullable": true
+        },
+        {
+          "name": "model_version",
+          "type": "VARCHAR(64)",
+          "description": "PPO Model Version",
+          "nullable": true
+        }
+      ],
+      "primary_key": [
+        "engine_run_id",
+        "child_result_id"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id"
+          ],
+          "table": "dsim.tb_io_result_bundle",
+          "target": [
+            "engine_run_id"
+          ]
+        }
+      ],
+      "checks": [
+        "child_kind IN ('BASELINE_PSI', 'RECOMMENDED_PSI', 'STRESS_PSI', 'POLICY_SEARCH', 'POLICY_SELECTION', 'POLICY_SENSITIVITY', 'LANDED_COST')",
+        "execution_role IN ('OPERATIONAL', 'SHADOW', 'EVIDENCE_ONLY')",
+        "strategy_type IN ('NONE', 'MATHEMATICAL', 'DEEP_RL')",
+        "status IN ('SUCCEEDED', 'FAILED', 'SKIPPED')",
+        "(status = 'SUCCEEDED' AND row_count IS NOT NULL AND row_count >= 1 AND artifact_reference IS NOT NULL AND btrim(artifact_reference) <> '' AND content_hash IS NOT NULL AND artifact_contract_key IS NOT NULL AND artifact_contract_version IS NOT NULL AND failure_reason IS NULL) OR (status IN ('FAILED', 'SKIPPED') AND row_count IS NULL AND artifact_reference IS NULL AND content_hash IS NULL AND artifact_contract_key IS NULL AND artifact_contract_version IS NULL AND failure_reason IS NOT NULL AND btrim(failure_reason) <> '')",
+        "(strategy_type = 'DEEP_RL' AND execution_role = 'SHADOW' AND model_id IS NOT NULL AND model_hash IS NOT NULL AND model_version IS NOT NULL) OR (strategy_type <> 'DEEP_RL' AND model_id IS NULL AND model_hash IS NULL AND model_version IS NULL)",
+        "child_kind <> 'BASELINE_PSI' OR (strategy_type = 'NONE' AND execution_role = 'EVIDENCE_ONLY' AND scenario_id = 'BASE' AND status = 'SUCCEEDED')",
+        "child_kind <> 'RECOMMENDED_PSI' OR (scenario_id = 'BASE' AND ((strategy_type = 'MATHEMATICAL' AND execution_role = 'OPERATIONAL' AND status = 'SUCCEEDED') OR (strategy_type = 'DEEP_RL' AND execution_role = 'SHADOW')))",
+        "child_kind <> 'STRESS_PSI' OR (strategy_type = 'MATHEMATICAL' AND execution_role = 'EVIDENCE_ONLY' AND scenario_id <> 'BASE')",
+        "child_kind NOT IN ('POLICY_SEARCH', 'POLICY_SELECTION', 'POLICY_SENSITIVITY') OR (strategy_type = 'MATHEMATICAL' AND execution_role = 'EVIDENCE_ONLY')",
+        "btrim(child_result_id) <> ''",
+        "btrim(child_kind) <> ''",
+        "btrim(execution_role) <> ''",
+        "btrim(strategy_type) <> ''",
+        "btrim(scenario_id) <> ''",
+        "btrim(status) <> ''"
+      ],
+      "indexes": [
+        [
+          "engine_run_id",
+          "child_kind",
+          "status"
+        ]
+      ],
+      "lifecycle": "run_append_only"
+    },
+    {
+      "name": "dsim.tb_io_policy_candidate",
+      "prefix": "cand",
+      "purpose": "품목별 후보 정책과 원 탐색 Artifact 연결. 후보는 승인 정책이 아님.",
+      "grain": "Run + search Child + Buffer + candidate_id",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "Run",
+          "nullable": false
+        },
+        {
+          "name": "child_result_id",
+          "type": "VARCHAR(160)",
+          "description": "성공 POLICY_SEARCH Registry ID",
+          "nullable": false
+        },
+        {
+          "name": "buffer_id",
+          "type": "VARCHAR(160)",
+          "description": "품목/Site Buffer",
+          "nullable": false
+        },
+        {
+          "name": "candidate_id",
+          "type": "VARCHAR(160)",
+          "description": "원 결정론적 후보 ID",
+          "nullable": false
+        },
+        {
+          "name": "policy_kind",
+          "type": "VARCHAR(32)",
+          "description": "ROP_FIXED_Q/PERIODIC_ORDER_UP_TO",
+          "nullable": false
+        },
+        {
+          "name": "rmos",
+          "type": "NUMERIC",
+          "description": "ROP 수요 커버 월수",
+          "nullable": false
+        },
+        {
+          "name": "emos",
+          "type": "NUMERIC",
+          "description": "고정량/목표 상향 수요 커버 월수",
+          "nullable": false
+        },
+        {
+          "name": "service_level",
+          "type": "dsim.io_ratio",
+          "description": "후보 서비스 입력",
+          "nullable": false
+        },
+        {
+          "name": "review_cycle_weeks",
+          "type": "INTEGER",
+          "description": "후보 검토 주기",
+          "nullable": false
+        },
+        {
+          "name": "candidate_hash",
+          "type": "dsim.io_sha256",
+          "description": "정규화한 후보 Hash",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "engine_run_id",
+        "child_result_id",
+        "buffer_id",
+        "candidate_id"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id",
+            "child_result_id"
+          ],
+          "table": "dsim.tb_io_result_child",
+          "target": [
+            "engine_run_id",
+            "child_result_id"
+          ]
+        },
+        {
+          "columns": [
+            "engine_run_id",
+            "buffer_id"
+          ],
+          "table": "dsim.tb_io_buffer",
+          "target": [
+            "engine_run_id",
+            "buffer_id"
+          ]
+        }
+      ],
+      "checks": [
+        "policy_kind IN ('ROP_FIXED_Q', 'PERIODIC_ORDER_UP_TO')",
+        "rmos >= 0 AND rmos <= 12 AND rmos::text NOT IN ('NaN', 'Infinity', '-Infinity')",
+        "emos > 0 AND emos <= 12 AND emos::text NOT IN ('NaN', 'Infinity', '-Infinity')",
+        "service_level >= 0.5 AND service_level <= 0.9999",
+        "review_cycle_weeks > 0",
+        "btrim(child_result_id) <> ''",
+        "btrim(buffer_id) <> ''",
+        "btrim(candidate_id) <> ''",
+        "btrim(policy_kind) <> ''"
+      ],
+      "indexes": [],
+      "lifecycle": "run_append_only"
+    },
+    {
+      "name": "dsim.tb_io_psi_bucket",
+      "prefix": "psi",
+      "purpose": "공통 Simulator의 주차별 상태 전이. 정책 탐색 후보 PSI도 별도 simulation_id로 보존.",
+      "grain": "Run + Child + Buffer + simulation_id + 주차",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "Run",
+          "nullable": false
+        },
+        {
+          "name": "child_result_id",
+          "type": "VARCHAR(160)",
+          "description": "성공 PSI 또는 POLICY_SEARCH Registry",
+          "nullable": false
+        },
+        {
+          "name": "buffer_id",
+          "type": "VARCHAR(160)",
+          "description": "Buffer",
+          "nullable": false
+        },
+        {
+          "name": "simulation_id",
+          "type": "VARCHAR(160)",
+          "description": "일반 PSI=BASE; 탐색 PSI=candidate_id",
+          "nullable": false
+        },
+        {
+          "name": "candidate_id",
+          "type": "VARCHAR(160)",
+          "description": "탐색 후보만 설정",
+          "nullable": true
+        },
+        {
+          "name": "yyyyww",
+          "type": "CHAR(6)",
+          "description": "공유 Calendar 주차",
+          "nullable": false
+        },
+        {
+          "name": "boh_qty",
+          "type": "dsim.io_quantity",
+          "description": "PSI 원 Row의 boh_qty",
+          "nullable": false
+        },
+        {
+          "name": "reserved_qty",
+          "type": "dsim.io_quantity",
+          "description": "PSI 원 Row의 reserved_qty",
+          "nullable": false
+        },
+        {
+          "name": "on_hand_boh_qty",
+          "type": "dsim.io_quantity",
+          "description": "PSI 원 Row의 on_hand_boh_qty",
+          "nullable": false
+        },
+        {
+          "name": "confirmed_supplier_receipt_qty",
+          "type": "dsim.io_quantity",
+          "description": "PSI 원 Row의 confirmed_supplier_receipt_qty",
+          "nullable": false
+        },
+        {
+          "name": "recommended_receipt_qty",
+          "type": "dsim.io_quantity",
+          "description": "PSI 원 Row의 recommended_receipt_qty",
+          "nullable": false
+        },
+        {
+          "name": "available_qty",
+          "type": "dsim.io_quantity",
+          "description": "PSI 원 Row의 available_qty",
+          "nullable": false
+        },
+        {
+          "name": "confirmed_customer_order_qty",
+          "type": "dsim.io_quantity",
+          "description": "PSI 원 Row의 confirmed_customer_order_qty",
+          "nullable": false
+        },
+        {
+          "name": "net_forecast_qty",
+          "type": "dsim.io_quantity",
+          "description": "PSI 원 Row의 net_forecast_qty",
+          "nullable": false
+        },
+        {
+          "name": "backorder_open_qty",
+          "type": "dsim.io_quantity",
+          "description": "PSI 원 Row의 backorder_open_qty",
+          "nullable": false
+        },
+        {
+          "name": "fulfilled_backorder_qty",
+          "type": "dsim.io_quantity",
+          "description": "PSI 원 Row의 fulfilled_backorder_qty",
+          "nullable": false
+        },
+        {
+          "name": "fulfilled_confirmed_customer_order_qty",
+          "type": "dsim.io_quantity",
+          "description": "PSI 원 Row의 fulfilled_confirmed_customer_order_qty",
+          "nullable": false
+        },
+        {
+          "name": "fulfilled_forecast_qty",
+          "type": "dsim.io_quantity",
+          "description": "PSI 원 Row의 fulfilled_forecast_qty",
+          "nullable": false
+        },
+        {
+          "name": "eoh_qty",
+          "type": "dsim.io_quantity",
+          "description": "PSI 원 Row의 eoh_qty",
+          "nullable": false
+        },
+        {
+          "name": "on_hand_eoh_qty",
+          "type": "dsim.io_quantity",
+          "description": "PSI 원 Row의 on_hand_eoh_qty",
+          "nullable": false
+        },
+        {
+          "name": "backorder_close_qty",
+          "type": "dsim.io_quantity",
+          "description": "PSI 원 Row의 backorder_close_qty",
+          "nullable": false
+        },
+        {
+          "name": "forecast_shortage_qty",
+          "type": "dsim.io_quantity",
+          "description": "PSI 원 Row의 forecast_shortage_qty",
+          "nullable": false
+        },
+        {
+          "name": "row_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "원 PSI Row 정규화 Hash",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "engine_run_id",
+        "child_result_id",
+        "buffer_id",
+        "simulation_id",
+        "yyyyww"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id",
+            "child_result_id"
+          ],
+          "table": "dsim.tb_io_result_child",
+          "target": [
+            "engine_run_id",
+            "child_result_id"
+          ]
+        },
+        {
+          "columns": [
+            "engine_run_id",
+            "buffer_id"
+          ],
+          "table": "dsim.tb_io_buffer",
+          "target": [
+            "engine_run_id",
+            "buffer_id"
+          ]
+        },
+        {
+          "columns": [
+            "engine_run_id",
+            "yyyyww"
+          ],
+          "table": "dsim.tb_io_calendar_bucket",
+          "target": [
+            "engine_run_id",
+            "yyyyww"
+          ]
+        },
+        {
+          "columns": [
+            "engine_run_id",
+            "child_result_id",
+            "buffer_id",
+            "candidate_id"
+          ],
+          "table": "dsim.tb_io_policy_candidate",
+          "target": [
+            "engine_run_id",
+            "child_result_id",
+            "buffer_id",
+            "candidate_id"
+          ]
+        }
+      ],
+      "checks": [
+        "(candidate_id IS NULL AND simulation_id = 'BASE') OR (candidate_id IS NOT NULL AND simulation_id = candidate_id)",
+        "on_hand_boh_qty = boh_qty + reserved_qty",
+        "available_qty = boh_qty + confirmed_supplier_receipt_qty + recommended_receipt_qty",
+        "eoh_qty = available_qty - fulfilled_backorder_qty - fulfilled_confirmed_customer_order_qty - fulfilled_forecast_qty",
+        "on_hand_eoh_qty = eoh_qty + reserved_qty",
+        "backorder_close_qty = backorder_open_qty + confirmed_customer_order_qty - fulfilled_backorder_qty - fulfilled_confirmed_customer_order_qty",
+        "forecast_shortage_qty = net_forecast_qty - fulfilled_forecast_qty",
+        "fulfilled_backorder_qty <= backorder_open_qty",
+        "fulfilled_confirmed_customer_order_qty <= confirmed_customer_order_qty",
+        "fulfilled_forecast_qty <= net_forecast_qty",
+        "btrim(child_result_id) <> ''",
+        "btrim(buffer_id) <> ''",
+        "btrim(simulation_id) <> ''"
+      ],
+      "indexes": [
+        [
+          "engine_run_id",
+          "buffer_id",
+          "yyyyww"
+        ]
+      ],
+      "lifecycle": "run_append_only"
+    },
+    {
+      "name": "dsim.tb_io_policy_result",
+      "prefix": "pres",
+      "purpose": "계산된 안전재고/ROP/목표재고; 7축 유효 정책 입력과 구분. 동적 전략은 미산출 값을 null로 보존.",
+      "grain": "Run + Child + Buffer + simulation_id + 판단주차",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "Run",
+          "nullable": false
+        },
+        {
+          "name": "child_result_id",
+          "type": "VARCHAR(160)",
+          "description": "결과 Child",
+          "nullable": false
+        },
+        {
+          "name": "buffer_id",
+          "type": "VARCHAR(160)",
+          "description": "Buffer",
+          "nullable": false
+        },
+        {
+          "name": "simulation_id",
+          "type": "VARCHAR(160)",
+          "description": "BASE 또는 후보 ID",
+          "nullable": false
+        },
+        {
+          "name": "yyyyww",
+          "type": "CHAR(6)",
+          "description": "판단 주차",
+          "nullable": false
+        },
+        {
+          "name": "effective_policy_hash",
+          "type": "dsim.io_sha256",
+          "description": "원 품목 유효 정책 Hash",
+          "nullable": false
+        },
+        {
+          "name": "safety_stock_qty",
+          "type": "dsim.io_quantity",
+          "description": "계산 안전재고",
+          "nullable": true
+        },
+        {
+          "name": "rop_qty",
+          "type": "dsim.io_quantity",
+          "description": "계산 ROP",
+          "nullable": true
+        },
+        {
+          "name": "target_inventory_qty",
+          "type": "dsim.io_quantity",
+          "description": "계산 목표재고",
+          "nullable": true
+        },
+        {
+          "name": "physical_lead_time_days",
+          "type": "INTEGER",
+          "description": "물리 주문 도착 Lead Time",
+          "nullable": false
+        },
+        {
+          "name": "protection_period_weeks",
+          "type": "dsim.io_quantity",
+          "description": "SDE를 반영한 정책 보호기간",
+          "nullable": false
+        },
+        {
+          "name": "policy_source",
+          "type": "VARCHAR(64)",
+          "description": "PYTHON_CALCULATED/SOURCE_FALLBACK 등 원 코드",
+          "nullable": false
+        },
+        {
+          "name": "unavailable_reason",
+          "type": "VARCHAR(128)",
+          "description": "정적 정책량 미산출 사유",
+          "nullable": true
+        },
+        {
+          "name": "row_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "원 Row Hash",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "engine_run_id",
+        "child_result_id",
+        "buffer_id",
+        "simulation_id",
+        "yyyyww"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id",
+            "child_result_id",
+            "buffer_id",
+            "simulation_id",
+            "yyyyww"
+          ],
+          "table": "dsim.tb_io_psi_bucket",
+          "target": [
+            "engine_run_id",
+            "child_result_id",
+            "buffer_id",
+            "simulation_id",
+            "yyyyww"
+          ]
+        }
+      ],
+      "checks": [
+        "physical_lead_time_days >= 0",
+        "(safety_stock_qty IS NOT NULL AND rop_qty IS NOT NULL AND target_inventory_qty IS NOT NULL AND unavailable_reason IS NULL) OR (safety_stock_qty IS NULL AND rop_qty IS NULL AND target_inventory_qty IS NULL AND unavailable_reason IS NOT NULL)",
+        "btrim(child_result_id) <> ''",
+        "btrim(buffer_id) <> ''",
+        "btrim(simulation_id) <> ''"
+      ],
+      "indexes": [],
+      "lifecycle": "run_append_only"
+    },
+    {
+      "name": "dsim.tb_io_replenishment_proposal",
+      "prefix": "prop",
+      "purpose": "원 행동·Guard 적용량·거부 사유를 보존. 이 테이블은 ERP 발주 테이블이 아님.",
+      "grain": "Run + Child + proposal_id",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "Run",
+          "nullable": false
+        },
+        {
+          "name": "child_result_id",
+          "type": "VARCHAR(160)",
+          "description": "PSI/탐색 Child",
+          "nullable": false
+        },
+        {
+          "name": "proposal_id",
+          "type": "VARCHAR(160)",
+          "description": "원 행동의 안정 ID",
+          "nullable": false
+        },
+        {
+          "name": "buffer_id",
+          "type": "VARCHAR(160)",
+          "description": "Buffer",
+          "nullable": false
+        },
+        {
+          "name": "simulation_id",
+          "type": "VARCHAR(160)",
+          "description": "PSI 실행 ID",
+          "nullable": false
+        },
+        {
+          "name": "yyyyww",
+          "type": "CHAR(6)",
+          "description": "판단 주차",
+          "nullable": false
+        },
+        {
+          "name": "order_date",
+          "type": "DATE",
+          "description": "발주 권고일",
+          "nullable": false
+        },
+        {
+          "name": "arrival_date",
+          "type": "DATE",
+          "description": "예상 입고일",
+          "nullable": true
+        },
+        {
+          "name": "raw_order_qty",
+          "type": "dsim.io_quantity",
+          "description": "전략 원 행동량",
+          "nullable": false
+        },
+        {
+          "name": "constrained_order_qty",
+          "type": "dsim.io_quantity",
+          "description": "공통 Guard 적용 후 수량",
+          "nullable": false
+        },
+        {
+          "name": "disposition",
+          "type": "VARCHAR(16)",
+          "description": "ACCEPTED/ADJUSTED/REJECTED/NO_ORDER",
+          "nullable": false
+        },
+        {
+          "name": "approval_level",
+          "type": "VARCHAR(16)",
+          "description": "원 HML 승인 수준 AUTO/STANDARD/HIGH_VALUE",
+          "nullable": true
+        },
+        {
+          "name": "order_action",
+          "type": "VARCHAR(16)",
+          "description": "원 유효 주문 Gate ALLOW/NO_ORDER/REVIEW; 승인 수준과 별개",
+          "nullable": true
+        },
+        {
+          "name": "automatic_publish_allowed",
+          "type": "BOOLEAN",
+          "description": "증적 Row의 게시 Gate",
+          "nullable": false
+        },
+        {
+          "name": "automatic_order_allowed",
+          "type": "BOOLEAN",
+          "description": "증적 Row의 자동 발주 Gate",
+          "nullable": false
+        },
+        {
+          "name": "adjustment_reason_codes",
+          "type": "JSONB",
+          "description": "원 정렬 Reason 배열",
+          "nullable": false
+        },
+        {
+          "name": "action_artifact_reference",
+          "type": "TEXT",
+          "description": "원 행동/Guard Artifact",
+          "nullable": false
+        },
+        {
+          "name": "action_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "행동 Hash",
+          "nullable": false
+        },
+        {
+          "name": "row_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "Row Hash",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "engine_run_id",
+        "child_result_id",
+        "proposal_id"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id",
+            "child_result_id",
+            "buffer_id",
+            "simulation_id",
+            "yyyyww"
+          ],
+          "table": "dsim.tb_io_psi_bucket",
+          "target": [
+            "engine_run_id",
+            "child_result_id",
+            "buffer_id",
+            "simulation_id",
+            "yyyyww"
+          ]
+        }
+      ],
+      "checks": [
+        "disposition IN ('ACCEPTED', 'ADJUSTED', 'REJECTED', 'NO_ORDER')",
+        "approval_level IS NULL OR approval_level IN ('AUTO', 'STANDARD', 'HIGH_VALUE')",
+        "arrival_date IS NULL OR order_date <= arrival_date",
+        "NOT automatic_order_allowed OR automatic_publish_allowed",
+        "approval_level IS NULL OR approval_level = 'AUTO' OR (NOT automatic_publish_allowed AND NOT automatic_order_allowed)",
+        "disposition <> 'REJECTED' OR (constrained_order_qty = 0 AND NOT automatic_publish_allowed AND NOT automatic_order_allowed)",
+        "disposition <> 'ACCEPTED' OR raw_order_qty = constrained_order_qty",
+        "jsonb_typeof(adjustment_reason_codes) = 'array' AND octet_length(adjustment_reason_codes::text) <= 65536",
+        "disposition = 'ACCEPTED' OR jsonb_array_length(adjustment_reason_codes) > 0",
+        "btrim(child_result_id) <> ''",
+        "btrim(proposal_id) <> ''",
+        "btrim(buffer_id) <> ''",
+        "btrim(simulation_id) <> ''",
+        "btrim(disposition) <> ''",
+        "btrim(approval_level) <> ''",
+        "disposition <> 'NO_ORDER' OR (raw_order_qty = 0 AND constrained_order_qty = 0)",
+        "order_action IS NULL OR order_action IN ('ALLOW', 'NO_ORDER', 'REVIEW')",
+        "order_action IS NULL OR order_action = 'ALLOW' OR (NOT automatic_publish_allowed AND NOT automatic_order_allowed)"
+      ],
+      "indexes": [
+        [
+          "engine_run_id",
+          "buffer_id",
+          "approval_level"
+        ]
+      ],
+      "lifecycle": "run_append_only"
+    },
+    {
+      "name": "dsim.tb_io_replenishment_diagnostic",
+      "prefix": "diag",
+      "purpose": "반복되는 차단·Review·부족 사유를 발생별로 보존. 고아 품목은 원 품목 Key를 별도 기록.",
+      "grain": "Run + diagnostic_id",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "Run",
+          "nullable": false
+        },
+        {
+          "name": "diagnostic_id",
+          "type": "VARCHAR(160)",
+          "description": "발생 ID",
+          "nullable": false
+        },
+        {
+          "name": "child_result_id",
+          "type": "VARCHAR(160)",
+          "description": "관련 Child; 준비 단계 사유면 null",
+          "nullable": true
+        },
+        {
+          "name": "buffer_id",
+          "type": "VARCHAR(160)",
+          "description": "유효 Buffer만 참조",
+          "nullable": true
+        },
+        {
+          "name": "subject_item_id",
+          "type": "VARCHAR(160)",
+          "description": "원 품목",
+          "nullable": false
+        },
+        {
+          "name": "yyyyww",
+          "type": "CHAR(6)",
+          "description": "관련 주차",
+          "nullable": true
+        },
+        {
+          "name": "severity",
+          "type": "VARCHAR(16)",
+          "description": "INFO/WARNING/ERROR",
+          "nullable": false
+        },
+        {
+          "name": "reason_code",
+          "type": "VARCHAR(128)",
+          "description": "원 사유 코드",
+          "nullable": false
+        },
+        {
+          "name": "detail_artifact_reference",
+          "type": "TEXT",
+          "description": "상세 근거",
+          "nullable": false
+        },
+        {
+          "name": "detail_hash",
+          "type": "dsim.io_sha256",
+          "description": "상세 Hash",
+          "nullable": false
+        },
+        {
+          "name": "row_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "Row Hash",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "engine_run_id",
+        "diagnostic_id"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id"
+          ],
+          "table": "dsim.tb_io_plan_context",
+          "target": [
+            "engine_run_id"
+          ]
+        },
+        {
+          "columns": [
+            "engine_run_id",
+            "child_result_id"
+          ],
+          "table": "dsim.tb_io_result_child",
+          "target": [
+            "engine_run_id",
+            "child_result_id"
+          ]
+        },
+        {
+          "columns": [
+            "engine_run_id",
+            "buffer_id"
+          ],
+          "table": "dsim.tb_io_buffer",
+          "target": [
+            "engine_run_id",
+            "buffer_id"
+          ]
+        },
+        {
+          "columns": [
+            "engine_run_id",
+            "yyyyww"
+          ],
+          "table": "dsim.tb_io_calendar_bucket",
+          "target": [
+            "engine_run_id",
+            "yyyyww"
+          ]
+        }
+      ],
+      "checks": [
+        "severity IN ('INFO', 'WARNING', 'ERROR')",
+        "btrim(reason_code) <> ''",
+        "btrim(diagnostic_id) <> ''",
+        "btrim(subject_item_id) <> ''",
+        "btrim(severity) <> ''",
+        "btrim(reason_code) <> ''"
+      ],
+      "indexes": [
+        [
+          "engine_run_id",
+          "reason_code"
+        ]
+      ],
+      "lifecycle": "run_append_only"
+    },
+    {
+      "name": "dsim.tb_io_policy_evaluation",
+      "prefix": "eval",
+      "purpose": "장기·비용 민감도 평가 Context별 비교값. 비용 미가용을 0으로 바꾸지 않음.",
+      "grain": "Run + evaluation_id; ID는 Child·탐색·Buffer·후보·Context의 결정론적 Hash",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "Run",
+          "nullable": false
+        },
+        {
+          "name": "evaluation_id",
+          "type": "dsim.io_sha256",
+          "description": "평가 자연키를 정규화한 결정론적 Hash",
+          "nullable": false
+        },
+        {
+          "name": "child_result_id",
+          "type": "VARCHAR(160)",
+          "description": "탐색/민감도 Artifact Registry",
+          "nullable": false
+        },
+        {
+          "name": "search_child_result_id",
+          "type": "VARCHAR(160)",
+          "description": "원 POLICY_SEARCH",
+          "nullable": false
+        },
+        {
+          "name": "buffer_id",
+          "type": "VARCHAR(160)",
+          "description": "Buffer",
+          "nullable": false
+        },
+        {
+          "name": "candidate_id",
+          "type": "VARCHAR(160)",
+          "description": "원 후보",
+          "nullable": false
+        },
+        {
+          "name": "evaluation_context_id",
+          "type": "VARCHAR(160)",
+          "description": "기간·비용·Stress·종료 조건 조합",
+          "nullable": false
+        },
+        {
+          "name": "evaluation_context_hash",
+          "type": "dsim.io_sha256",
+          "description": "정규화 평가 Context Hash",
+          "nullable": false
+        },
+        {
+          "name": "evaluation_start_yyyyww",
+          "type": "CHAR(6)",
+          "description": "평가 첫 주차",
+          "nullable": false
+        },
+        {
+          "name": "evaluation_end_yyyyww",
+          "type": "CHAR(6)",
+          "description": "평가 마지막 주차",
+          "nullable": false
+        },
+        {
+          "name": "service_status",
+          "type": "VARCHAR(32)",
+          "description": "AVAILABLE/NO_DEMAND_IN_HORIZON",
+          "nullable": false
+        },
+        {
+          "name": "current_demand_qty",
+          "type": "dsim.io_quantity",
+          "description": "현재 수요",
+          "nullable": false
+        },
+        {
+          "name": "current_demand_fulfilled_qty",
+          "type": "dsim.io_quantity",
+          "description": "현재 수요 충족량",
+          "nullable": false
+        },
+        {
+          "name": "current_demand_fill_rate",
+          "type": "dsim.io_ratio",
+          "description": "수요가 0이면 null",
+          "nullable": true
+        },
+        {
+          "name": "average_on_hand_eoh_qty",
+          "type": "dsim.io_quantity",
+          "description": "평균 기말 실제 재고",
+          "nullable": false
+        },
+        {
+          "name": "ending_on_hand_qty",
+          "type": "dsim.io_quantity",
+          "description": "종료 실제 재고",
+          "nullable": false
+        },
+        {
+          "name": "ending_backorder_qty",
+          "type": "dsim.io_quantity",
+          "description": "종료 Backorder",
+          "nullable": false
+        },
+        {
+          "name": "order_count",
+          "type": "BIGINT",
+          "description": "발주 횟수",
+          "nullable": false
+        },
+        {
+          "name": "service_feasible",
+          "type": "BOOLEAN",
+          "description": "서비스 조건 충족",
+          "nullable": false
+        },
+        {
+          "name": "cost_status",
+          "type": "VARCHAR(40)",
+          "description": "AVAILABLE_DEVELOPMENT_ASSUMPTION/COST_PROFILE_NOT_BOUND",
+          "nullable": false
+        },
+        {
+          "name": "cost_profile_hash",
+          "type": "dsim.io_sha256",
+          "description": "비용 가정 Hash",
+          "nullable": true
+        },
+        {
+          "name": "currency",
+          "type": "CHAR(3)",
+          "description": "비용 통화",
+          "nullable": true
+        },
+        {
+          "name": "total_cost",
+          "type": "dsim.io_quantity",
+          "description": "비교 총비용",
+          "nullable": true
+        },
+        {
+          "name": "row_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "Row Hash",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "engine_run_id",
+        "evaluation_id"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id",
+            "child_result_id"
+          ],
+          "table": "dsim.tb_io_result_child",
+          "target": [
+            "engine_run_id",
+            "child_result_id"
+          ]
+        },
+        {
+          "columns": [
+            "engine_run_id",
+            "search_child_result_id",
+            "buffer_id",
+            "candidate_id"
+          ],
+          "table": "dsim.tb_io_policy_candidate",
+          "target": [
+            "engine_run_id",
+            "child_result_id",
+            "buffer_id",
+            "candidate_id"
+          ]
+        }
+      ],
+      "checks": [
+        "order_count >= 0",
+        "current_demand_fulfilled_qty <= current_demand_qty",
+        "(service_status = 'AVAILABLE' AND current_demand_qty > 0 AND current_demand_fill_rate IS NOT NULL) OR (service_status = 'NO_DEMAND_IN_HORIZON' AND current_demand_qty = 0 AND current_demand_fulfilled_qty = 0 AND current_demand_fill_rate IS NULL AND NOT service_feasible)",
+        "(cost_status = 'AVAILABLE_DEVELOPMENT_ASSUMPTION' AND cost_profile_hash IS NOT NULL AND currency IS NOT NULL AND currency ~ '^[A-Z]{3}$' AND total_cost IS NOT NULL) OR (cost_status = 'COST_PROFILE_NOT_BOUND' AND cost_profile_hash IS NULL AND currency IS NULL AND total_cost IS NULL)",
+        "btrim(child_result_id) <> ''",
+        "btrim(search_child_result_id) <> ''",
+        "btrim(buffer_id) <> ''",
+        "btrim(candidate_id) <> ''",
+        "btrim(evaluation_context_id) <> ''",
+        "btrim(service_status) <> ''",
+        "btrim(cost_status) <> ''",
+        "evaluation_start_yyyyww ~ '^[0-9]{4}(0[1-9]|[1-4][0-9]|5[0-3])$' AND evaluation_end_yyyyww ~ '^[0-9]{4}(0[1-9]|[1-4][0-9]|5[0-3])$'"
+      ],
+      "indexes": [],
+      "lifecycle": "run_append_only"
+    },
+    {
+      "name": "dsim.tb_io_policy_selection",
+      "prefix": "sel",
+      "purpose": "품목별 선택/미선정 증적. 업무 승인 또는 유효 정책으로 승격하지 않음.",
+      "grain": "Run + selection Child + Buffer",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "Run",
+          "nullable": false
+        },
+        {
+          "name": "child_result_id",
+          "type": "VARCHAR(160)",
+          "description": "POLICY_SELECTION Registry",
+          "nullable": false
+        },
+        {
+          "name": "buffer_id",
+          "type": "VARCHAR(160)",
+          "description": "Buffer",
+          "nullable": false
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(16)",
+          "description": "SELECTED/NOT_SELECTED",
+          "nullable": false
+        },
+        {
+          "name": "evaluation_id",
+          "type": "dsim.io_sha256",
+          "description": "선정된 정확한 평가 ID; 미선정은 null",
+          "nullable": true
+        },
+        {
+          "name": "selection_rule_hash",
+          "type": "dsim.io_sha256",
+          "description": "서비스 조건·동점 규칙 Hash",
+          "nullable": false
+        },
+        {
+          "name": "reason_code",
+          "type": "VARCHAR(128)",
+          "description": "선정·미선정 근거",
+          "nullable": false
+        },
+        {
+          "name": "row_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "Row Hash",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "engine_run_id",
+        "child_result_id",
+        "buffer_id"
+      ],
+      "unique": [],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id",
+            "child_result_id"
+          ],
+          "table": "dsim.tb_io_result_child",
+          "target": [
+            "engine_run_id",
+            "child_result_id"
+          ]
+        },
+        {
+          "columns": [
+            "engine_run_id",
+            "buffer_id"
+          ],
+          "table": "dsim.tb_io_buffer",
+          "target": [
+            "engine_run_id",
+            "buffer_id"
+          ]
+        },
+        {
+          "columns": [
+            "engine_run_id",
+            "evaluation_id"
+          ],
+          "table": "dsim.tb_io_policy_evaluation",
+          "target": [
+            "engine_run_id",
+            "evaluation_id"
+          ]
+        }
+      ],
+      "checks": [
+        "(status = 'SELECTED' AND evaluation_id IS NOT NULL) OR (status = 'NOT_SELECTED' AND evaluation_id IS NULL)",
+        "btrim(reason_code) <> ''",
+        "btrim(child_result_id) <> ''",
+        "btrim(buffer_id) <> ''",
+        "btrim(status) <> ''",
+        "btrim(reason_code) <> ''"
+      ],
+      "indexes": [],
+      "lifecycle": "run_append_only"
+    },
+    {
+      "name": "dsim.tb_io_publication_receipt",
+      "prefix": "pub",
+      "purpose": "검증된 DB Evidence Projection 완료 Receipt. 업무 게시·실제 발주 승인이 아님.",
+      "grain": "Run당 VERIFIED Evidence Receipt 1건",
+      "columns": [
+        {
+          "name": "engine_run_id",
+          "type": "UUID",
+          "description": "Run",
+          "nullable": false
+        },
+        {
+          "name": "receipt_id",
+          "type": "VARCHAR(160)",
+          "description": "멱등 Receipt ID",
+          "nullable": false
+        },
+        {
+          "name": "bundle_id",
+          "type": "VARCHAR(160)",
+          "description": "일치하는 Bundle ID",
+          "nullable": false
+        },
+        {
+          "name": "bundle_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "원 Bundle Hash",
+          "nullable": false
+        },
+        {
+          "name": "projection_contract_version",
+          "type": "VARCHAR(32)",
+          "description": "물리 Projection 계약 Version",
+          "nullable": false
+        },
+        {
+          "name": "projection_content_hash",
+          "type": "dsim.io_sha256",
+          "description": "전체 Projection Row 집계 Hash",
+          "nullable": false
+        },
+        {
+          "name": "table_row_counts",
+          "type": "JSONB",
+          "description": "전체 21개 테이블 Row 수; Receipt 자체는 1",
+          "nullable": false
+        },
+        {
+          "name": "verified_at",
+          "type": "TIMESTAMPTZ",
+          "description": "Writer 검증 시각",
+          "nullable": false
+        },
+        {
+          "name": "receipt_artifact_reference",
+          "type": "TEXT",
+          "description": "검증 Receipt 원문",
+          "nullable": false
+        },
+        {
+          "name": "receipt_artifact_hash",
+          "type": "dsim.io_sha256",
+          "description": "Receipt 원문 Hash",
+          "nullable": false
+        }
+      ],
+      "primary_key": [
+        "engine_run_id"
+      ],
+      "unique": [
+        [
+          "receipt_id"
+        ]
+      ],
+      "foreign_keys": [
+        {
+          "columns": [
+            "engine_run_id",
+            "bundle_id"
+          ],
+          "table": "dsim.tb_io_result_bundle",
+          "target": [
+            "engine_run_id",
+            "bundle_id"
+          ]
+        }
+      ],
+      "checks": [
+        "projection_contract_version = '1.0.0'",
+        "jsonb_typeof(table_row_counts) = 'object' AND octet_length(table_row_counts::text) <= 65536",
+        "btrim(receipt_id) <> ''",
+        "btrim(receipt_artifact_reference) <> ''",
+        "btrim(receipt_id) <> ''",
+        "btrim(bundle_id) <> ''",
+        "btrim(projection_contract_version) <> ''"
+      ],
+      "indexes": [],
+      "lifecycle": "receipt_append_only"
+    }
+  ],
+  "runtime_projection": {
+    "contract_key": "inventory.dsim_projection",
+    "contract_version": "1.0.0",
+    "source_binding": "정식 Runtime Dispatch와 정확한 8종 Canonical Binding; INVENTORY_POLICY는 Config Binding으로 별도 보존. 분류 Binding은 Effective Policy Hash이며 Header Content Hash와 다름.",
+    "source_replay": "기존 봉인 Result Bundle Verifier와 순수 Projection 재생성 결과를 비교. 자기 Hash 재봉인만으로 Source 행을 바꿀 수 없음.",
+    "hash_form": "digest({qualified_table_name: [PK 순 Row, ...], ...}); receipt/created_at 제외. row_content_hash는 Row의 그 필드 제외 전체 Hash.",
+    "chunking": "1..1000행; Table별 PK 순 contiguous ordinal, 중복/누락 금지. 빈 Table은 row_count=0/chunks=[]로 보존.",
+    "receipt_time": "verified_at은 Writer에서 생성하고 Projection Hash에 포함하지 않음. 원 Source의 sealed_at 미제공은 null.",
+    "scope": "CALCULATION_ONLY는 거부. Evidence 적재는 업무 게시/자동발주/Effective Run 변경 권한을 부여하지 않음."
+  }
+}
