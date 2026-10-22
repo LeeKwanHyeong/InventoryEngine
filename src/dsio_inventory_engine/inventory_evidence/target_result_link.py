@@ -17,6 +17,9 @@ from dsio_inventory_engine.inventory_contracts.runtime import (
     validate_result_bundle_runtime_binding,
 )
 from dsio_inventory_engine.inventory_contracts.values import canonical_json, digest, require
+from dsio_inventory_engine.recommend_replenishment.application.target_verification import (
+    target_verification_operation,
+)
 from .application import ReadAndVerifyInventoryResultBundleUseCase
 from .classification_source import validate_classification_source
 from .contracts import ArtifactObject
@@ -186,6 +189,7 @@ class TargetResultLinkUseCase:
         )
         return VerifiedTargetResultLink(obj, (search, selected), canonical_json(result))
 
+    @target_verification_operation
     def execute(self, *, request, bundle_reference, expected_input_reference):
         manifest_ref = self.target.repository.lookup(request.engine_run_id, "COMPLETE")
         linked = self._assemble(
@@ -208,6 +212,7 @@ class TargetResultLinkUseCase:
             "automatic_order_allowed": False,
         }
 
+    @target_verification_operation
     def read(self, *, request, bundle_reference, expected_link_hash=None):
         obj = self.repository.read_artifact(self.reference(request))
         require(
@@ -230,6 +235,7 @@ class TargetResultLinkUseCase:
             )
         return expected
 
+    @target_verification_operation
     def recover(self, *, request, bundle_reference, expected_input_reference):
         # Restore only the pinned original input; never search for a new input or update the outbox.
         self._base_inputs(

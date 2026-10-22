@@ -29,6 +29,7 @@ from dsio_inventory_engine.inventory_contracts.values import (
     require,
 )
 from .target_execution import RunTargetPolicyPipelineUseCase, _TargetNumerics
+from .target_verification import TargetReplayVerification
 
 MAX_RESULT_BYTES = MAX_RAW_RESULT_BYTES
 
@@ -63,6 +64,10 @@ class RunDurableTargetPolicyPipelineUseCase:
 
     def __init__(self, deployment, kernel, repository):
         self.deployment, self.kernel, self.repository = deployment, kernel, repository
+        self._replay_verification = TargetReplayVerification()
+
+    def _verification_scope(self):
+        return self._replay_verification.scope()
 
     def _restore(self, inputs):
         require(
@@ -417,10 +422,23 @@ class RunDurableTargetPolicyPipelineUseCase:
         return self._view(result, manifest, "INTEGRITY_VERIFIED")
 
     def read_verified(self, run_id, *, expected_input_reference=None):
-        result, inputs, manifest = self._read(run_id, expected_input_reference)
-        runner, request, binding, sources = self._restore(inputs)
-        runner.verify_result(result, request, binding, **sources)
-        return self._view(result, manifest, "RECOMPUTED_VERIFIED")
+        with self._verification_scope():
+            # Always re-read every original byte/Hash/count and re-admit the
+            # input, FSN/Gate, profile and actual DLL binding, including on a hit.
+            result, inputs, manifest = self._read(run_id, expected_input_reference)
+            runner, request, binding, sources = self._restore(inputs)
+            key = (
+                run_id,
+                manifest["input_reference"]["content_hash"],
+                self.repository.reference("MANIFEST", manifest)["content_hash"],
+                self.kernel.dll_sha256,
+            )
+            if not self._replay_verification.contains(key, self.kernel):
+                runner.verify_result(result, request, binding, **sources)
+                # execute/_publish alone never grant this admission: the first
+                # result must still pass an independent complete replay.
+                self._replay_verification.remember(key, self.kernel)
+            return self._view(result, manifest, "RECOMPUTED_VERIFIED")
 
     def recover(self, run_id, *, expected_input_reference=None):
         ref = self.repository.lookup(run_id, "INPUT")

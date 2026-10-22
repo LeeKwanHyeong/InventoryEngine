@@ -19,6 +19,9 @@ from dsio_inventory_engine.inventory_evidence.projection import (
 )
 from dsio_inventory_engine.inventory_evidence.projection_source import DsimSourceProjector
 from dsio_inventory_engine.inventory_evidence.target_result_link import TargetResultLinkUseCase
+from dsio_inventory_engine.recommend_replenishment.application.target_verification import (
+    target_verification_operation,
+)
 
 
 def _artifact_pointer(value):
@@ -111,6 +114,7 @@ class InventoryTargetResultExecution:
             )
         return request, sources, base
 
+    @target_verification_operation
     def execute(self, *, request, sources):
         request, sources, _ = self._inputs(request, sources)
         link = self.link.execute(
@@ -134,6 +138,7 @@ class InventoryTargetResultExecution:
         # A missing COMPLETE slot is a failure, never a request to find/recalculate latest input.
         return self.execute(request=request, sources=sources)
 
+    @target_verification_operation
     def read(self, *, request, result_pointer):
         pointer = result_pointers(result_pointer)
         request, sources, base = self._inputs(request, pointer["sources"])

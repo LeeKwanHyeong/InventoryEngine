@@ -2,12 +2,14 @@
 
 import argparse
 import asyncio
+from contextlib import nullcontext
 import json
 import os
 from pathlib import Path
 import signal
 import subprocess
 import sys
+from unittest.mock import patch
 
 from dsio_inventory_engine.infrastructure.sqlite import SqliteInventoryEvidenceUnitOfWork
 from dsio_inventory_engine.infrastructure.target_pipeline_artifacts import (
@@ -24,6 +26,37 @@ from dsio_inventory_engine.run_inventory.initial_target_execution import (
 from tests.support.calculation_adapter_fixtures import DEPLOYMENT
 from tests.support.initial_execution_fixtures import initial_world
 from verify_target_runtime import numerical_kernel, summary
+
+
+def counted_kernel(build):
+    kernel = numerical_kernel(build)
+    counts = {"calls": 0}
+    advance = kernel.advance_target
+
+    def counted(value):
+        counts["calls"] += 1
+        return advance(value)
+
+    kernel.advance_target = counted
+    return kernel, counts
+
+
+def measured_summary(result, counts):
+    one_pass = sum(result["result"]["completed_transition_calls"].values())
+    assert one_pass > 0 and counts["calls"] % one_pass == 0
+    return {
+        **summary(result),
+        "initial_input": result["initial_input"],
+        "numerical_work": {
+            "actual_csharp_transition_calls": counts["calls"],
+            "one_pass_transition_calls": one_pass,
+            "full_pipeline_passes": counts["calls"] // one_pass,
+        },
+    }
+
+
+def without_measurement(result):
+    return {k: v for k, v in result.items() if k != "numerical_work"}
 
 
 def terminate_after_commit(store, target_repo, phase):
@@ -56,7 +89,8 @@ def terminate_after_commit(store, target_repo, phase):
 
 
 async def worker(args):
-    w = initial_world(args.root, numerical_kernel(args.build), mode=args.mode)
+    kernel, counts = counted_kernel(args.build)
+    w = initial_world(args.root, kernel, mode=args.mode)
     assert w.store.find_outbox(w.request.engine_run_id, 1) is None
     assert w.target_repo.lookup(w.request.engine_run_id, "COMPLETE") is None
     meta = {
@@ -67,20 +101,28 @@ async def worker(args):
     }
     (args.root / "resume.json").write_text(json.dumps(meta, sort_keys=True))
     terminate_after_commit(w.store, w.target_repo, args.kill_at)
-    result = await w.runtime.execute(request=w.request, target_input_reference=w.input_ref)
+    # Diagnostic control only: never alter the calculation, input or Build.
+    context = (
+        patch.object(w.target, "_verification_scope", side_effect=nullcontext)
+        if args.without_reuse
+        else nullcontext()
+    )
+    with context:
+        result = await w.runtime.execute(request=w.request, target_input_reference=w.input_ref)
     (args.root / "result-pointer.json").write_text(
         json.dumps(result["result_pointer"], sort_keys=True)
     )
-    return {**summary(result), "initial_input": result["initial_input"]}
+    return measured_summary(result, counts)
 
 
 async def restore(args):
     meta = json.loads((args.root / "resume.json").read_text())
     request = InventoryRuntimeExecutionRequest.from_dict(meta["request"])
     store = SqliteInventoryEvidenceUnitOfWork(args.root / "artifacts.sqlite")
+    kernel, counts = counted_kernel(args.build)
     target = RunDurableTargetPolicyPipelineUseCase(
         DEPLOYMENT,
-        numerical_kernel(args.build),
+        kernel,
         LocalTargetPipelineArtifactStore(args.root / "target"),
     )
     original_outbox = store.find_outbox(request.engine_run_id, request.value["attempt_no"])
@@ -117,7 +159,7 @@ async def restore(args):
         assert (
             store.find_outbox(request.engine_run_id, request.value["attempt_no"]) == original_outbox
         )
-    return {**summary(result), "initial_input": result["initial_input"]}
+    return measured_summary(result, counts)
 
 
 def verify(args):
@@ -156,9 +198,45 @@ def verify(args):
             cmd + ["--read-only"], capture_output=True, text=True, check=True, timeout=240
         )
         result = json.loads(recovered.stdout)
-        assert result == json.loads(read.stdout)
+        read_result = json.loads(read.stdout)
+        assert without_measurement(result) == without_measurement(read_result)
+        assert read_result["numerical_work"]["full_pipeline_passes"] == 1
+        assert result["numerical_work"]["full_pipeline_passes"] == (
+            2 if phase in {"CHECKPOINT", "BUNDLE", "TARGET_PART"} else 1
+        )
+        comparison = None
         if not phase:
-            assert result == json.loads(initial.stdout)
+            first = json.loads(initial.stdout)
+            assert without_measurement(result) == without_measurement(first)
+            assert first["numerical_work"]["full_pipeline_passes"] == 2
+            baseline_root = args.root / (mode + "-without-reuse")
+            baseline_root.mkdir()
+            baseline = subprocess.run(
+                [
+                    sys.executable,
+                    str(Path(__file__).resolve()),
+                    "--build",
+                    str(args.build),
+                    "--root",
+                    str(baseline_root),
+                    "--worker",
+                    "--mode",
+                    mode,
+                    "--without-reuse",
+                ],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=240,
+            )
+            before = json.loads(baseline.stdout)
+            assert without_measurement(before) == without_measurement(first)
+            assert before["numerical_work"]["full_pipeline_passes"] == 6
+            comparison = {
+                "same_build_inputs_result_hashes_and_pointers": True,
+                "before": before["numerical_work"],
+                "after": first["numerical_work"],
+            }
         assert result["counts"]["candidate_count"] == count
         assert not result["automatic_publish_allowed"] and not result["automatic_order_allowed"]
         checks.append(
@@ -166,6 +244,8 @@ def verify(args):
                 "mode": mode,
                 "interruption": phase,
                 "source_free_fresh_process_recovery": True,
+                "same_build_initial_execution_comparison": comparison,
+                "read_numerical_work": read_result["numerical_work"],
                 **result,
             }
         )
@@ -189,6 +269,7 @@ def main():
     p.add_argument("--worker", action="store_true")
     p.add_argument("--restore", action="store_true")
     p.add_argument("--read-only", action="store_true")
+    p.add_argument("--without-reuse", action="store_true")
     args = p.parse_args()
     if args.worker or args.restore or args.read_only:
         print(

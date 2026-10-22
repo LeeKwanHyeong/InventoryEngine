@@ -30,6 +30,9 @@ from dsio_inventory_engine.prepare_inventory.application.inventory_input import 
 from dsio_inventory_engine.recommend_replenishment.application.run import (
     apply_effective_policy_controls,
 )
+from dsio_inventory_engine.recommend_replenishment.application.target_verification import (
+    target_verification_operation,
+)
 from .approved_inputs import validate_manifest_request
 from .runtime_composition import build_approved_inventory_runtime_pipeline
 from .target_result_execution import InventoryTargetResultExecution
@@ -197,9 +200,13 @@ class InventoryInitialTargetExecution:
             simulation_registry=self.registry,
         )
         await pipeline.execute(request, report or _local_report)
-        await asyncio.to_thread(
-            self.target.recover, request.engine_run_id, expected_input_reference=input_ref
-        )
+        # Keep recovery and result assembly on one Worker thread. A ContextVar
+        # verification admission must not be transferred between thread calls.
+        return await asyncio.to_thread(self._complete, request, input_ref, checkpoint)
+
+    @target_verification_operation
+    def _complete(self, request, input_ref, checkpoint):
+        self.target.recover(request.engine_run_id, expected_input_reference=input_ref)
         outbox = self.store.find_outbox(request.engine_run_id, request.value["attempt_no"])
         require(outbox is not None, "INITIAL_EXECUTION_BUNDLE_REQUIRED")
         payload = outbox.message.payload()
@@ -209,7 +216,7 @@ class InventoryInitialTargetExecution:
             "target_input": input_ref,
             "target_manifest": self.target.repository.lookup(request.engine_run_id, "COMPLETE"),
         }
-        result = await asyncio.to_thread(self.reader.execute, request=request, sources=sources)
+        result = self.reader.execute(request=request, sources=sources)
         return self._with_checkpoint(result, checkpoint)
 
     @staticmethod
