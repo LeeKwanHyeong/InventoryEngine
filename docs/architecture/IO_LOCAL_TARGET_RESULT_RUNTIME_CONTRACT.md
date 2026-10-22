@@ -4,7 +4,47 @@
 > 최초 입력부터 계산·저장·조회까지의 조립은 더 이상 미완료가 아니다. 아래는 결과 Reader의 고유 계약이며,
 > 최초 실행의 후속 상태·남은 순서는 새 계약과 개발 기준선 최상단을 따른다.
 
-## 현재 기준선
+## 2026-10-22 후속 — 요청 내 중복 재계산 축소 완료
+
+`InventoryTargetResultExecution`의 Link·Projection·최종 Reader가 같은 봉인 결과를 반복 재계산하던 경로를
+보완했다. [독립 최초 실행](IO_INDEPENDENT_INITIAL_EXECUTION_CONTRACT.md)은 계산 1회와 별도 전수 재검증 1회를
+유지하며, 완료 결과의 복구·강한 조회는 요청마다 전수 재검증 1회를 수행한다.
+
+한 요청의 동기 계산·연결 단계는 같은 Worker 스레드에서 조립한다. 같은 Run·INPUT/Manifest Hash·DLL과
+Kernel 객체에 대해 성공한 검증 이력만 요청 안에서 재사용하고, 재사용 범위를 반환·예외·취소로 벗어나면 폐기한다.
+다른 스레드·작업·프로세스로 검증 상태를 전달하거나 외부의 `verified=true`를 신뢰하지 않는다.
+원본 Artifact·전체 후보/건수·Hash·입력/Build/Profile Binding·FSN·운영 Gate는 매번 대사한다.
+원 수량 계산·후보별 상태·내부 검증·ID/Hash 형식·단일 Pipeline의 전이 호출 수는 그대로다.
+세부 조건은 [저장 계약](IO_TARGET_PIPELINE_STORAGE.md#31-같은-요청의-재계산-검증-재사용)을 따른다.
+
+### 같은 후보 Build의 실제 DLL 검증
+
+소규모 1품목·3주 입력에서 재사용만 끈 대조 경로와 결과 Hash·저장 참조가 같았다.
+
+| 후보 방식 | 후보 수 | 최초 실행 전이 호출: 대조 → 재사용 | 새 요청의 완료 복구 | 새 요청의 강한 조회 |
+| --- | ---: | ---: | ---: | ---: |
+| ABC·XYZ | 32 | 2,970 → 990 | 495 | 495 |
+| LEGACY_STYLE | 32 | 2,970 → 990 | 495 | 495 |
+| 넓은 참조 | 88 | 8,010 → 2,670 | 1,335 | 1,335 |
+
+정상 후보 3개 사례와 CHECKPOINT·BUNDLE·TARGET_PART·LINK·PROJECTION 게시 직후 SIGKILL 5개 사례를
+새 프로세스에서 복구·조회했다. 미완료 계산은 전체 계산과 별도 검증 2회, COMPLETE 이후 복구는 검증 1회다.
+실행기는 [verify_initial_target_execution.py](../../scripts/verify_initial_target_execution.py)다.
+검증용 새 설치 Build는 `1478bd76206d4eeebafe569569ac5015ae8489dd6e494ae74de35c0fcae66b55`다.
+이 비교는 같은 후보 Build 안의 재사용 유무 비교이지, 기존 V100 Build를 대체하거나 같은 Hash로 표시한 것이 아니다.
+
+관련 Engine **597 passed / 147 subtests passed**, Platform **56 passed**를 확인했다.
+Platform 수치에는 별도 임시 Wheel의 Backend Factory 연결 6건이 포함되며 기존 Starlette 경고 12건은 남는다.
+Ruff·Format·Diff Check도 통과했다. 전체 저장소·Frontend·대규모 V100 회귀나 응답시간·메모리 검증은 아니다.
+이번 문서 정정에서 계산·테스트를 다시 실행하지는 않았다.
+
+Backend의 요청별 권한·Scope 검사와 별도 Writer Worker의 독립 검증·트랜잭션·Receipt·행 대사는 유지한다.
+현재 화면의 저장 결과 GET은 이미 재계산하지 않으므로 변경하지 않았다.
+기존 V100 Run·입력·Build·Artifact·FSN·운영 Gate와 개발 PostgreSQL·공용/M3 Runtime은 변경하지 않았다.
+새 후보 검증 외 기존 V100 Forecast/PSI 재계산·DB Write·배포·실제 발주·Commit/Push는 없다.
+아래 DB 미연결·검증 수치·남은 작업은 2026-10-21 당시 이력이며, 현재 순서는 [최신 기준선](IO_DEVELOPMENT_BASELINE.md)을 따른다.
+
+## 2026-10-21 구현 기준선 — 이력
 
 2026-10-21, `inventory_engine_dev`의 독립 Offline 구현이다. 기존 Python 계산과
 운영 Runtime Registry·Run/결과 Wire 계약·ID·Hash·FSN·운영 Gate는 수정하지 않았다.
@@ -48,8 +88,9 @@
 
 `read(request, result_pointer)`는 원본 Bundle, 연결 Artifact, 원본 검색/선정 문서,
 INPUT/Manifest/전체 결과 조각과 Projection을 대사한다. 동일 입력·Profile·DLL로 전체 후보·선정·발주 계획을
-재계산하며 `RECOMPUTED_VERIFIED`를 반환한다. 빠른 무결성 조회를 강한 검증으로 표시하지 않는다.
-Artifact commit이나 원천 조회는 호출하지 않는다. 전체 재계산이므로 즉시 응답·성능 SLA를 보장하지 않는다.
+재계산하며 `RECOMPUTED_VERIFIED`를 반환한다. 2026-10-22 보정 후에는 같은 요청의 중복 수량 재계산만 생략하고,
+최소 한 번의 전수 재검증을 유지한다. 빠른 무결성 조회를 강한 검증으로 표시하지 않는다.
+Artifact commit이나 원천 조회는 호출하지 않는다. 새 요청마다 전수 재검증하므로 즉시 응답·성능 SLA를 보장하지 않는다.
 
 다른 Run·Attempt·Cycle·Site·분류·Config, 변경된 Hash·Build·DLL, 누락된 Reader/완료 포인터,
 원본 운영 Projection을 목표 Projection 대신 전달하는 경우는 차단한다.
@@ -79,7 +120,7 @@ Thread로 호출된 작업의 HTTP 취소를 강제 계산 중단으로 보장�
 이 서비스의 자동 게시·자동 발주 허용 값은 항상 `false`다. REVIEW는 증적을 조회할 수 있지만
 자동 게시할 수 없다. BLOCK이 원본 운영 Bundle 생성을 막는 기존 규칙도 유지한다.
 
-## 검증과 미완료 경계
+## 2026-10-21 검증과 미완료 경계 — 이력
 
 - 신규 Engine Runtime Offline 테스트 20건, Platform 연동 테스트 10건을 통과했다.
 - 실제 DLL로 ABC·XYZ 32개, LEGACY_STYLE 32개, 참조 88개와 계산용 주문 2건씩을 확인했다.
@@ -95,7 +136,7 @@ Thread로 호출된 작업의 HTTP 취소를 강제 계산 중단으로 보장�
 관련 회귀 수치·Wheel/Build 지문과 미변경 파일 대사는
 [검증 증적](evidence/local-target-runtime-verification-20261021.json)에 기록한다.
 
-## 남은 작업 순서
+## 2026-10-21 당시 남은 작업 순서 — 이력
 
 **현재 기준선 — 독립 IO의 최초 실행 조립 완료 · InventoryEngine·Platform Backend**
 

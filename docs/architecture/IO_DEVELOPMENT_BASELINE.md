@@ -1,6 +1,56 @@
 # InventoryEngine 개발 기준선과 작업 순서
 
-## 2026-10-22 최신 — 계산 완료·C# 상세 조회 연결과 저장소 기준선 정리
+## 2026-10-22 최신 — 같은 요청의 중복 재계산 축소·Offline 검증 완료
+
+- InventoryEngine `inventory_engine_dev`에서 Link·Projection·최종 반환이 같은 결과를 반복 계산하던
+  경로를 보완했다. 최초 실행은 **계산 1회 + 별도 전수 재계산 검증 1회**를 유지하고,
+  완료 결과의 복구·강한 조회는 **요청마다 전수 재계산 검증 1회**를 수행한다.
+  여기서 1회는 전체 후보 평가·품목별 선정·발주 계획 Pipeline 한 번이며, 개별 C# 전이 호출 한 번과 다르다.
+- 같은 요청·같은 Worker의 성공한 재검증 이력만 잠시 재사용한다. Run·INPUT/Manifest Hash·DLL과
+  계산 Kernel 객체가 같아야 하며, 재사용 범위를 반환·예외·취소로 벗어나면 이력을 폐기한다.
+  새 요청·다른 스레드/작업·새 프로세스로 검증 상태를 넘기거나 DB에 `verified=true`를 저장하지 않는다.
+- 재사용 시에도 원본 Artifact 바이트·전체 후보·건수·Hash·입력/Build/Profile Binding과 FSN·운영 Gate는
+  매번 확인한다. 후보별 수량 상태·계산식·내부 검증·`completed_transition_calls`와 기존 ID/Hash 형식은 그대로다.
+  상세 조회 GET은 이미 재계산하지 않으므로 수정하지 않았다. 별도 Writer Worker의 권한·DB 대사도 유지한다.
+
+**실제 C# Offline 검증 — 소규모 1품목·3주, 동일 후보 Build 안에서 비교**
+
+| 후보 방식 | 후보 수 | 재사용을 끈 최초 실행 전이 호출 | 재사용한 최초 실행 전이 호출 | 완료 복구 / 강한 조회 각각 |
+| --- | ---: | ---: | ---: | ---: |
+| ABC·XYZ | 32 | 2,970 | 990 | 495 |
+| LEGACY_STYLE | 32 | 2,970 | 990 | 495 |
+| 넓은 참조 | 88 | 8,010 | 2,670 | 1,335 |
+
+- 위 최초 실행은 전체 Pipeline **6회 → 2회**다. 같은 설치 후보에서 재사용만 끈 대조 경로와 비교해
+  입력·결과 Hash·저장 참조가 같음을 확인했다. 이전 Release와 새 Build의 Hash가 같다는 의미는 아니다.
+  전체 응답시간·메모리 개선율이나 실제 V100 9품목의 재측정 수치로 해석하지 않는다.
+- 실제 DLL 검증은 정상 후보 3개 사례와 `CHECKPOINT`·`BUNDLE`·`TARGET_PART`·`LINK`·`PROJECTION`
+  게시 직후 `SIGKILL` 5개 사례, 총 **8개 사례**다. 새 프로세스는 Source 재조회 없이 복구했다.
+  COMPLETE 전 중단은 전체 계산과 별도 검증 2회, COMPLETE 후 연결 중단은 검증 1회를 수행한다.
+- 관련 Engine 회귀는 서로 다른 세 묶음 **61 + 132 + 404 = 597 passed / 147 subtests passed**다.
+  Platform 관련 **56 passed**에는 새 임시 Wheel을 명시한 연결 6건이 포함된다. 기존 Starlette 경고 12건은 남는다.
+  변경 파일 Ruff·Format·Diff Check도 통과했다. 전체 저장소·Frontend 회귀를 다시 실행한 것은 아니다.
+- 검증용 새 설치 Build는 `1478bd76206d4eeebafe569569ac5015ae8489dd6e494ae74de35c0fcae66b55`,
+  기존 DLL은 `9bc7b1576eb3bcd00d11fb28affb77f7b875764667f120ca54ac98faa944fe7f`다.
+  기존 V100 Run·입력·설치 Build·원본 Artifact·FSN·운영 Gate는 교체하지 않았다.
+  개발 PostgreSQL 접속/Write·Migration·Forecast 재실행·공용/M3 배포·실제 발주는 없다.
+  이번 문서 정정에서는 계산·테스트를 재실행하지 않고 앞선 검증 기록을 코드와 대조했다.
+
+구현 범위와 재사용 조건은 [저장 계약](IO_TARGET_PIPELINE_STORAGE.md#31-같은-요청의-재계산-검증-재사용)과
+[로컬 Runtime 계약](IO_LOCAL_TARGET_RESULT_RUNTIME_CONTRACT.md#2026-10-22-후속--요청-내-중복-재계산-축소-완료)을 따른다.
+기존 전체 회귀와 개발 DB 검증 이력은 아래에 보존한다. 자원 관리 고도화·공식 강건성 본실험은 계속 보류한다.
+
+**1. 검증된 변경과 문서를 커밋 후보로 정리한다 — 다음 작업 · InventoryEngine `inventory_engine_dev`**
+
+- 이번 코드·테스트·검증 스크립트·승인된 세 문서만 대사한다. 개인 보고서·환경·임시 산출물·Wheel·DLL은 제외한다.
+  Commit·Push는 별도 요청 후 진행한다. 같은 공통 호출·저장 계약을 다루므로 현재 세션에서 직렬로 정리한다.
+
+**2. 공유 환경 반영 여부를 정한다 — 승인 필요 · dsai-platform·M3/공용 Inventory Runtime**
+
+- 공유 반영이 필요할 때 새 Build와 정확한 입력 Binding·설치 참조, 정식 Migration 호환성을 확인한다.
+  기존 Run의 Build를 새 코드로 바꿔 표시하지 않는다. 실제 DB Write·공용 배포·운영 게시·발주는 별도 승인 대상이다.
+
+## 2026-10-22 이전 이력 — 계산 완료·C# 상세 조회 연결과 저장소 기준선 정리
 
 - 대표 9품목 Run `a791759c-92e5-48b0-a428-f8648ca4eec8`은 기존 봉인 결과를 유지한 채
   계산 완료 이벤트 반영·중복 재시도와 실제 인증 화면 조회까지 완료했다.

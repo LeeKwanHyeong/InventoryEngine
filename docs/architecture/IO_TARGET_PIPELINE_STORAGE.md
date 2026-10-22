@@ -13,7 +13,13 @@
 
 후속 상태(2026-10-22): [최신 기준선](IO_DEVELOPMENT_BASELINE.md)의 대표 9품목 개발 Run에서
 실제 DLL·Runtime·Projection을 연결해 21개 테이블·41,342행 적재·조회·중복 저장을 확인했다.
-이 문서의 기존 Offline 이력은 보존한다. 기본 운영 Runtime 등록·완료 이벤트·운영 게시·공용 배포는 별도다.
+이 문서의 기존 Offline 이력은 보존한다. 적재 당시 별도였던 계산 완료 이벤트·상세 조회도 이후 연결했다.
+기본 운영 Runtime 등록·운영 게시·공용 배포는 여전히 별도이며, 최신 상태는 개발 기준선을 따른다.
+
+후속 보정(2026-10-22): 같은 요청에서 성공한 전수 재계산 검증만 재사용하도록 구현·Offline 검증했다.
+최초 계산과 별도 검증은 유지하며, 파일·Hash·건수·Binding 검사를 생략하지 않는다.
+[요청 내 재사용 규칙](#31-같은-요청의-재계산-검증-재사용)과 [최신 기준선](IO_DEVELOPMENT_BASELINE.md)을 따른다.
+기존 V100 Build·Run·Artifact와 개발 PostgreSQL·FSN·운영 Gate·공용 Runtime은 변경하지 않았다.
 
 ## 1. 연결 대상과 변경하지 않은 범위
 
@@ -81,7 +87,7 @@ Manifest는 후보 키·Hash의 순서 있는 전체 목록, 후보 수·PSI 행
 | `execute()` | 입력 선저장→실제 계산→분할 저장→복원 대사 | `RECOMPUTED_VERIFIED` |
 | `persist()` | 외부 View를 같은 입력/DLL로 재계산 후 저장 | `RECOMPUTED_VERIFIED` |
 | `read_integrity()` | 모든 참조/바이트·건수·기존 Hash·Binding 확인, 수량 전이 호출 없음 | `INTEGRITY_VERIFIED` |
-| `read_verified()` | 위 확인 후 후보·선정·발주 계획 전체를 동일 DLL로 재계산 | `RECOMPUTED_VERIFIED` |
+| `read_verified()` | 위 확인 후 전체를 동일 DLL로 재계산. 같은 요청에서 동일 결과의 검증이 이미 성공한 경우에만 수량 재계산 생략 | `RECOMPUTED_VERIFIED` |
 | `recover()` | INPUT에서 재구성, 미완료면 전체 계산 후 저장 재개; 완료면 전체 재계산 검증 | `RECOMPUTED_VERIFIED` |
 
 무결성 조회는 새 운영 승인이나 C# 계산의 독립 증명이 아니다. 레코드와 체크섬을 함께 바꾼 잘못된 메타데이터는
@@ -98,6 +104,41 @@ Build·Profile·입력·권한이 달라지면 Python으로 대체하거나 최�
 입력이 바뀐 계산은 기존 계약대로 새 `engine_run_id`가 필요하다.
 INPUT 포인터 게시 전의 중단은 복구할 실행으로 보이지 않는다. 게시되지 않은 임시 파일과 참조 없는 레코드는
 완료 결과로 간주하지 않으며 이번 작업에서 자동 삭제·정리하지 않았다.
+
+### 3.1 같은 요청의 재계산 검증 재사용
+
+[TargetReplayVerification](../../src/dsio_inventory_engine/recommend_replenishment/application/target_verification.py)는
+한 요청·동일 Worker의 검증 이력만 보존한다. 결과 전체를 저장하는 전역 캐시가 아니며,
+한 번에 한 결과의 검증 Key와 Kernel 객체만 잠시 기억한다. 새 업무 ID·Hash·저장 레코드는 추가하지 않는다.
+
+- `read_verified()`는 항상 INPUT/COMPLETE 포인터, 모든 조각의 바이트·Hash·순서·건수·결과 Hash를 다시 확인한다.
+  원본 입력을 복원하고 현재 DLL·Profile·입력 Binding·FSN/운영 Gate를 다시 검사한 뒤 재사용 여부를 판단한다.
+- 재사용 Key는 기존 Run ID·INPUT Hash·Manifest Hash·DLL Hash이며, 계산 Kernel 객체도 같아야 한다.
+  입력·Manifest·DLL·Kernel이 달라지면 이전 검증을 사용하지 않는다. 다른 Runtime 요청의 권한·Scope·Build 대사는
+  바깥 Reader에서 매번 수행하며, 검증 재사용은 권한 검사나 Source 대사를 대신하지 않는다.
+- `runner.verify_result()`가 전체 후보·선정·발주 계획을 별도 계산해 같은 결과임을 확인한 뒤에만 이력을 남긴다.
+  `execute()`의 최초 계산·`_publish()`의 저장 성공·`read_integrity()`·외부의 검증 상태 문자열은 이를 대신하지 못한다.
+- 같은 요청의 후속 Link·Projection·최종 조회는 물리·의미 검사를 계속 수행하고 중복 수량 재계산만 생략한다.
+  `RECOMPUTED_VERIFIED`는 그 요청 안에서 전수 재검증이 이미 성공했다는 의미이며, 무결성 조회의 승격이 아니다.
+- 재사용 범위를 반환·예외·취소로 벗어나면 이력을 폐기한다. 새 요청·스레드·비동기 작업·프로세스로 넘기지 않는다.
+  실패/미완료 검증을 재사용하지 않으며, 반환 객체를 수정해도 다음 조회의 원본 결과는 달라지지 않는다.
+
+HTTP 취소가 이미 실행 중인 Worker 스레드를 강제 중단한다는 뜻은 아니다.
+강제 중단·새 프로세스 복구는 별도 SIGKILL 사례로 검증했다.
+
+최초 실행 조립은 계산 1회와 별도 전수 검증 1회를 수행한다. 완료 결과 복구·강한 조회는 요청마다 검증 1회다.
+미완료 입력에서 복구하면 기존처럼 전체 계산을 다시 수행하고, Runtime 조립이 별도 검증까지 마친다.
+후보 내부의 수량 전이·검증 순서와 `completed_transition_calls`는 바꾸지 않는다.
+분리된 Writer Worker의 독립 검증·DB Binding·Receipt·실제 행 대사도 그대로다.
+
+관련 [단위 테스트](../../tests/unit/test_target_verification_scope.py)와
+[Offline 실행 비교](../../tests/integration/test_target_verification_reuse_offline.py)는
+같은 Hash·호출 횟수, 누락·변조·다른 Binding·Kernel 교체, 실패·취소와 요청 간 분리를 확인한다.
+[실제 DLL 실행기](../../scripts/verify_initial_target_execution.py)에서는 32/32/88개 후보의 결과 Hash·참조가
+재사용을 끈 대조 경로와 같았다. 최초 호출은 각각 2,970→990 / 2,970→990 / 8,010→2,670회였고,
+새 프로세스의 완료 복구·강한 조회는 각각 495 / 495 / 1,335회였다. 전체 Pipeline으로는 최초 6→2회,
+완료 복구·강한 조회는 각 1회다. 1품목·3주 개발 사례이며 응답시간·대규모 V100 개선율은 측정하지 않았다.
+정상 3개·게시 직후 SIGKILL 5개의 총 8개 사례에서 복구와 기존 Hash를 확인했다.
 
 ## 4. 권한과 기존 결과의 보존
 
@@ -139,6 +180,7 @@ DLL Hash는 `9bc7b1576eb3bcd00d11fb28affb77f7b875764667f120ca54ac98faa944fe7f`�
 **현재 기준선 — 로컬 Runtime·Platform 조회·최초 실행 조립 완료 · InventoryEngine·dsai-platform Backend**
 
 - 새 결과 Reader와 기존 Run/결과 포인터를 로컬에 연결하고 최초 계산·저장·조회·차단·복구를 Offline 검증했다.
-  다음은 실제 적재 범위 대사와 독립 IO 적재 검증이다. Demand 연결은 그 이후로 둔다.
+  대표 9품목의 실제 개발 DB 적재는 후속 이력에서 완료했다. 요청 내 중복 재계산 축소도 Offline 검증을 마쳤다.
+  남은 순서는 [최신 기준선](IO_DEVELOPMENT_BASELINE.md)에서 관리하며 완료된 적재·회귀를 다시 실행 대상으로 잡지 않는다.
   실제 DB Write·Migration·공용 Runtime 재배포·실제 E2E Write는 별도 승인 필요다.
   발주요청 확정·ERP 전송은 여전히 후속 범위다.
