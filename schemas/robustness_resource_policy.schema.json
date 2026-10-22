@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dsai:inventory-robustness-local-resource-policy:1.0.0",
+  "title": "Local resource policy, not an inventory calculation or approval",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_id", "contract_version", "raw_limit_bytes", "max_invocation_seconds",
+    "max_cpu_workers", "quarantine_retention_seconds", "max_files",
+    "automatic_publish_allowed", "automatic_order_allowed", "database_writes"
+  ],
+  "properties": {
+    "contract_id": {"const": "inventory-robustness-local-resource-policy"},
+    "contract_version": {"const": "1.0.0"},
+    "raw_limit_bytes": {"type": "integer", "minimum": 1, "maximum": 20000000000},
+    "max_invocation_seconds": {"const": 3600},
+    "max_cpu_workers": {"const": 1},
+    "quarantine_retention_seconds": {"const": 86400},
+    "max_files": {"const": 100000},
+    "automatic_publish_allowed": {"const": false},
+    "automatic_order_allowed": {"const": false},
+    "database_writes": {"const": false}
+  }
+}

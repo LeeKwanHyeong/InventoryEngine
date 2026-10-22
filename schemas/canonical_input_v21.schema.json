@@ -21,7 +21,9 @@
       "type": "object", "additionalProperties": false,
       "required": ["contract_id", "environment_scope", "demand_run_id", "plan_yyyyww", "original_master_content_hash", "original_forecast_content_hash", "source_demand_window_file_sha256", "approval_reference", "included_item_ids", "exclusions", "content_hash"],
       "properties": {
-        "contract_id": {"const": "io-development-calculation-universe-v1"},
+        "contract_id": {"enum": ["io-development-calculation-universe-v1", "io-development-calculation-universe-v2", "io-development-calculation-universe-v3"]},
+        "classification_snapshot_id": {"$ref": "#/$defs/id"},
+        "classification_content_hash": {"$ref": "#/$defs/hash"},
         "environment_scope": {"const": "DEVELOPMENT"},
         "demand_run_id": {"$ref": "#/$defs/id"},
         "plan_yyyyww": {"type": "string", "pattern": "^[1-9][0-9]{3}(0[1-9]|[1-4][0-9]|5[0-3])$"},
@@ -31,8 +33,18 @@
         "approval_reference": {"$ref": "#/$defs/id"},
         "content_hash": {"$ref": "#/$defs/hash"},
         "included_item_ids": {"type": "array", "minItems": 1, "maxItems": 20000, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
-        "exclusions": {"type": "array", "maxItems": 20000, "items": {"type": "object", "additionalProperties": false, "required": ["item_id", "reason", "demand_end_yyyyww"], "properties": {"item_id": {"$ref": "#/$defs/id"}, "reason": {"const": "EXCLUDED_ENDED_DEMAND_WINDOW"}, "demand_end_yyyyww": {"type": "string", "pattern": "^[1-9][0-9]{3}(0[1-9]|[1-4][0-9]|5[0-3])$"}}}}
-      }
+        "exclusions": {"type": "array", "maxItems": 20000, "items": {"oneOf": [
+          {"type": "object", "additionalProperties": false, "required": ["item_id", "reason", "demand_end_yyyyww"], "properties": {"item_id": {"$ref": "#/$defs/id"}, "reason": {"const": "EXCLUDED_ENDED_DEMAND_WINDOW"}, "demand_end_yyyyww": {"type": "string", "pattern": "^[1-9][0-9]{3}(0[1-9]|[1-4][0-9]|5[0-3])$"}}},
+          {"type": "object", "additionalProperties": false, "required": ["item_id", "reason", "policy_gate_reason_codes"], "properties": {"item_id": {"$ref": "#/$defs/id"}, "reason": {"const": "EXCLUDED_POLICY_CALCULATION_BLOCKED"}, "policy_gate_reason_codes": {"type": "array", "minItems": 1, "maxItems": 32, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}}}},
+          {"type": "object", "additionalProperties": false, "required": ["item_id", "reason"], "properties": {"item_id": {"$ref": "#/$defs/id"}, "reason": {"const": "EXCLUDED_DEVELOPMENT_SAMPLE"}}}
+        ]}}
+      },
+      "allOf": [{"if": {"properties": {"contract_id": {"enum": ["io-development-calculation-universe-v2", "io-development-calculation-universe-v3"]}}},
+        "then": {"required": ["classification_snapshot_id", "classification_content_hash"]},
+        "else": {"properties": {"classification_snapshot_id": false, "classification_content_hash": false, "exclusions": {"items": {"properties": {"reason": {"const": "EXCLUDED_ENDED_DEMAND_WINDOW"}}}}}}
+      }, {"if": {"properties": {"contract_id": {"enum": ["io-development-calculation-universe-v1", "io-development-calculation-universe-v2"]}}},
+        "then": {"properties": {"exclusions": {"items": {"properties": {"reason": {"enum": ["EXCLUDED_ENDED_DEMAND_WINDOW", "EXCLUDED_POLICY_CALCULATION_BLOCKED"]}}}}}}
+      }]
     }
   },
   "$defs": {

@@ -345,6 +345,7 @@ class ReadAndVerifyInventoryResultBundleUseCase:
                     child=child,
                     built=persisted,
                     base_prepared=prepared.to_dict(),
+                    canonical_input=canonical.to_dict(),
                 )
                 artifact_bindings.append(source_object)
                 execution_sources.append(
@@ -551,6 +552,7 @@ def _validate_execution_source(
     child: Mapping[str, Any],
     built: Mapping[str, Any],
     base_prepared: Mapping[str, Any],
+    canonical_input: Mapping[str, Any],
 ) -> None:
     _validate_source_header(
         source,
@@ -579,6 +581,7 @@ def _validate_execution_source(
         execution=source["execution"],
         observation_input_hash=source["observation_input_hash"],
         admissions_by_item=source["admissions_by_item"] or None,
+        canonical_input=canonical_input,
     )
     persisted = built["action_artifacts"]["raw_action"]["artifact"]["observation_source"]
     require(reconstructed == persisted, "ACTION_OBSERVATION_SOURCE_READ_BACK_MISMATCH")

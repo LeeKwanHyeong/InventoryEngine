@@ -81,15 +81,17 @@ def _number(value: Any) -> Decimal:
     return number
 
 
-def ranking_key(score: dict) -> tuple[Decimal, Decimal, int, str]:
+def ranking_key(score: dict, *, candidate_prefix: str = "PC-") -> tuple[Decimal, Decimal, int, str]:
     """Exact decimal ordering; input list order, tolerances and float rounding never decide a tie."""
     require(
         type(score["order_count"]) is int and score["order_count"] >= 0,
         "POLICY_SELECTION_ORDER_COUNT_INVALID",
     )
     require(
-        type(score["candidate_id"]) is str
-        and re.fullmatch(r"PC-[0-9a-f]{64}", score["candidate_id"]) is not None,
+        candidate_prefix in ("PC-", "OCCP-")
+        and type(score["candidate_id"]) is str
+        and re.fullmatch(re.escape(candidate_prefix) + r"[0-9a-f]{64}", score["candidate_id"])
+        is not None,
         "POLICY_SELECTION_CANDIDATE_ID_INVALID",
     )
     return (
@@ -100,10 +102,16 @@ def ranking_key(score: dict) -> tuple[Decimal, Decimal, int, str]:
     )
 
 
-def _first_difference(first: dict, second: dict) -> int:
+def _first_difference(first: dict, second: dict, *, candidate_prefix: str = "PC-") -> int:
     return next(
         index
-        for index, (a, b) in enumerate(zip(ranking_key(first), ranking_key(second), strict=True))
+        for index, (a, b) in enumerate(
+            zip(
+                ranking_key(first, candidate_prefix=candidate_prefix),
+                ranking_key(second, candidate_prefix=candidate_prefix),
+                strict=True,
+            )
+        )
         if a != b
     )
 
@@ -153,7 +161,9 @@ def _gate(admission: dict, source: dict, item: str) -> tuple[bool, bool, bool]:
     )
 
 
-def verify_candidate_evaluation(child: dict, baseline: dict, source: dict) -> dict:
+def verify_candidate_evaluation(
+    child: dict, baseline: dict, source: dict, *, advance=advance_bucket
+) -> dict:
     """Re-run common action guard and stock arithmetic before trusting service/cost flags."""
     item = baseline["item_id"]
     rows, base, decisions, orders = (
@@ -278,7 +288,7 @@ def verify_candidate_evaluation(child: dict, baseline: dict, source: dict) -> di
             ),
             Decimal(0),
         )
-        state, quantities = advance_bucket(
+        state, quantities = advance(
             state,
             confirmed_customer_order_qty=_number(row["confirmed_customer_order_qty"]),
             net_forecast_qty=_number(row["net_forecast_qty"]),
@@ -308,7 +318,7 @@ def verify_candidate_evaluation(child: dict, baseline: dict, source: dict) -> di
     return {"metrics": metrics, "blocked": blocked, "calculable": calculable, "review": review}
 
 
-def assess_candidate(child: dict, verified: dict | None) -> dict:
+def assess_candidate(child: dict, verified: dict | None, *, candidate_prefix: str = "PC-") -> dict:
     result = {
         "candidate_id": child["candidate"]["candidate_id"],
         "candidate_result_hash": child["content_hash"],
@@ -350,17 +360,20 @@ def assess_candidate(child: dict, verified: dict | None) -> dict:
         }
     )
     if score is not None:
-        ranking_key(score)
+        ranking_key(score, candidate_prefix=candidate_prefix)
     result.update(
         status="INELIGIBLE" if reasons else "NOT_SELECTED", reason_codes=reasons, score=score
     )
     return result
 
 
-def rank_candidate_assessments(assessments: list[dict]) -> tuple[list[dict], list[str]]:
+def rank_candidate_assessments(
+    assessments: list[dict], *, candidate_prefix: str = "PC-"
+) -> tuple[list[dict], list[str]]:
     """Shared deterministic comparison; mutates only the caller's fresh assessment records."""
     eligible = sorted(
-        (a for a in assessments if a["score"] is not None), key=lambda a: ranking_key(a["score"])
+        (a for a in assessments if a["score"] is not None),
+        key=lambda a: ranking_key(a["score"], candidate_prefix=candidate_prefix),
     )
     for rank, assessment in enumerate(eligible, 1):
         assessment["rank"] = rank
@@ -368,7 +381,13 @@ def rank_candidate_assessments(assessments: list[dict]) -> tuple[list[dict], lis
         assessment["reason_codes"] = (
             ["RANKED_FIRST"]
             if rank == 1
-            else [LOSER_REASONS[_first_difference(eligible[0]["score"], assessment["score"])]]
+            else [
+                LOSER_REASONS[
+                    _first_difference(
+                        eligible[0]["score"], assessment["score"], candidate_prefix=candidate_prefix
+                    )
+                ]
+            ]
         )
     reasons = (
         []
@@ -377,15 +396,20 @@ def rank_candidate_assessments(assessments: list[dict]) -> tuple[list[dict], lis
             "RANKED_FIRST",
             "ONLY_ELIGIBLE_CANDIDATE"
             if len(eligible) == 1
-            else WINNER_REASONS[_first_difference(eligible[0]["score"], eligible[1]["score"])],
+            else WINNER_REASONS[
+                _first_difference(
+                    eligible[0]["score"], eligible[1]["score"], candidate_prefix=candidate_prefix
+                )
+            ],
         ]
     )
     return eligible, reasons
 
 
 class RunPolicySelectionUseCase:
-    def __init__(self, deployment: DeploymentScope):
+    def __init__(self, deployment: DeploymentScope, *, numerics=None):
         self.deployment = deployment
+        self.numerics = numerics
 
     def execute(self, search_result: dict) -> dict:
         return self._checked(search_result, verify_only=False)
@@ -470,7 +494,11 @@ class RunPolicySelectionUseCase:
             assessments, verified_by_id = [], {}
             for child in children:
                 verified = (
-                    verify_candidate_evaluation(child, baselines[item], source)
+                    (
+                        verify_candidate_evaluation(child, baselines[item], source)
+                        if self.numerics is None
+                        else self.numerics.verify_candidate(child, baselines[item], source)
+                    )
                     if child["status"] == "SUCCEEDED"
                     else None
                 )

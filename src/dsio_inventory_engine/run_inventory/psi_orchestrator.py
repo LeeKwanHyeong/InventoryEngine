@@ -779,6 +779,7 @@ class RunPsiBundleUseCase:
                 execution=normalized_stress_execution,
                 observation_input_hash=stress_recommendation.input_hash,
                 admissions_by_item=stress_admissions,
+                canonical_input=canonical.to_dict(),
             )
             psi_rows = result.get("psi_rows")
             decisions = result.get("decision_evidence")
@@ -1005,6 +1006,7 @@ def _base_action_source(
         execution=execution,
         observation_input_hash=observation_input_hash,
         admissions_by_item=normalized_admissions,
+        canonical_input=canonical.to_dict(),
     )
 
 

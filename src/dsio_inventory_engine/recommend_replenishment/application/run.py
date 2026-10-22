@@ -36,8 +36,9 @@ from .observation import build_observation
 class RunRecommendedPsiUseCase:
     """No training, model discovery, DB access, publication, or implicit fallback."""
 
-    def __init__(self, deployment: DeploymentScope):
+    def __init__(self, deployment: DeploymentScope, *, numerics=None):
         self.deployment = deployment
+        self.numerics = numerics
 
     def execute(
         self,
@@ -85,8 +86,21 @@ class RunRecommendedPsiUseCase:
         )
         with localcontext() as ctx:
             ctx.prec = 40
-            validate_controls(prepared, execution)
-            rows, decisions, orders = simulate(
+            run_simulation = simulate if self.numerics is None else self.numerics.simulate
+            try:
+                validate_controls(prepared, execution)
+            except InventoryInputError as exc:
+                from .partition import RESOURCE_ERRORS, simulate_partitioned
+
+                if not (
+                    self.numerics is None
+                    and runtime_request is not None
+                    and execution["strategy"]["strategy_type"] == "MATHEMATICAL"
+                    and str(exc) in RESOURCE_ERRORS
+                ):
+                    raise
+                run_simulation = simulate_partitioned
+            rows, decisions, orders = run_simulation(
                 prepared,
                 execution,
                 request.input_hash,
@@ -167,7 +181,16 @@ def apply_effective_policy_controls(
     else:
         require(runtime_request is None, "LOCAL_SHADOW_RUNTIME_BINDING_FORBIDDEN")
 
-    policies = {row["item_id"]: row for row in execution["effective_item_policies"]}
+    from dsio_inventory_engine.inventory_contracts.development_universe import (
+        scoped_effective_policies,
+    )
+
+    rows = execution["effective_item_policies"]
+    if canonical_input is not None:
+        rows = scoped_effective_policies(
+            canonical_input.to_dict(), rows, execution["effective_policy_binding"]
+        )
+    policies = {row["item_id"]: row for row in rows}
     master_items = {row["item_id"] for row in prepared["master"]}
     require(set(policies) == master_items, "EFFECTIVE_POLICY_UNIVERSE_MISMATCH")
     admissions = {
@@ -255,6 +278,8 @@ def simulate(
     strategy: ReplenishmentStrategy,
     *,
     admissions: dict[str, dict] | None = None,
+    advance=advance_bucket,
+    compact_observations=False,
 ) -> tuple[list, list, list]:
     rows: list[dict] = []
     decisions: list[dict] = []
@@ -361,7 +386,7 @@ def simulate(
                 for kind in ("CONFIRMED", "RECOMMENDED")
             }
             demand = demand_by_week[bucket["yyyyww"]]
-            state, quantities = advance_bucket(
+            state, quantities = advance(
                 state,
                 confirmed_customer_order_qty=Decimal(demand["confirmed_customer_order_qty"]),
                 net_forecast_qty=Decimal(demand["net_forecast_qty"]),
@@ -392,6 +417,12 @@ def simulate(
                 "proposal": proposal,
                 "validation": validation,
             }
+            if compact_observations:
+                from dsio_inventory_engine.inventory_contracts.observation_storage import (
+                    compact_observation,
+                )
+
+                decision["observation"] = compact_observation(decision["observation"])
             if item_id in admissions:
                 decision["effective_policy_admission"] = admissions[item_id]
             decisions.append(decision)

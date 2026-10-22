@@ -1,0 +1,111 @@
+{
+  "description": "Literal hand-calculated comparison expectations. Legacy values are source-derived, NOT native C# execution results. No runtime mode, approval or business identifier is defined here.",
+  "spec_version": "1.0.0",
+  "as_of_date": "2026-10-21",
+  "legacy_evidence": "MANUAL_FROM_FROZEN_CSHARP_SOURCE",
+  "native_csharp_verified": false,
+  "python_calculation_changed": false,
+  "uom": "EA",
+  "comparison_policy": {
+    "integer_quantities": "EXACT",
+    "dates_flags_and_case_membership": "EXACT",
+    "general_csharp_floating_tolerance": null,
+    "upstream_svc_lv_mapping_verified": false,
+    "legacy_style_is_psi_replay": false,
+    "legacy_values_may_be_regenerated_from_python": false,
+    "operational_approval_granted": false
+  },
+  "source_evidence": "docs/architecture/evidence/legacy-csharp-reconciliation-20261020.json",
+  "calendar": [
+    {"yyyyww": "202640", "seq": 0, "start_date": "2026-09-28", "end_date": "2026-10-04"},
+    {"yyyyww": "202641", "seq": 1, "start_date": "2026-10-05", "end_date": "2026-10-11"},
+    {"yyyyww": "202642", "seq": 2, "start_date": "2026-10-12", "end_date": "2026-10-18"}
+  ],
+  "transition_cases": [
+    {
+      "case": "receipts_then_previous_bo_then_current_demand",
+      "comparison": "COMMON_INVARIANT",
+      "input": {"boh": "10", "backorder": "3", "confirmed": "6", "forecast": "0", "receipt": "4"},
+      "legacy_expected": {"eoh": "5", "backorder_close": "0", "demand_allocation": "6", "stock_allocation": "9"},
+      "python_expected": {"eoh_qty": "5", "backorder_close_qty": "0", "fulfilled_backorder_qty": "3", "fulfilled_confirmed_customer_order_qty": "6", "forecast_shortage_qty": "0"}
+    },
+    {
+      "case": "forecast_shortage_is_not_customer_backorder",
+      "comparison": "INTENTIONAL_DIFFERENCE",
+      "input": {"boh": "0", "backorder": "0", "confirmed": "0", "forecast": "10", "receipt": "0"},
+      "legacy_expected": {"eoh": "0", "backorder_close": "10", "demand_allocation": "0", "stock_allocation": "0"},
+      "python_expected": {"eoh_qty": "0", "backorder_close_qty": "0", "fulfilled_forecast_qty": "0", "forecast_shortage_qty": "10"}
+    },
+    {
+      "case": "confirmed_customer_shortage_carries",
+      "comparison": "COMMON_INVARIANT",
+      "input": {"boh": "0", "backorder": "0", "confirmed": "10", "forecast": "0", "receipt": "4"},
+      "legacy_expected": {"eoh": "0", "backorder_close": "6", "demand_allocation": "4", "stock_allocation": "4"},
+      "python_expected": {"eoh_qty": "0", "backorder_close_qty": "6", "fulfilled_confirmed_customer_order_qty": "4", "forecast_shortage_qty": "0"}
+    },
+    {
+      "case": "no_demand_is_not_perfect_service",
+      "comparison": "METRICS_NOT_INTERCHANGEABLE",
+      "input": {"boh": "7", "backorder": "0", "confirmed": "0", "forecast": "0", "receipt": "0"},
+      "legacy_expected": {"eoh": "7", "backorder_close": "0", "demand_allocation": "0", "stock_allocation": "0", "weekly_demand_allocation_rate": "0"},
+      "python_expected": {"eoh_qty": "7", "backorder_close_qty": "0", "forecast_shortage_qty": "0", "service_status": "NO_DEMAND_IN_HORIZON", "current_demand_fill_rate": null}
+    }
+  ],
+  "order_cases": [
+    {
+      "case": "weekly_periodic_target",
+      "comparison": "ORDER_PHASE_AND_TERMINAL_DIFFERENCE",
+      "input": {"kind": "PERIODIC_ORDER_UP_TO", "boh": "10", "forecast": ["10", "10", "10"], "lead_time_days": 7, "legacy_internal_lead_time": "201600", "rop": "10", "target": "23", "q": "13"},
+      "legacy_expected": {"boh": ["10", "0", "13"], "due_in": ["0", "23", "0"], "eoh": ["0", "13", "3"], "backorder_close": ["0", "0", "0"], "purchase_order": ["23", "0", "20"], "pending_po_close": ["23", "0", "20"], "order_dates": ["2026-09-28", "2026-10-12"], "due_dates": ["2026-10-05", "2026-10-19"], "terminal_pending_po": "20"},
+      "python_expected": {"eoh": ["0", "3", "3"], "receipt": ["0", "13", "10"], "orders": [["2026-09-28", "2026-10-05", "2026-10-05", "13"], ["2026-10-05", "2026-10-12", "2026-10-12", "10"]], "validation_reasons": [["CONSTRAINTS_PASSED"], ["CONSTRAINTS_PASSED"], ["ARRIVAL_OUTSIDE_PLAN_HORIZON"]]}
+    },
+    {
+      "case": "weekly_fixed_q_is_not_legacy_ropq_dispatch",
+      "comparison": "POLICY_AND_ORDER_PHASE_DIFFERENCE",
+      "input": {"kind": "ROP_FIXED_Q", "boh": "10", "forecast": ["10", "10", "10"], "lead_time_days": 7, "legacy_internal_lead_time": "201600", "rop": "10", "target": "23", "q": "13"},
+      "legacy_expected": {"boh": ["10", "0", "13"], "due_in": ["0", "23", "0"], "eoh": ["0", "13", "3"], "backorder_close": ["0", "0", "0"], "purchase_order": ["23", "0", "20"], "pending_po_close": ["23", "0", "20"], "order_dates": ["2026-09-28", "2026-10-12"], "due_dates": ["2026-10-05", "2026-10-19"], "terminal_pending_po": "20"},
+      "python_expected": {"eoh": ["0", "3", "0"], "receipt": ["0", "13", "0"], "orders": [["2026-09-28", "2026-10-05", "2026-10-05", "13"]], "validation_reasons": [["CONSTRAINTS_PASSED"], ["HOLD"], ["ARRIVAL_OUTSIDE_PLAN_HORIZON"]]}
+    },
+    {
+      "case": "zero_lt_observes_different_phase",
+      "comparison": "ORDER_PHASE_DIFFERENCE",
+      "input": {"kind": "PERIODIC_ORDER_UP_TO", "boh": "10", "forecast": ["10", "10", "10"], "lead_time_days": 0, "legacy_internal_lead_time": "0", "rop": "0", "target": "13", "q": "13"},
+      "legacy_expected": {"boh": ["10", "0", "13"], "due_in": ["0", "0", "0"], "eoh": ["0", "13", "3"], "backorder_close": ["0", "0", "0"], "purchase_order": ["0", "23", "0"], "pending_po_close": ["0", "0", "0"], "demand_allocation": ["10", "0", "10"], "stock_allocation": ["10", "10", "10"], "order_dates": ["2026-10-05"], "due_dates": ["2026-10-05"], "terminal_pending_po": "0"},
+      "python_expected": {"eoh": ["3", "3", "3"], "receipt": ["3", "10", "10"], "orders": [["2026-09-28", "2026-09-28", "2026-09-28", "3"], ["2026-10-05", "2026-10-05", "2026-10-05", "10"], ["2026-10-12", "2026-10-12", "2026-10-12", "10"]], "validation_reasons": [["CONSTRAINTS_PASSED"], ["CONSTRAINTS_PASSED"], ["CONSTRAINTS_PASSED"]]}
+    }
+  ],
+  "trigger_case": {"case": "position_equals_rop", "position": "10", "rop": "10", "target": "23", "q": "13", "legacy_order_triggered": false, "python_fixed_q_triggered": true, "python_periodic_triggered": true, "legacy_policy_codes": ["OUTL", "ROPQ", "MINQ", "SFST"]},
+  "lot_cases": [
+    {"case": "offset_lattice", "raw": "16", "min": "5", "max": "100", "step": "10", "legacy_expected": "25", "python_expected": "20"},
+    {"case": "below_minimum", "raw": "2", "min": "5", "max": "100", "step": "10", "legacy_expected": "5", "python_expected": "10"},
+    {"case": "equal_max_is_not_hard_cap", "raw": "22", "min": "5", "max": "22", "step": "10", "legacy_expected": "25", "python_expected": "30"},
+    {"case": "above_max_uses_max_offset", "raw": "26", "min": "5", "max": "22", "step": "10", "legacy_expected": "32", "python_expected": "30"}
+  ],
+  "arrival_cases": [
+    {"case": "zero_lt", "lead_time_days": 0, "legacy_internal_lead_time": "0", "due_date": "2026-09-28", "legacy_containing_bucket_start": "2026-09-28", "python_receipt_date": "2026-09-28", "legacy_current_bucket_write_risk": false},
+    {"case": "midweek", "lead_time_days": 3, "legacy_internal_lead_time": "86400", "due_date": "2026-10-01", "legacy_containing_bucket_start": "2026-09-28", "python_receipt_date": "2026-10-05", "legacy_current_bucket_write_risk": true},
+    {"case": "exact_next_boundary", "lead_time_days": 7, "legacy_internal_lead_time": "201600", "due_date": "2026-10-05", "legacy_containing_bucket_start": "2026-10-05", "python_receipt_date": "2026-10-05", "legacy_current_bucket_write_risk": false},
+    {"case": "outside_horizon", "lead_time_days": 21, "legacy_internal_lead_time": "604800", "due_date": "2026-10-19", "legacy_containing_bucket_start": null, "python_receipt_date": null, "legacy_current_bucket_write_risk": false}
+  ],
+  "policy_cases": [
+    {"case": "explicit_base_month_differs_from_week_start", "bucket_start": "2026-08-31", "bucket_end": "2026-09-06", "base_month": "202609", "legacy_policy": "SEPTEMBER", "legacy_rop": "20", "python_policy": "AUGUST", "python_rop": "10"},
+    {"case": "missing_base_month_uses_start_month_not_wednesday", "bucket_start": "2026-08-31", "bucket_end": "2026-09-06", "base_month": null, "legacy_policy": "AUGUST", "legacy_rop": "10", "python_policy": "AUGUST", "python_rop": "10"}
+  ],
+  "policy_schedule": [
+    {"policy_id": "AUGUST", "effective_from": "2026-08-01", "effective_to": "2026-09-01", "legacy_end_inclusive": "2026-08-31", "rop": "10"},
+    {"policy_id": "SEPTEMBER", "effective_from": "2026-09-01", "effective_to": "2026-10-01", "legacy_end_inclusive": "2026-09-30", "rop": "20"}
+  ],
+  "selection_cases": [
+    {"case": "threshold_equality_component", "minimum_fill_rate": "0.95", "cost_bound": true, "candidates": [{"label": "A", "fill_rate": "0.95", "total_cost": "12"}], "legacy_component_input_units": "SYNTHETIC_SCALAR_NOT_DATABASE_SVC_LV", "legacy_individual_condition_met": [false], "legacy_obj01_force_eligible_label": "A", "legacy_final_selected_label": null, "python_selected_label": "A", "python_ineligible_reasons": []},
+    {"case": "all_below_service_no_forced_target_selection", "minimum_fill_rate": "0.95", "cost_bound": true, "candidates": [{"label": "A", "fill_rate": "0.4", "total_cost": "1"}, {"label": "B", "fill_rate": "0.3", "total_cost": "2"}], "legacy_component_input_units": "SYNTHETIC_SCALAR_NOT_DATABASE_SVC_LV", "legacy_individual_condition_met": [false, false], "legacy_obj01_force_eligible_label": "A", "legacy_final_selected_label": null, "python_selected_label": null, "python_ineligible_reasons": ["FILL_RATE_BELOW_MINIMUM"]},
+    {"case": "missing_cost_is_not_zero_cost", "minimum_fill_rate": "0.95", "cost_bound": false, "candidates": [{"label": "A", "fill_rate": "1", "total_cost": null}], "legacy_component_input_units": null, "legacy_individual_condition_met": null, "legacy_obj01_force_eligible_label": null, "legacy_final_selected_label": null, "python_selected_label": null, "python_ineligible_reasons": ["COST_PROFILE_NOT_BOUND"]}
+  ],
+  "deferred_not_inferred": [
+    "Native C# outputs and deployed binary identity",
+    "SVC_LV aggregate denominator, scale and group-to-item winner expansion",
+    "Economic EOQ and authoritative RMOS/EMOS generation",
+    "FN_GET_SEC_TIME_UOM conversion and real PO lead-time distribution",
+    "General double/decimal tolerance, invalid zero lot step and overlapping Legacy policy rows",
+    "Multirow first-match permutation and subweek post-processing arrival replay"
+  ]
+}

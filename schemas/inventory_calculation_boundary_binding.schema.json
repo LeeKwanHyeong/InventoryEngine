@@ -1,0 +1,460 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dsio:calculation-boundary-binding:v1",
+  "title": "Declaration-only calculation semantics and existing source bindings",
+  "description": "Not a runtime registration, conversion, prepared projection proof or publication approval. Source values and exact references are verified separately in Python. The current experimental DLL does not consume this contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_id",
+    "contract_version",
+    "execution_mode",
+    "calculation_backend",
+    "semantics_profile",
+    "psi_scenario_type",
+    "engine_run_id",
+    "canonical_input_hash",
+    "prepared_content_hash",
+    "input_bindings",
+    "psi_simulator",
+    "guard_order",
+    "replenishment_execution_binding",
+    "legacy_parameters_binding"
+  ],
+  "properties": {
+    "contract_id": {
+      "const": "inventory-calculation-boundary-binding"
+    },
+    "contract_version": {
+      "const": "1.0.0"
+    },
+    "execution_mode": {
+      "const": "CALCULATION_ONLY"
+    },
+    "calculation_backend": {
+      "enum": [
+        "CSHARP_PYTHONNET",
+        "PYTHON_EXISTING",
+        "PYTHON_REFERENCE"
+      ]
+    },
+    "semantics_profile": {
+      "enum": [
+        "LEGACY_REPLAY",
+        "TARGET_GUARDED"
+      ]
+    },
+    "psi_scenario_type": {
+      "enum": [
+        "BASELINE",
+        "RECOMMENDED"
+      ]
+    },
+    "engine_run_id": {
+      "$ref": "#/$defs/id"
+    },
+    "canonical_input_hash": {
+      "$ref": "#/$defs/hash"
+    },
+    "prepared_content_hash": {
+      "$ref": "#/$defs/hash"
+    },
+    "input_bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "calendar",
+        "master",
+        "forecast",
+        "customer_orders",
+        "inventory",
+        "prior_inventory",
+        "receipts",
+        "policies"
+      ],
+      "properties": {
+        "calendar": {
+          "$ref": "#/$defs/snapshotBinding"
+        },
+        "master": {
+          "$ref": "#/$defs/snapshotBinding"
+        },
+        "forecast": {
+          "$ref": "#/$defs/snapshotBinding"
+        },
+        "customer_orders": {
+          "$ref": "#/$defs/snapshotBinding"
+        },
+        "inventory": {
+          "$ref": "#/$defs/snapshotBinding"
+        },
+        "prior_inventory": {
+          "$ref": "#/$defs/snapshotBinding"
+        },
+        "receipts": {
+          "$ref": "#/$defs/snapshotBinding"
+        },
+        "policies": {
+          "$ref": "#/$defs/snapshotBinding"
+        }
+      }
+    },
+    "psi_simulator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "implementation_id",
+        "version",
+        "implementation_content_hash"
+      ],
+      "properties": {
+        "implementation_id": {
+          "$ref": "#/$defs/id"
+        },
+        "version": {
+          "$ref": "#/$defs/id"
+        },
+        "implementation_content_hash": {
+          "$ref": "#/$defs/hash"
+        }
+      }
+    },
+    "guard_order": {
+      "enum": [
+        "DIAGNOSTIC_POSTCHECK_NO_MUTATION",
+        "NO_NEW_ACTIONS",
+        "VALIDATE_BEFORE_STATE_COMMIT"
+      ]
+    },
+    "replenishment_execution_binding": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/executionBinding"
+        }
+      ]
+    },
+    "legacy_parameters_binding": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/legacyParametersBinding"
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "semantics_profile": {
+            "const": "LEGACY_REPLAY"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "calculation_backend": {
+            "enum": [
+              "CSHARP_PYTHONNET",
+              "PYTHON_REFERENCE"
+            ]
+          },
+          "psi_scenario_type": {
+            "const": "RECOMMENDED"
+          },
+          "guard_order": {
+            "const": "DIAGNOSTIC_POSTCHECK_NO_MUTATION"
+          },
+          "replenishment_execution_binding": {
+            "type": "null"
+          },
+          "legacy_parameters_binding": {
+            "$ref": "#/$defs/legacyParametersBinding"
+          },
+          "psi_simulator": {
+            "properties": {
+              "implementation_id": {
+                "const": "inventory.psi.legacy_replay"
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "calculation_backend": {
+            "enum": [
+              "CSHARP_PYTHONNET",
+              "PYTHON_EXISTING"
+            ]
+          },
+          "legacy_parameters_binding": {
+            "type": "null"
+          },
+          "psi_simulator": {
+            "properties": {
+              "implementation_id": {
+                "not": {
+                  "const": "inventory.psi.legacy_replay"
+                }
+              }
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "psi_scenario_type": {
+                  "const": "BASELINE"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "guard_order": {
+                  "const": "NO_NEW_ACTIONS"
+                },
+                "replenishment_execution_binding": {
+                  "type": "null"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "guard_order": {
+                  "const": "VALIDATE_BEFORE_STATE_COMMIT"
+                },
+                "replenishment_execution_binding": {
+                  "$ref": "#/$defs/executionBinding"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "calculation_backend": {
+            "const": "PYTHON_EXISTING"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "psi_simulator": {
+            "properties": {
+              "implementation_id": {
+                "const": "inventory.psi.weekly_roll_forward"
+              },
+              "version": {
+                "const": "1.0.0"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "psi_simulator": {
+            "properties": {
+              "implementation_id": {
+                "const": "inventory.psi.weekly_roll_forward"
+              },
+              "version": {
+                "const": "1.0.0"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "calculation_backend": {
+            "const": "PYTHON_EXISTING"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+      "maxLength": 128,
+      "not": {
+        "pattern": "\\s"
+      }
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "minLength": 64,
+      "maxLength": 64
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_id",
+        "version",
+        "content_hash"
+      ],
+      "properties": {
+        "model_id": {
+          "$ref": "#/$defs/id"
+        },
+        "version": {
+          "$ref": "#/$defs/id"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/hash"
+        }
+      }
+    },
+    "strategy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strategy_type",
+        "implementation_id",
+        "version",
+        "model"
+      ],
+      "properties": {
+        "strategy_type": {
+          "enum": [
+            "MATHEMATICAL",
+            "PREDICTIVE_ML",
+            "DEEP_RL"
+          ]
+        },
+        "implementation_id": {
+          "$ref": "#/$defs/id"
+        },
+        "version": {
+          "$ref": "#/$defs/id"
+        },
+        "model": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/model"
+            }
+          ]
+        }
+      },
+      "if": {
+        "properties": {
+          "strategy_type": {
+            "const": "MATHEMATICAL"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "model": {
+            "type": "null"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "model": {
+            "$ref": "#/$defs/model"
+          }
+        }
+      }
+    },
+    "strategyInputBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_id",
+        "contract_version",
+        "snapshot_id",
+        "content_hash"
+      ],
+      "properties": {
+        "contract_id": {
+          "$ref": "#/$defs/id"
+        },
+        "contract_version": {
+          "$ref": "#/$defs/id"
+        },
+        "snapshot_id": {
+          "$ref": "#/$defs/id"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/hash"
+        }
+      }
+    },
+    "snapshotBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "snapshot_id",
+        "content_hash"
+      ],
+      "properties": {
+        "snapshot_id": {
+          "$ref": "#/$defs/id"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/hash"
+        }
+      }
+    },
+    "executionBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strategy",
+        "strategy_input_binding",
+        "replenishment_config_content_hash"
+      ],
+      "properties": {
+        "strategy": {
+          "$ref": "#/$defs/strategy"
+        },
+        "strategy_input_binding": {
+          "$ref": "#/$defs/strategyInputBinding"
+        },
+        "replenishment_config_content_hash": {
+          "$ref": "#/$defs/hash"
+        }
+      }
+    },
+    "legacyParametersBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reference",
+        "content_hash"
+      ],
+      "properties": {
+        "reference": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "\\S"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/hash"
+        }
+      }
+    }
+  }
+}

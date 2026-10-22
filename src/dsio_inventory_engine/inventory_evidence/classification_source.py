@@ -40,11 +40,45 @@ def validate_classification_source(*, request, snapshot, canonical):
         == snapshot["effective_policy_content_hash"],
         "CLASSIFICATION_SOURCE_POLICY_HASH_MISMATCH",
     )
-    items = {row["item_id"] for row in canonical.to_dict()["snapshots"]["master"]["rows"]}
+    data = canonical.to_dict()
+    universe = data.get("development_universe")
+    items = (
+        set(universe["included_item_ids"])
+        if universe
+        else {row["item_id"] for row in data["snapshots"]["master"]["rows"]}
+    )
     require(
         items <= {row["item_id"] for row in snapshot["items"]},
         "CLASSIFICATION_SOURCE_ITEM_COVERAGE_MISMATCH",
     )
+    if universe and universe["contract_id"] in {
+        "io-development-calculation-universe-v2",
+        "io-development-calculation-universe-v3",
+    }:
+        require(
+            universe["classification_snapshot_id"] == snapshot["classification_snapshot_id"]
+            and universe["classification_content_hash"] == snapshot["content_hash"],
+            "CLASSIFICATION_EXCLUSION_BINDING_MISMATCH",
+        )
+        policies = {r["item_id"]: r for r in snapshot["items"]}
+        for exclusion in universe["exclusions"]:
+            if exclusion["reason"] == "EXCLUDED_DEVELOPMENT_SAMPLE":
+                require(
+                    exclusion["item_id"] in policies
+                    and policies[exclusion["item_id"]]["recommendation_calculation_allowed"]
+                    is True,
+                    "DEVELOPMENT_SAMPLE_CANNOT_HIDE_BLOCKED_ITEM",
+                )
+            if exclusion["reason"] != "EXCLUDED_POLICY_CALCULATION_BLOCKED":
+                continue
+            policy = policies.get(exclusion["item_id"])
+            require(
+                policy is not None
+                and policy["recommendation_calculation_allowed"] is False
+                and sorted(policy["policy_gate_reason_codes"])
+                == exclusion["policy_gate_reason_codes"],
+                "CLASSIFICATION_EXCLUSION_NOT_BLOCKED",
+            )
     return snapshot
 
 

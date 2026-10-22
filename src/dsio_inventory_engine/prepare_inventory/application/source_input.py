@@ -111,6 +111,7 @@ class PrepareSourceInputUseCase:
                     "metadata": metadata,
                     "rows": rows,
                 },
+                row_limit=200_000 if data["contract_version"] == "2.1.0" else 100_000,
             )
             snapshot["content_hash"] = digest(snapshot_content(kind, snapshot))
             sources[kind], snapshots[kind] = source, snapshot
@@ -132,11 +133,18 @@ class PrepareSourceInputUseCase:
             )
         canonical = CanonicalInputRequest.from_dict(
             {
-                "contract_id": "io-canonical-input-v1",
-                "contract_version": "1.0.0",
+                "contract_id": "io-canonical-input-v2"
+                if data["contract_version"] == "2.1.0"
+                else "io-canonical-input-v1",
+                "contract_version": data["contract_version"],
                 "context": context,
                 "quantity_rules": data["quantity_rules"],
                 "snapshots": snapshots,
+                **(
+                    {k: data[k] for k in ("development_universe", "upstream_bindings")}
+                    if data["contract_version"] == "2.1.0"
+                    else {}
+                ),
                 "input_bindings": {
                     k: {f: s[f] for f in ("snapshot_id", "content_hash")}
                     for k, s in snapshots.items()

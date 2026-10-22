@@ -207,6 +207,20 @@ def policy_search_hash(value):
 
 
 def candidate_policies(config, *, item_id, segment_key):
+    profile, range_source, override_reason = resolve_candidate_profile(
+        config, item_id=item_id, segment_key=segment_key
+    )
+    return expand_candidate_profile(
+        profile,
+        item_id=item_id,
+        segment_key=segment_key,
+        range_source=range_source,
+        override_reason=override_reason,
+    )
+
+
+def resolve_candidate_profile(config, *, item_id, segment_key):
+    """Preserve Config 1.0 resolution and validation order for compatibility adapters."""
     config = normalize_policy_search(config)
     _check(config["enabled"], "POLICY_SEARCH_DISABLED")
     override = next((row for row in config["item_overrides"] if row["item_id"] == item_id), None)
@@ -215,6 +229,15 @@ def candidate_policies(config, *, item_id, segment_key):
     )
     _check(segment_key in SEGMENTS, "POLICY_SEARCH_ITEM_UNCLASSIFIED")
     _check(profile is not None, "POLICY_SEARCH_GROUP_NOT_CONFIGURED")
+    return (
+        profile,
+        "ITEM_OVERRIDE" if override else "GROUP_PROFILE",
+        override["reason"] if override else None,
+    )
+
+
+def expand_candidate_profile(profile, *, item_id, segment_key, range_source, override_reason):
+    """Expand an already validated profile into the unchanged V1 candidate projection."""
     result = []
     for kind, rmos, emos, service, review in product(
         *(
@@ -236,8 +259,8 @@ def candidate_policies(config, *, item_id, segment_key):
             "emos": emos,
             "target_service_level": service,
             "review_cycle_weeks": review,
-            "range_source": "ITEM_OVERRIDE" if override else "GROUP_PROFILE",
-            "override_reason": override["reason"] if override else None,
+            "range_source": range_source,
+            "override_reason": override_reason,
         }
         body["candidate_id"] = (
             "PC-"

@@ -44,7 +44,7 @@ class RunPsiSimulationUseCase:
         }
 
 
-def _roll_forward(prepared: dict) -> list[dict]:
+def _roll_forward(prepared: dict, *, advance=advance_bucket) -> list[dict]:
     demands = {(r["item_id"], r["yyyyww"]): r for r in prepared["demands"]}
     receipts: dict[tuple[str, str | None], Decimal] = {}
     for row in prepared["receipt_decisions"]:
@@ -65,7 +65,7 @@ def _roll_forward(prepared: dict) -> list[dict]:
             confirmed, forecast = (
                 Decimal(demand[k]) for k in ("confirmed_customer_order_qty", "net_forecast_qty")
             )
-            state, quantities = advance_bucket(
+            state, quantities = advance(
                 state,
                 confirmed_customer_order_qty=confirmed,
                 net_forecast_qty=forecast,

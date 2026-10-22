@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dsio:selected-policy-order-plan-binding:v1",
+  "title": "Calculation-only selected policy linkage; existing identities, same sealed inputs",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_id",
+    "contract_version",
+    "execution_mode",
+    "selection_result_reference",
+    "selection_result_content_hash",
+    "canonical_input_hash",
+    "mathematical_input_binding"
+  ],
+  "properties": {
+    "contract_id": {"const": "inventory-selected-policy-order-plan-binding"},
+    "contract_version": {"const": "1.0.0"},
+    "execution_mode": {"const": "CALCULATION_ONLY"},
+    "selection_result_reference": {
+      "type": "string",
+      "pattern": "^(PSEL|OCPSEL)-[0-9a-f]{64}$",
+      "not": {"pattern": "\\s"}
+    },
+    "selection_result_content_hash": {"$ref": "#/$defs/hash"},
+    "canonical_input_hash": {"$ref": "#/$defs/hash"},
+    "mathematical_input_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_id", "contract_version", "snapshot_id", "content_hash"],
+      "properties": {
+        "contract_id": {"const": "io-mathematical-policy-input-v1"},
+        "contract_version": {"const": "1.0.0"},
+        "snapshot_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+          "maxLength": 128,
+          "not": {"pattern": "\\s"}
+        },
+        "content_hash": {"$ref": "#/$defs/hash"}
+      }
+    }
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$", "minLength": 64, "maxLength": 64}
+  }
+}

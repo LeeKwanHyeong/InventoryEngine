@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dsai:inventory-offline-catalog-policy-selection-result:1.0.0",
+  "title": "Offline Catalog per-item policy selection and verified PSI comparison",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_id", "contract_version", "status", "selection_algorithm", "selection_rule",
+    "ranking_fields", "evaluation_mode", "optimality_scope", "verification_profile", "context",
+    "source_result_reference", "source_result_content_hash", "candidate_catalog_reference",
+    "candidate_catalog_hash", "candidate_mode", "minimum_fill_rate", "terminal_condition",
+    "classification_snapshot_id", "item_selections", "selected_item_count", "not_selected_item_count",
+    "automatic_publish_allowed", "automatic_order_allowed", "operational_policy_approved",
+    "database_writes", "canonical_input_hash", "prepared_input_hash", "mathematical_input_hash",
+    "search_config_hash", "config_hash", "classification_content_hash", "content_hash"
+  ],
+  "properties": {
+    "contract_id": {"const": "inventory-offline-catalog-policy-selection-result"},
+    "contract_version": {"const": "1.0.0"},
+    "status": {"const": "OFFLINE_CATALOG_POLICY_SELECTION_COMPUTED"},
+    "selection_algorithm": {"const": "SERVICE_COST_INVENTORY_ORDER_LEXICOGRAPHIC_V1"},
+    "selection_rule": {"const": "SERVICE_FEASIBLE_THEN_LOWEST_COST"},
+    "ranking_fields": {"const": ["total_cost", "average_on_hand_eoh_qty", "order_count", "candidate_id"]},
+    "evaluation_mode": {"const": "DEVELOPMENT_SHADOW"},
+    "optimality_scope": {"const": "EVALUATED_CANDIDATE_SET_ONLY"},
+    "verification_profile": {"const": "EXACT_SOURCE_REPLAY_GUARD_PSI_METRICS_V1"},
+    "context": {"type": "object", "minProperties": 1},
+    "source_result_reference": {"type": "string", "pattern": "^OCPSI-[0-9a-f]{64}$"},
+    "source_result_content_hash": {"$ref": "#/$defs/hash"},
+    "candidate_catalog_reference": {"type": "string", "pattern": "^OCC-[0-9a-f]{64}$"},
+    "candidate_catalog_hash": {"$ref": "#/$defs/hash"},
+    "candidate_mode": {"enum": ["ABC_XYZ_SHARED_BUDGET", "LEGACY_STYLE", "WIDE_REFERENCE"]},
+    "minimum_fill_rate": {"$ref": "#/$defs/ratio"},
+    "terminal_condition": {"const": "FINITE_HORIZON_NO_TERMINAL_VALUE_ARRIVALS_OUTSIDE_HORIZON_REJECTED"},
+    "classification_snapshot_id": {"type": "string", "minLength": 1},
+    "canonical_input_hash": {"$ref": "#/$defs/hash"},
+    "prepared_input_hash": {"$ref": "#/$defs/hash"},
+    "mathematical_input_hash": {"$ref": "#/$defs/hash"},
+    "search_config_hash": {"$ref": "#/$defs/hash"},
+    "config_hash": {"$ref": "#/$defs/hash"},
+    "classification_content_hash": {"$ref": "#/$defs/hash"},
+    "content_hash": {"$ref": "#/$defs/hash"},
+    "selected_item_count": {"type": "integer", "minimum": 0},
+    "not_selected_item_count": {"type": "integer", "minimum": 0},
+    "automatic_publish_allowed": {"const": false},
+    "automatic_order_allowed": {"const": false},
+    "operational_policy_approved": {"const": false},
+    "database_writes": {"const": false},
+    "item_selections": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/item"}}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "candidateId": {"type": "string", "pattern": "^OCCP-[0-9a-f]{64}$"},
+    "quantity": {"type": "string", "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$", "maxLength": 96},
+    "ratio": {"type": "string", "pattern": "^(0(\\.[0-9]+)?|1(\\.0+)?)$", "maxLength": 96},
+    "delta": {"type": ["string", "null"], "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$"},
+    "reasonCodes": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {"enum": [
+        "SEARCH_ITEM_EXCLUDED", "NO_CANDIDATES_EVALUATED", "ALL_CANDIDATES_FAILED", "CANDIDATE_FAILED",
+        "ORDER_GATE_BLOCKED", "RECOMMENDATION_CALCULATION_BLOCKED", "NO_DEMAND_IN_HORIZON",
+        "FILL_RATE_BELOW_MINIMUM", "ENDING_BACKORDER_REMAINS", "COST_PROFILE_NOT_BOUND", "RANKED_FIRST",
+        "HIGHER_TOTAL_COST", "HIGHER_AVERAGE_INVENTORY", "MORE_ORDERS", "CANDIDATE_ID_TIE_BREAK",
+        "ONLY_ELIGIBLE_CANDIDATE", "LOWEST_TOTAL_COST", "TIE_RESOLVED_BY_AVERAGE_INVENTORY",
+        "TIE_RESOLVED_BY_ORDER_COUNT", "TIE_RESOLVED_BY_CANDIDATE_ID"
+      ]}
+    },
+    "metrics": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "current_demand_qty", "current_demand_fulfilled_qty", "average_on_hand_eoh_qty",
+        "ending_on_hand_qty", "ending_backorder_qty", "backorder_unit_weeks", "forecast_shortage_qty",
+        "ordered_qty", "service_status", "current_demand_fill_rate", "stockout_free_active_bucket_ratio",
+        "observed_average_on_hand_mos", "order_count", "guard_rejection_count", "service_feasible",
+        "cost_status", "cost_components", "total_cost", "currency"
+      ],
+      "properties": {
+        "current_demand_qty": {"$ref": "#/$defs/quantity"},
+        "current_demand_fulfilled_qty": {"$ref": "#/$defs/quantity"},
+        "average_on_hand_eoh_qty": {"$ref": "#/$defs/quantity"},
+        "ending_on_hand_qty": {"$ref": "#/$defs/quantity"},
+        "ending_backorder_qty": {"$ref": "#/$defs/quantity"},
+        "backorder_unit_weeks": {"$ref": "#/$defs/quantity"},
+        "forecast_shortage_qty": {"$ref": "#/$defs/quantity"},
+        "ordered_qty": {"$ref": "#/$defs/quantity"},
+        "service_status": {"enum": ["AVAILABLE", "NO_DEMAND_IN_HORIZON"]},
+        "current_demand_fill_rate": {"anyOf": [{"$ref": "#/$defs/ratio"}, {"type": "null"}]},
+        "stockout_free_active_bucket_ratio": {"anyOf": [{"$ref": "#/$defs/ratio"}, {"type": "null"}]},
+        "observed_average_on_hand_mos": {"anyOf": [{"$ref": "#/$defs/quantity"}, {"type": "null"}]},
+        "order_count": {"type": "integer", "minimum": 0},
+        "guard_rejection_count": {"type": "integer", "minimum": 0},
+        "service_feasible": {"type": "boolean"},
+        "policy_selection_eligible": {"type": "boolean"},
+        "cost_status": {"enum": ["AVAILABLE_DEVELOPMENT_ASSUMPTION", "COST_PROFILE_NOT_BOUND"]},
+        "cost_components": {"anyOf": [{"$ref": "#/$defs/costComponents"}, {"type": "null"}]},
+        "total_cost": {"anyOf": [{"$ref": "#/$defs/quantity"}, {"type": "null"}]},
+        "currency": {"type": ["string", "null"], "pattern": "^[A-Z]{3}$"}
+      },
+      "allOf": [{
+        "if": {"properties": {"cost_status": {"const": "COST_PROFILE_NOT_BOUND"}}},
+        "then": {"properties": {"cost_components": {"const": null}, "total_cost": {"const": null}, "currency": {"const": null}}},
+        "else": {"properties": {"cost_components": {"$ref": "#/$defs/costComponents"}, "total_cost": {"$ref": "#/$defs/quantity"}, "currency": {"type": "string"}}}
+      }, {
+        "if": {"properties": {"service_status": {"const": "NO_DEMAND_IN_HORIZON"}}},
+        "then": {"properties": {"current_demand_qty": {"const": "0"}, "current_demand_fill_rate": {"const": null}, "stockout_free_active_bucket_ratio": {"const": null}, "service_feasible": {"const": false}}},
+        "else": {"properties": {"current_demand_fill_rate": {"$ref": "#/$defs/ratio"}, "stockout_free_active_bucket_ratio": {"$ref": "#/$defs/ratio"}}}
+      }]
+    },
+    "costComponents": {
+      "type": "object", "additionalProperties": false,
+      "required": ["holding", "backorder", "ordering_fixed", "ordering_variable"],
+      "properties": {
+        "holding": {"$ref": "#/$defs/quantity"}, "backorder": {"$ref": "#/$defs/quantity"},
+        "ordering_fixed": {"$ref": "#/$defs/quantity"}, "ordering_variable": {"$ref": "#/$defs/quantity"}
+      }
+    },
+    "comparison": {
+      "type": "object", "additionalProperties": false,
+      "required": ["current_demand_fill_rate_delta", "average_on_hand_eoh_qty_delta", "ending_on_hand_qty_delta", "ending_backorder_qty_delta", "backorder_unit_weeks_delta", "forecast_shortage_qty_delta", "order_count_delta", "ordered_qty_delta", "total_cost_delta"],
+      "properties": {
+        "current_demand_fill_rate_delta": {"$ref": "#/$defs/delta"},
+        "average_on_hand_eoh_qty_delta": {"$ref": "#/$defs/delta"},
+        "ending_on_hand_qty_delta": {"$ref": "#/$defs/delta"},
+        "ending_backorder_qty_delta": {"$ref": "#/$defs/delta"},
+        "backorder_unit_weeks_delta": {"$ref": "#/$defs/delta"},
+        "forecast_shortage_qty_delta": {"$ref": "#/$defs/delta"},
+        "order_count_delta": {"$ref": "#/$defs/delta"},
+        "ordered_qty_delta": {"$ref": "#/$defs/delta"},
+        "total_cost_delta": {"$ref": "#/$defs/delta"}
+      }
+    },
+    "score": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_id", "total_cost", "currency", "average_on_hand_eoh_qty", "order_count", "current_demand_fill_rate", "ending_backorder_qty"],
+      "properties": {
+        "candidate_id": {"$ref": "#/$defs/candidateId"}, "total_cost": {"$ref": "#/$defs/quantity"},
+        "currency": {"type": "string", "pattern": "^[A-Z]{3}$"},
+        "average_on_hand_eoh_qty": {"$ref": "#/$defs/quantity"}, "order_count": {"type": "integer", "minimum": 0},
+        "current_demand_fill_rate": {"$ref": "#/$defs/ratio"}, "ending_backorder_qty": {"const": "0"}
+      }
+    },
+    "candidate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_id", "item_id", "search_group_id", "policy_kind", "rmos", "emos", "target_service_level", "review_cycle_weeks", "semantic_policy_hash", "range_source", "override_reason"],
+      "properties": {
+        "candidate_id": {"$ref": "#/$defs/candidateId"}, "item_id": {"type": "string", "minLength": 1, "maxLength": 160},
+        "search_group_id": {"type": "string", "minLength": 1},
+        "policy_kind": {"enum": ["ROP_FIXED_Q", "PERIODIC_ORDER_UP_TO"]},
+        "rmos": {"$ref": "#/$defs/quantity"}, "emos": {"$ref": "#/$defs/quantity"},
+        "target_service_level": {"$ref": "#/$defs/ratio"}, "review_cycle_weeks": {"type": "integer", "minimum": 1, "maximum": 13},
+        "semantic_policy_hash": {"$ref": "#/$defs/hash"},
+        "range_source": {"enum": ["GROUP_PROFILE", "ITEM_OVERRIDE", "EXACT_SHARED_UNION"]},
+        "override_reason": {"type": ["string", "null"]}
+      }
+    },
+    "decision": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_id", "candidate_result_hash", "status", "rank", "reason_codes", "failure_reason", "score", "verified_metrics", "baseline_comparison"],
+      "properties": {
+        "candidate_id": {"$ref": "#/$defs/candidateId"}, "candidate_result_hash": {"$ref": "#/$defs/hash"},
+        "status": {"enum": ["SELECTED", "NOT_SELECTED", "INELIGIBLE", "FAILED"]},
+        "rank": {"type": ["integer", "null"], "minimum": 1}, "reason_codes": {"$ref": "#/$defs/reasonCodes"},
+        "failure_reason": {"type": ["string", "null"], "minLength": 1},
+        "score": {"anyOf": [{"$ref": "#/$defs/score"}, {"type": "null"}]},
+        "verified_metrics": {"anyOf": [{"$ref": "#/$defs/metrics", "required": ["policy_selection_eligible"]}, {"type": "null"}]},
+        "baseline_comparison": {"anyOf": [{"$ref": "#/$defs/comparison"}, {"type": "null"}]}
+      },
+      "allOf": [{
+        "if": {"properties": {"status": {"const": "FAILED"}}},
+        "then": {"properties": {"rank": {"const": null}, "score": {"const": null}, "failure_reason": {"type": "string"}, "verified_metrics": {"const": null}, "baseline_comparison": {"const": null}}},
+        "else": {"properties": {"failure_reason": {"const": null}, "verified_metrics": {"$ref": "#/$defs/metrics", "required": ["policy_selection_eligible"]}, "baseline_comparison": {"$ref": "#/$defs/comparison"}}}
+      }, {
+        "if": {"properties": {"status": {"const": "SELECTED"}}},
+        "then": {"properties": {"rank": {"const": 1}, "score": {"$ref": "#/$defs/score"}}}
+      }, {
+        "if": {"properties": {"status": {"const": "NOT_SELECTED"}}},
+        "then": {"properties": {"rank": {"type": "integer", "minimum": 2}, "score": {"$ref": "#/$defs/score"}}}
+      }, {
+        "if": {"properties": {"status": {"const": "INELIGIBLE"}}},
+        "then": {"properties": {"rank": {"const": null}, "score": {"const": null}}}
+      }]
+    },
+    "item": {
+      "type": "object", "additionalProperties": false,
+      "required": ["item_id", "status", "reason_codes", "search_exclusion_reason", "baseline_metrics", "selected_candidate_id", "selected_candidate_result_hash", "selected_policy", "selected_score", "source_review_required", "candidate_decisions"],
+      "properties": {
+        "item_id": {"type": "string", "minLength": 1, "maxLength": 160}, "status": {"enum": ["SELECTED", "NOT_SELECTED"]},
+        "reason_codes": {"$ref": "#/$defs/reasonCodes"}, "search_exclusion_reason": {"type": ["string", "null"], "minLength": 1},
+        "baseline_metrics": {"$ref": "#/$defs/metrics", "not": {"required": ["policy_selection_eligible"]}},
+        "selected_candidate_id": {"anyOf": [{"$ref": "#/$defs/candidateId"}, {"type": "null"}]},
+        "selected_candidate_result_hash": {"anyOf": [{"$ref": "#/$defs/hash"}, {"type": "null"}]},
+        "selected_policy": {"anyOf": [{"$ref": "#/$defs/candidate"}, {"type": "null"}]},
+        "selected_score": {"anyOf": [{"$ref": "#/$defs/score"}, {"type": "null"}]},
+        "source_review_required": {"type": ["boolean", "null"]},
+        "candidate_decisions": {"type": "array", "maxItems": 88, "items": {"$ref": "#/$defs/decision"}}
+      },
+      "allOf": [{
+        "if": {"properties": {"status": {"const": "SELECTED"}}},
+        "then": {"properties": {"selected_candidate_id": {"$ref": "#/$defs/candidateId"}, "selected_candidate_result_hash": {"$ref": "#/$defs/hash"}, "selected_policy": {"$ref": "#/$defs/candidate"}, "selected_score": {"$ref": "#/$defs/score"}, "source_review_required": {"type": "boolean"}, "search_exclusion_reason": {"const": null}, "candidate_decisions": {"minItems": 1}}},
+        "else": {"properties": {"selected_candidate_id": {"const": null}, "selected_candidate_result_hash": {"const": null}, "selected_policy": {"const": null}, "selected_score": {"const": null}, "source_review_required": {"const": null}}}
+      }]
+    }
+  }
+}

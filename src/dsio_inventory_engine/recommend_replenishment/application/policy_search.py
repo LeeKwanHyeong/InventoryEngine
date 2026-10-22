@@ -15,7 +15,6 @@ from decimal import Context, Decimal, ROUND_CEILING, ROUND_HALF_EVEN, localconte
 from dsio_inventory_engine.inventory_contracts.mathematical import MathematicalPolicyRequest
 from dsio_inventory_engine.inventory_contracts.network import DeploymentScope
 from dsio_inventory_engine.inventory_contracts.policy_search import (
-    candidate_policies,
     normalize_policy_search,
     policy_search_hash,
 )
@@ -30,6 +29,8 @@ from dsio_inventory_engine.inventory_contracts.values import (
     require,
 )
 from dsio_inventory_engine.classify_inventory.application import config_hash, SNAPSHOT_NAMESPACE
+from dsio_inventory_engine.classify_inventory.adapters import AbcXyzCandidateRangeAdapter
+from dsio_inventory_engine.classify_inventory.candidate_catalog import VerifiedCandidateCatalog
 from dsio_inventory_engine.recommend_replenishment.application.effective_policy import (
     admit_effective_item_policy,
 )
@@ -231,8 +232,9 @@ def evaluate_rows(rows, decisions, orders, cost, minimum_fill_rate, monthly_dema
 
 
 class RunPolicySearchUseCase:
-    def __init__(self, deployment: DeploymentScope):
+    def __init__(self, deployment: DeploymentScope, *, numerics=None):
         self.deployment = deployment
+        self.numerics = numerics
 
     def execute(
         self,
@@ -254,6 +256,7 @@ class RunPolicySearchUseCase:
         *,
         config_values: dict,
         classification_snapshot: dict,
+        candidate_catalog: VerifiedCandidateCatalog | None = None,
     ):
         request = MathematicalPolicyRequest.from_dict(request.to_dict())
         raw = request.to_dict()
@@ -336,8 +339,22 @@ class RunPolicySearchUseCase:
             "POLICY_SEARCH_ORPHAN_OVERRIDE",
         )
         horizon = len(prepared["calendar"])
+        if candidate_catalog is not None:
+            require(
+                isinstance(candidate_catalog, VerifiedCandidateCatalog),
+                "CATALOG_VERIFIED_INPUT_REQUIRED",
+            )
+            candidate_catalog.validate_inputs(raw, prepared, classification, search)
         require(
-            horizon * (horizon + 1) // 2 * len(universe) * search["max_candidates_per_item"]
+            horizon
+            * (horizon + 1)
+            // 2
+            * len(universe)
+            * (
+                search["max_candidates_per_item"]
+                if candidate_catalog is None
+                else candidate_catalog.max_candidates_per_item
+            )
             <= 200_000,
             "POLICY_SEARCH_WORKLOAD_LIMIT",
         )
@@ -379,12 +396,16 @@ class RunPolicySearchUseCase:
             "snapshot_id": "PSC-" + policy_search_hash(search),
             "content_hash": policy_search_hash(search),
         }
+        if candidate_catalog is not None:
+            binding = candidate_catalog.input_binding
         execution = {
             **copy.deepcopy(execution),
             "strategy": dict(DESCRIPTOR),
             "strategy_input_binding": binding,
         }
-        base_rows = _roll_forward(prepared)
+        base_rows = (
+            _roll_forward(prepared) if self.numerics is None else self.numerics.baseline(prepared)
+        )
         outputs, excluded, baselines = [], [], []
         with localcontext(NUMBERS):
             for master in sorted(prepared["master"], key=lambda row: row["item_id"]):
@@ -421,13 +442,16 @@ class RunPolicySearchUseCase:
                     continue
                 assignment = assignments[item]
                 try:
-                    candidates = candidate_policies(
-                        search,
-                        item_id=item,
-                        segment_key=assignment.get("segment_key")
-                        if assignment.get("classification_status") == "CLASSIFIED"
-                        else None,
-                    )
+                    if candidate_catalog is None:
+                        candidates = AbcXyzCandidateRangeAdapter().candidates(
+                            search,
+                            item_id=item,
+                            segment_key=assignment.get("segment_key")
+                            if assignment.get("classification_status") == "CLASSIFIED"
+                            else None,
+                        )
+                    else:
+                        candidates = candidate_catalog.candidates(item, assignment)
                 except ValueError as exc:
                     excluded.append({"item_id": item, "reason_code": str(exc)})
                     continue
@@ -458,7 +482,10 @@ class RunPolicySearchUseCase:
                         admissions.get(item, {}),
                     )
                     try:
-                        rows, decisions, orders = simulate(
+                        run_simulation = (
+                            simulate if self.numerics is None else self.numerics.simulate
+                        )
+                        rows, decisions, orders = run_simulation(
                             view, execution, child_hash, strategy, admissions=admissions
                         )
                         for decision in decisions:
@@ -564,5 +591,20 @@ class RunPolicySearchUseCase:
             "database_writes": False,
             "durable_artifact_persisted": False,
         }
+        if candidate_catalog is not None:
+            body.update(
+                contract_id="inventory-offline-catalog-psi-result",
+                status="OFFLINE_CATALOG_CANDIDATES_EVALUATED",
+                search_config_hash=policy_search_hash(search),
+                candidate_input_binding=binding,
+                candidate_catalog=candidate_catalog.to_dict(),
+                candidate_catalog_hash=binding["content_hash"],
+                candidate_mode=candidate_catalog.to_dict()["mode"],
+                observation_work_bound=len(universe)
+                * candidate_catalog.max_candidates_per_item
+                * horizon
+                * (horizon + 1)
+                // 2,
+            )
         body["content_hash"] = digest(body)
         return body

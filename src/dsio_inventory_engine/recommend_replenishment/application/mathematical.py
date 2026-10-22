@@ -94,8 +94,9 @@ class MathematicalStrategy:
 
 
 class RunMathematicalReplenishmentUseCase:
-    def __init__(self, deployment: DeploymentScope):
+    def __init__(self, deployment: DeploymentScope, *, numerics=None):
         self.deployment = deployment
+        self.numerics = numerics
 
     def execute(
         self,
@@ -129,7 +130,7 @@ class RunMathematicalReplenishmentUseCase:
             prepared_input=shared_prepared,
         )
         data = normalized.to_dict()
-        result = RunRecommendedPsiUseCase(self.deployment).execute(
+        result = RunRecommendedPsiUseCase(self.deployment, numerics=self.numerics).execute(
             recommendation,
             strategy,
             runtime_request=runtime_request,
@@ -178,7 +179,12 @@ def prepare_mathematical_strategy(
         runtime_request=runtime_request,
         canonical_input=canonical_input,
     )
-    validate_controls(prepared, data["recommendation"]["execution"])
+    if runtime_request is not None:
+        from .partition import validate_partitioned_controls
+
+        validate_partitioned_controls(prepared, data["recommendation"]["execution"])
+    else:
+        validate_controls(prepared, data["recommendation"]["execution"])
     validate_math_input(data["policy_input"], data["recommendation"], prepared)
     report = build_policy_report(data["policy_input"], prepared, recommendation.input_hash)
     strategy = MathematicalStrategy(

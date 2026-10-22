@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>Inventory.Calculation</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <Deterministic>true</Deterministic>
+    <Optimize>true</Optimize>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+  </PropertyGroup>
+  <Target Name="RequirePinnedSources" BeforeTargets="CoreCompile">
+    <Error Condition="'$(LegacySources)' == ''" Text="LEGACY_PINNED_SOURCES_REQUIRED" />
+  </Target>
+  <ItemGroup>
+    <Compile Include="$(LegacySources)/ExtractedEntities.cs" />
+    <Compile Include="$(LegacySources)/ExtractedBuffer.cs" />
+    <Compile Include="$(LegacySources)/ExtractedKernel.cs" />
+    <Compile Include="Wire.cs" />
+    <Compile Include="LegacyBatch.cs" />
+    <Compile Include="TargetTransition.cs" />
+  </ItemGroup>
+</Project>

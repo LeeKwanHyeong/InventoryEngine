@@ -8,15 +8,25 @@ for persisting the exact documents at those references.
 from __future__ import annotations
 
 import copy
+from collections import defaultdict
 from datetime import date, timedelta
 from decimal import Context, Decimal, ROUND_HALF_EVEN, localcontext
 from typing import Any, Mapping
+
+from dsio_inventory_engine.inventory_contracts.canonical import CanonicalInputRequest
 
 from dsio_inventory_engine.inventory_contracts.replenishment import (
     STRATEGY_INPUT_BINDING_FIELDS,
     ReplenishmentObservation,
     ReplenishmentProposal,
     descriptor,
+)
+from dsio_inventory_engine.inventory_contracts.observation_storage import (
+    CONTRACT as OBSERVATION_REFERENCE,
+    compact_observation,
+    expand_observation,
+    source_item_index,
+    item_source,
 )
 from dsio_inventory_engine.inventory_contracts.result_bundle import (
     derive_psi_child_result_id as derive_contract_psi_child_result_id,
@@ -234,6 +244,7 @@ def seal_action_observation_source(
     execution: Mapping[str, Any],
     observation_input_hash: str,
     admissions_by_item: Mapping[str, Mapping[str, Any]] | None,
+    canonical_input: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Seal the authoritative Prepared/Execution projection used by action evidence."""
 
@@ -284,6 +295,31 @@ def seal_action_observation_source(
         "model_approval": copy.deepcopy(execution.get("model_approval")),
         "admissions_by_item": normalized_admissions,
     }
+    if normalized_admissions is not None and body["effective_item_policies"] is not None:
+        if canonical_input is not None:
+            from dsio_inventory_engine.inventory_contracts.development_universe import (
+                scoped_effective_policies,
+            )
+
+            require(
+                canonical_input.get("development_universe") is None
+                or manifest.get("input_content_hash")
+                == CanonicalInputRequest.from_dict(dict(canonical_input)).input_hash,
+                "ACTION_CANONICAL_INPUT_MISMATCH",
+            )
+            body["effective_item_policies"] = scoped_effective_policies(
+                canonical_input, body["effective_item_policies"], body["effective_policy_binding"]
+            )
+        excluded = [
+            r for r in body["effective_item_policies"] if r["item_id"] not in normalized_admissions
+        ]
+        require(
+            all(r["recommendation_calculation_allowed"] is False for r in excluded),
+            "ACTION_EFFECTIVE_POLICY_ADMISSION_UNIVERSE_MISMATCH",
+        )
+        body["effective_item_policies"] = [
+            r for r in body["effective_item_policies"] if r["item_id"] in normalized_admissions
+        ]
     require(
         body["capacity_mode"] == "CONSERVATIVE_NO_DEMAND_CREDIT",
         "ACTION_OBSERVATION_SOURCE_INVALID",
@@ -1068,7 +1104,7 @@ def _build_action_artifacts(
     expected_model_approval_reference: str | None,
     expected_observation_source: Mapping[str, Any] | None,
 ) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
-    decisions = [] if decision_evidence is None else copy.deepcopy(decision_evidence)
+    decisions = [] if decision_evidence is None else decision_evidence
     require(type(decisions) is list, "ACTION_EVIDENCE_INVALID")
     if strategy_type == "NONE":
         require(
@@ -1097,6 +1133,9 @@ def _build_action_artifacts(
         "ACTION_EVIDENCE_OBSERVATION_SOURCE_REQUIRED",
     )
     require(len(decisions) == len(expected_decisions), "ACTION_EVIDENCE_ROW_COUNT_MISMATCH")
+    compact = bool(
+        decisions and decisions[0]["observation"].get("contract_id") == OBSERVATION_REFERENCE
+    )
     raw_rows, constrained_rows, adjustment_rows = _normalize_action_pairs(
         decisions,
         expected_decisions=expected_decisions,
@@ -1112,6 +1151,7 @@ def _build_action_artifacts(
         expected_model_approval_reference=expected_model_approval_reference,
         expected_observation_source=expected_observation_source,
         execution_role=execution_role,
+        compact=compact,
     )
     normalized_source = _normalize_observation_source(expected_observation_source)
     specs = (
@@ -1125,7 +1165,9 @@ def _build_action_artifacts(
         reference = f"{base_reference}:{prefix.replace('_', '-')}"
         body = {
             "contract_id": ACTION_EVIDENCE_ARTIFACT_CONTRACT_ID,
-            "contract_version": ACTION_EVIDENCE_ARTIFACT_CONTRACT_VERSION,
+            "contract_version": "1.1.0"
+            if compact and prefix == "raw_action"
+            else ACTION_EVIDENCE_ARTIFACT_CONTRACT_VERSION,
             "evidence_kind": evidence_kind,
             "child_result_id": child_result_id,
             "canonical_input_hash": canonical_input_hash,
@@ -1163,6 +1205,7 @@ def _normalize_action_pairs(
     expected_model_approval_reference: str | None,
     expected_observation_source: Mapping[str, Any],
     execution_role: str,
+    compact: bool = False,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
     expected_descriptor = descriptor(dict(expected_strategy_descriptor))
     execution_approval = identifier(expected_execution_approval_reference)
@@ -1205,6 +1248,11 @@ def _normalize_action_pairs(
             "ACTION_EVIDENCE_ADMISSION_UNIVERSE_MISMATCH",
         )
     _validate_admissions_authority(admissions, source)
+    indexes = source_item_index(source)
+    item_sources = {}
+    psi_by_item = defaultdict(list)
+    for row in psi_rows:
+        psi_by_item[row["item_id"]].append(row)
 
     indexed: list[tuple[str, dict[str, Any], dict[str, Any], dict[str, Any] | None]] = []
     actual_decisions: set[tuple[str, str, str]] = set()
@@ -1215,7 +1263,13 @@ def _normalize_action_pairs(
         require(
             type(decision) is dict and set(decision) == expected_fields, "ACTION_EVIDENCE_INVALID"
         )
-        observation = ReplenishmentObservation.from_dict(decision["observation"]).to_dict()
+        raw_observation = decision["observation"]
+        item = raw_observation["item_id"]
+        if item not in item_sources:
+            item_sources[item] = item_source(source, indexes, item)
+        observation = ReplenishmentObservation.from_dict(
+            expand_observation(raw_observation, item_sources[item])
+        ).to_dict()
         observation_hash = hash_value(decision["observation_hash"])
         proposal = ReplenishmentProposal.from_dict(decision["proposal"]).to_dict()
         require(
@@ -1240,7 +1294,7 @@ def _normalize_action_pairs(
             actual_binding == expected_binding,
             "ACTION_STRATEGY_INPUT_BINDING_MISMATCH",
         )
-        _validate_observation_source_binding(observation, source)
+        _validate_observation_source_binding(observation, item_sources[item])
         validation = _normalize_action_validation(decision["validation"], proposal=proposal)
         replayed_validation = _normalize_action_validation(
             validate_action(copy.deepcopy(observation), proposal), proposal=proposal
@@ -1274,7 +1328,7 @@ def _normalize_action_pairs(
             validation["uom"],
             validation["decision_date"],
         )
-        _validate_observation_psi_binding(observation, validation, psi_rows)
+        _validate_observation_psi_binding(observation, validation, psi_by_item[item])
         admission = None
         if admissions is not None:
             admission = copy.deepcopy(admissions[validation["item_id"]])
@@ -1290,7 +1344,7 @@ def _normalize_action_pairs(
             )
         actual_decisions.add(action_key)
         raw_evidence = {
-            "observation": observation,
+            "observation": compact_observation(observation) if compact else observation,
             "observation_hash": observation_hash,
             "proposal": proposal,
         }
@@ -1591,6 +1645,9 @@ def _validate_psi_source_binding(psi_rows: list[dict[str, Any]], source: Mapping
     actual_universe = {(row["item_id"], row["uom"], row["yyyyww"]) for row in psi_rows}
     require(actual_universe == expected_universe, "PSI_CHILD_UNIVERSE_MISMATCH")
     confirmed: dict[tuple[str, str, str], Decimal] = {}
+    policies_by_item = defaultdict(list)
+    for policy in source["policies"]:
+        policies_by_item[policy["item_id"]].append(policy)
     with localcontext(_NUMBERS):
         for receipt in source["receipt_decisions"]:
             if Decimal(receipt["included_qty"]) > 0:
@@ -1637,7 +1694,7 @@ def _validate_psi_source_binding(psi_rows: list[dict[str, Any]], source: Mapping
             if row["psi_scenario_type"] != "BASELINE":
                 applicable = [
                     policy
-                    for policy in source["policies"]
+                    for policy in policies_by_item[row["item_id"]]
                     if policy["item_id"] == row["item_id"]
                     and policy["uom"] == row["uom"]
                     and policy["effective_from"] <= row["start_date"] < policy["effective_to"]
@@ -2095,7 +2152,11 @@ def _validate_successful_build(value: Mapping[str, Any]) -> dict[str, Any]:
                 and action_artifact.get("content_hash") == digest(action_body)
                 and action_artifact.get("contract_id") == ACTION_EVIDENCE_ARTIFACT_CONTRACT_ID
                 and action_artifact.get("contract_version")
-                == ACTION_EVIDENCE_ARTIFACT_CONTRACT_VERSION
+                in (
+                    {ACTION_EVIDENCE_ARTIFACT_CONTRACT_VERSION, "1.1.0"}
+                    if prefix == "raw_action"
+                    else {ACTION_EVIDENCE_ARTIFACT_CONTRACT_VERSION}
+                )
                 and action_artifact.get("evidence_kind") == expected_kind
                 and value_and_artifact.get("reference") == expected_action_reference
                 and value_and_artifact.get("reference")
@@ -2140,9 +2201,24 @@ def _validate_successful_build(value: Mapping[str, Any]) -> dict[str, Any]:
             and type(first_raw.get("proposal")) is dict,
             "ACTION_EVIDENCE_INVALID",
         )
-        first_observation = first_raw["observation"]
         persisted_observation_source = _normalize_observation_source(
             action_artifacts["raw_action"]["artifact"]["observation_source"]
+        )
+        compact = action_artifacts["raw_action"]["artifact"]["contract_version"] == "1.1.0"
+        require(
+            all(
+                (r["observation"].get("contract_id") == OBSERVATION_REFERENCE) == compact
+                for r in raw_rows
+            ),
+            "ACTION_OBSERVATION_REFERENCE_VERSION_MISMATCH",
+        )
+        first_observation = expand_observation(
+            first_raw["observation"],
+            item_source(
+                persisted_observation_source,
+                source_item_index(persisted_observation_source),
+                first_raw["observation"]["item_id"],
+            ),
         )
         has_admissions = "effective_policy_admission" in first_raw
         require(
@@ -2176,6 +2252,7 @@ def _validate_successful_build(value: Mapping[str, Any]) -> dict[str, Any]:
             expected_model_approval_reference=persisted_model_approval,
             expected_observation_source=persisted_observation_source,
             execution_role=artifact["execution_role"],
+            compact=compact,
         )
         require(
             raw_rows == normalized_raw

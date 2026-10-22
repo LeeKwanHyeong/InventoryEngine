@@ -1,0 +1,20 @@
+{
+  "description": "Hand calculation: 26 closed weeks of 10 EA, BOH=0, weekly Forecast=10 for three weeks, physical lead=7 days. RMOS=0, EMOS=0.25 => Q=ceil(10*52/12/4)=11, ROP=10, S=21. No terminal inventory value. Development only.",
+  "baseline": {"eoh": ["0", "0", "0"], "forecast_shortage_qty": "30", "order_count": 0},
+  "PERIODIC_ORDER_UP_TO": {
+    "parameters": {"rmos": "0", "emos": "0.25", "target_service_level": "0.95", "review_cycle_weeks": 1},
+    "eoh": ["0", "11", "1"], "recommended_receipts": ["0", "21", "0"],
+    "forecast_shortages": ["10", "0", "0"], "order_quantities": ["21"],
+    "fulfilled_qty": "20", "ending_on_hand_qty": "1", "order_count": 1,
+    "cost_components": {"holding": "12", "backorder": "0", "ordering_fixed": "5", "ordering_variable": "42"},
+    "total_cost": "59", "guard_rejection_count": 1
+  },
+  "ROP_FIXED_Q": {
+    "parameters": {"rmos": "0", "emos": "0.25", "target_service_level": "0.95", "review_cycle_weeks": 1},
+    "eoh": ["0", "1", "0"], "recommended_receipts": ["0", "11", "0"],
+    "forecast_shortages": ["10", "0", "9"], "order_quantities": ["11"],
+    "fulfilled_qty": "11", "ending_on_hand_qty": "0", "order_count": 1,
+    "cost_components": {"holding": "1", "backorder": "0", "ordering_fixed": "5", "ordering_variable": "22"},
+    "total_cost": "28", "guard_rejection_count": 1
+  }
+}

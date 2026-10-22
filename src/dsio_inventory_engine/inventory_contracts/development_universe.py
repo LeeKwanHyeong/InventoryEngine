@@ -6,7 +6,6 @@ from .values import (
     digest,
     hash_value,
     identifier,
-    records,
     require,
     shape,
     yyyyww,
@@ -14,11 +13,55 @@ from .values import (
 
 
 def seal_development_universe(value):
+    sample_scope = value.get("contract_id") == "io-development-calculation-universe-v3"
+    policy_scope = (
+        sample_scope or value.get("contract_id") == "io-development-calculation-universe-v2"
+    )
+
+    def gate_codes(codes):
+        require(type(codes) is list and 0 < len(codes) <= 32, "DEVELOPMENT_EXCLUSION_GATE_CODES")
+        normalized = [identifier(c) for c in codes]
+        require(len(set(normalized)) == len(normalized), "DEVELOPMENT_EXCLUSION_GATE_CODES")
+        return sorted(normalized)
+
+    def exclusion(row):
+        if sample_scope and row.get("reason") == "EXCLUDED_DEVELOPMENT_SAMPLE":
+            return shape(
+                row, {"item_id": identifier, "reason": choice("EXCLUDED_DEVELOPMENT_SAMPLE")}
+            )
+        if policy_scope and row.get("reason") == "EXCLUDED_POLICY_CALCULATION_BLOCKED":
+            return shape(
+                row,
+                {
+                    "item_id": identifier,
+                    "reason": choice("EXCLUDED_POLICY_CALCULATION_BLOCKED"),
+                    "policy_gate_reason_codes": gate_codes,
+                },
+            )
+        return shape(
+            row,
+            {
+                "item_id": identifier,
+                "reason": choice("EXCLUDED_ENDED_DEMAND_WINDOW"),
+                "demand_end_yyyyww": yyyyww,
+            },
+        )
+
     unsigned = {k: v for k, v in value.items() if k != "content_hash"}
+    require(
+        type(unsigned.get("exclusions")) is list and len(unsigned["exclusions"]) <= 20_000,
+        "DEVELOPMENT_UNIVERSE_EXCLUSIONS",
+    )
     result = shape(
         unsigned,
         {
-            "contract_id": choice("io-development-calculation-universe-v1"),
+            "contract_id": choice(
+                "io-development-calculation-universe-v3"
+                if sample_scope
+                else "io-development-calculation-universe-v2"
+                if policy_scope
+                else "io-development-calculation-universe-v1"
+            ),
             "environment_scope": choice("DEVELOPMENT"),
             "demand_run_id": identifier,
             "plan_yyyyww": yyyyww,
@@ -31,14 +74,14 @@ def seal_development_universe(value):
                 if type(v) is list
                 else require(False, "DEVELOPMENT_UNIVERSE_ITEMS")
             ),
-            "exclusions": lambda v: records(
-                v,
+            "exclusions": lambda v: sorted([exclusion(r) for r in v], key=canonical_json),
+            **(
                 {
-                    "item_id": identifier,
-                    "reason": choice("EXCLUDED_ENDED_DEMAND_WINDOW"),
-                    "demand_end_yyyyww": yyyyww,
-                },
-                limit=20_000,
+                    "classification_snapshot_id": identifier,
+                    "classification_content_hash": hash_value,
+                }
+                if policy_scope
+                else {}
             ),
         },
     )
@@ -56,7 +99,11 @@ def seal_development_universe(value):
     )
     require(
         # demand_end_dt is the first EXCLUDED week in the Demand producer.
-        all(r["demand_end_yyyyww"] <= result["plan_yyyyww"] for r in result["exclusions"]),
+        all(
+            r["demand_end_yyyyww"] <= result["plan_yyyyww"]
+            for r in result["exclusions"]
+            if r["reason"] == "EXCLUDED_ENDED_DEMAND_WINDOW"
+        ),
         "DEVELOPMENT_UNIVERSE_NOT_ENDED",
     )
     result["content_hash"] = digest(result)
@@ -75,7 +122,21 @@ def admitted_development_master(data, master, deployment):
     upstream = data["upstream_bindings"]
     require(
         all(
-            upstream[k]["snapshot_id"] + (".canonical" if k == "forecast" else "")
+            upstream[k]["snapshot_id"]
+            + (
+                ".canonical"
+                + (
+                    "." + scope["content_hash"][:16]
+                    if scope["contract_id"]
+                    in {
+                        "io-development-calculation-universe-v2",
+                        "io-development-calculation-universe-v3",
+                    }
+                    else ""
+                )
+                if k == "forecast"
+                else ""
+            )
             == data["snapshots"][k]["snapshot_id"]
             for k in ("calendar", "master", "forecast")
         ),
@@ -96,3 +157,43 @@ def admitted_development_master(data, master, deployment):
         "DEVELOPMENT_UNIVERSE_FORECAST_COVERAGE",
     )
     return {k: master[k] for k in sorted(included)}
+
+
+def scoped_effective_policies(canonical, policies, binding):
+    """Keep the full policy hash, admit only explicitly included development items."""
+    universe = canonical.get("development_universe")
+    if not universe or universe["contract_id"] not in {
+        "io-development-calculation-universe-v2",
+        "io-development-calculation-universe-v3",
+    }:
+        return policies
+    require(
+        universe["classification_snapshot_id"] == binding["classification_snapshot_id"],
+        "CLASSIFICATION_EXCLUSION_BINDING_MISMATCH",
+    )
+    by_item = {r["item_id"]: r for r in policies}
+    excluded = {
+        r["item_id"]: r
+        for r in universe["exclusions"]
+        if r["reason"] == "EXCLUDED_POLICY_CALCULATION_BLOCKED"
+    }
+    included = set(universe["included_item_ids"])
+    sampled_out = {
+        r["item_id"] for r in universe["exclusions"] if r["reason"] == "EXCLUDED_DEVELOPMENT_SAMPLE"
+    }
+    require(
+        set(by_item) == included | set(excluded) | sampled_out,
+        "EFFECTIVE_POLICY_UNIVERSE_MISMATCH",
+    )
+    require(
+        all(by_item[item]["recommendation_calculation_allowed"] is True for item in sampled_out),
+        "DEVELOPMENT_SAMPLE_CANNOT_HIDE_BLOCKED_ITEM",
+    )
+    for item, exclusion in excluded.items():
+        policy = by_item[item]
+        require(
+            policy["recommendation_calculation_allowed"] is False
+            and sorted(policy["policy_gate_reason_codes"]) == exclusion["policy_gate_reason_codes"],
+            "CLASSIFICATION_EXCLUSION_NOT_BLOCKED",
+        )
+    return [r for r in policies if r["item_id"] in included]

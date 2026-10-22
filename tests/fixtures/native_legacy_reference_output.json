@@ -1,0 +1,932 @@
+{
+  "runtime": ".NET 8.0.32",
+  "architecture": "Arm64",
+  "input_sha256": "309f86c8c035cde337160227cd6c93b895a023dead4d5995024c9afefdfa6046",
+  "scope": "EXTRACTED_ORIGINAL_METHODS_NO_DB_NO_ORIGINAL_ENTRYPOINT",
+  "additional_order_probe_inputs": {
+    "min_lot": 0,
+    "max_lot": 1000000,
+    "multiple": 1,
+    "mos": 1,
+    "ma_dmd_qty": 10
+  },
+  "transitions": [
+    {
+      "case": "receipts_then_previous_bo_then_current_demand",
+      "actual": {
+        "eoh": "5",
+        "backorder_close": "0",
+        "demand_allocation": "6",
+        "stock_allocation": "9",
+        "weekly_demand_allocation_rate": "1"
+      }
+    },
+    {
+      "case": "forecast_shortage_is_not_customer_backorder",
+      "actual": {
+        "eoh": "0",
+        "backorder_close": "10",
+        "demand_allocation": "0",
+        "stock_allocation": "0",
+        "weekly_demand_allocation_rate": "0"
+      }
+    },
+    {
+      "case": "confirmed_customer_shortage_carries",
+      "actual": {
+        "eoh": "0",
+        "backorder_close": "6",
+        "demand_allocation": "4",
+        "stock_allocation": "4",
+        "weekly_demand_allocation_rate": "0.4"
+      }
+    },
+    {
+      "case": "no_demand_is_not_perfect_service",
+      "actual": {
+        "eoh": "7",
+        "backorder_close": "0",
+        "demand_allocation": "0",
+        "stock_allocation": "0",
+        "weekly_demand_allocation_rate": "0"
+      }
+    }
+  ],
+  "orders": [
+    {
+      "case": "weekly_periodic_target",
+      "stock_policy": "OUTL",
+      "actual": {
+        "boh": [
+          "10",
+          "0",
+          "13"
+        ],
+        "due_in": [
+          "0",
+          "23",
+          "0"
+        ],
+        "eoh": [
+          "0",
+          "13",
+          "3"
+        ],
+        "backorder_close": [
+          "0",
+          "0",
+          "0"
+        ],
+        "purchase_order": [
+          "23",
+          "0",
+          "20"
+        ],
+        "pending_po_close": [
+          "23",
+          "0",
+          "20"
+        ],
+        "demand_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "stock_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "weekly_allocation_rate": [
+          "1",
+          "1",
+          "1"
+        ],
+        "exp_mos": [
+          "0",
+          "0.57",
+          "0.13"
+        ],
+        "order_dates": [
+          "2026-09-28",
+          "2026-10-12"
+        ],
+        "due_dates": [
+          "2026-10-05",
+          "2026-10-19"
+        ],
+        "terminal_pending_po": "20"
+      }
+    },
+    {
+      "case": "weekly_periodic_target",
+      "stock_policy": "ROPQ",
+      "actual": {
+        "boh": [
+          "10",
+          "0",
+          "13"
+        ],
+        "due_in": [
+          "0",
+          "23",
+          "0"
+        ],
+        "eoh": [
+          "0",
+          "13",
+          "3"
+        ],
+        "backorder_close": [
+          "0",
+          "0",
+          "0"
+        ],
+        "purchase_order": [
+          "23",
+          "0",
+          "20"
+        ],
+        "pending_po_close": [
+          "23",
+          "0",
+          "20"
+        ],
+        "demand_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "stock_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "weekly_allocation_rate": [
+          "1",
+          "1",
+          "1"
+        ],
+        "exp_mos": [
+          "0",
+          "1.3",
+          "0.3"
+        ],
+        "order_dates": [
+          "2026-09-28",
+          "2026-10-12"
+        ],
+        "due_dates": [
+          "2026-10-05",
+          "2026-10-19"
+        ],
+        "terminal_pending_po": "20"
+      }
+    },
+    {
+      "case": "weekly_periodic_target",
+      "stock_policy": "MINQ",
+      "actual": {
+        "boh": [
+          "10",
+          "0",
+          "13"
+        ],
+        "due_in": [
+          "0",
+          "23",
+          "0"
+        ],
+        "eoh": [
+          "0",
+          "13",
+          "3"
+        ],
+        "backorder_close": [
+          "0",
+          "0",
+          "0"
+        ],
+        "purchase_order": [
+          "23",
+          "0",
+          "20"
+        ],
+        "pending_po_close": [
+          "23",
+          "0",
+          "20"
+        ],
+        "demand_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "stock_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "weekly_allocation_rate": [
+          "1",
+          "1",
+          "1"
+        ],
+        "exp_mos": [
+          "0",
+          "1.3",
+          "0.3"
+        ],
+        "order_dates": [
+          "2026-09-28",
+          "2026-10-12"
+        ],
+        "due_dates": [
+          "2026-10-05",
+          "2026-10-19"
+        ],
+        "terminal_pending_po": "20"
+      }
+    },
+    {
+      "case": "weekly_periodic_target",
+      "stock_policy": "SFST",
+      "actual": {
+        "boh": [
+          "10",
+          "0",
+          "13"
+        ],
+        "due_in": [
+          "0",
+          "23",
+          "0"
+        ],
+        "eoh": [
+          "0",
+          "13",
+          "3"
+        ],
+        "backorder_close": [
+          "0",
+          "0",
+          "0"
+        ],
+        "purchase_order": [
+          "23",
+          "0",
+          "20"
+        ],
+        "pending_po_close": [
+          "23",
+          "0",
+          "20"
+        ],
+        "demand_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "stock_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "weekly_allocation_rate": [
+          "1",
+          "1",
+          "1"
+        ],
+        "exp_mos": [
+          "0",
+          "1.3",
+          "0.3"
+        ],
+        "order_dates": [
+          "2026-09-28",
+          "2026-10-12"
+        ],
+        "due_dates": [
+          "2026-10-05",
+          "2026-10-19"
+        ],
+        "terminal_pending_po": "20"
+      }
+    },
+    {
+      "case": "weekly_fixed_q_is_not_legacy_ropq_dispatch",
+      "stock_policy": "OUTL",
+      "actual": {
+        "boh": [
+          "10",
+          "0",
+          "13"
+        ],
+        "due_in": [
+          "0",
+          "23",
+          "0"
+        ],
+        "eoh": [
+          "0",
+          "13",
+          "3"
+        ],
+        "backorder_close": [
+          "0",
+          "0",
+          "0"
+        ],
+        "purchase_order": [
+          "23",
+          "0",
+          "20"
+        ],
+        "pending_po_close": [
+          "23",
+          "0",
+          "20"
+        ],
+        "demand_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "stock_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "weekly_allocation_rate": [
+          "1",
+          "1",
+          "1"
+        ],
+        "exp_mos": [
+          "0",
+          "0.57",
+          "0.13"
+        ],
+        "order_dates": [
+          "2026-09-28",
+          "2026-10-12"
+        ],
+        "due_dates": [
+          "2026-10-05",
+          "2026-10-19"
+        ],
+        "terminal_pending_po": "20"
+      }
+    },
+    {
+      "case": "weekly_fixed_q_is_not_legacy_ropq_dispatch",
+      "stock_policy": "ROPQ",
+      "actual": {
+        "boh": [
+          "10",
+          "0",
+          "13"
+        ],
+        "due_in": [
+          "0",
+          "23",
+          "0"
+        ],
+        "eoh": [
+          "0",
+          "13",
+          "3"
+        ],
+        "backorder_close": [
+          "0",
+          "0",
+          "0"
+        ],
+        "purchase_order": [
+          "23",
+          "0",
+          "20"
+        ],
+        "pending_po_close": [
+          "23",
+          "0",
+          "20"
+        ],
+        "demand_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "stock_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "weekly_allocation_rate": [
+          "1",
+          "1",
+          "1"
+        ],
+        "exp_mos": [
+          "0",
+          "1.3",
+          "0.3"
+        ],
+        "order_dates": [
+          "2026-09-28",
+          "2026-10-12"
+        ],
+        "due_dates": [
+          "2026-10-05",
+          "2026-10-19"
+        ],
+        "terminal_pending_po": "20"
+      }
+    },
+    {
+      "case": "weekly_fixed_q_is_not_legacy_ropq_dispatch",
+      "stock_policy": "MINQ",
+      "actual": {
+        "boh": [
+          "10",
+          "0",
+          "13"
+        ],
+        "due_in": [
+          "0",
+          "23",
+          "0"
+        ],
+        "eoh": [
+          "0",
+          "13",
+          "3"
+        ],
+        "backorder_close": [
+          "0",
+          "0",
+          "0"
+        ],
+        "purchase_order": [
+          "23",
+          "0",
+          "20"
+        ],
+        "pending_po_close": [
+          "23",
+          "0",
+          "20"
+        ],
+        "demand_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "stock_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "weekly_allocation_rate": [
+          "1",
+          "1",
+          "1"
+        ],
+        "exp_mos": [
+          "0",
+          "1.3",
+          "0.3"
+        ],
+        "order_dates": [
+          "2026-09-28",
+          "2026-10-12"
+        ],
+        "due_dates": [
+          "2026-10-05",
+          "2026-10-19"
+        ],
+        "terminal_pending_po": "20"
+      }
+    },
+    {
+      "case": "weekly_fixed_q_is_not_legacy_ropq_dispatch",
+      "stock_policy": "SFST",
+      "actual": {
+        "boh": [
+          "10",
+          "0",
+          "13"
+        ],
+        "due_in": [
+          "0",
+          "23",
+          "0"
+        ],
+        "eoh": [
+          "0",
+          "13",
+          "3"
+        ],
+        "backorder_close": [
+          "0",
+          "0",
+          "0"
+        ],
+        "purchase_order": [
+          "23",
+          "0",
+          "20"
+        ],
+        "pending_po_close": [
+          "23",
+          "0",
+          "20"
+        ],
+        "demand_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "stock_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "weekly_allocation_rate": [
+          "1",
+          "1",
+          "1"
+        ],
+        "exp_mos": [
+          "0",
+          "1.3",
+          "0.3"
+        ],
+        "order_dates": [
+          "2026-09-28",
+          "2026-10-12"
+        ],
+        "due_dates": [
+          "2026-10-05",
+          "2026-10-19"
+        ],
+        "terminal_pending_po": "20"
+      }
+    },
+    {
+      "case": "zero_lt_observes_different_phase",
+      "stock_policy": "OUTL",
+      "actual": {
+        "boh": [
+          "10",
+          "0",
+          "13"
+        ],
+        "due_in": [
+          "0",
+          "0",
+          "0"
+        ],
+        "eoh": [
+          "0",
+          "13",
+          "3"
+        ],
+        "backorder_close": [
+          "0",
+          "0",
+          "0"
+        ],
+        "purchase_order": [
+          "0",
+          "23",
+          "0"
+        ],
+        "pending_po_close": [
+          "0",
+          "0",
+          "0"
+        ],
+        "demand_allocation": [
+          "10",
+          "0",
+          "10"
+        ],
+        "stock_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "weekly_allocation_rate": [
+          "1",
+          "0",
+          "1"
+        ],
+        "exp_mos": [
+          "0",
+          "1",
+          "0.23"
+        ],
+        "order_dates": [
+          "2026-10-05"
+        ],
+        "due_dates": [
+          "2026-10-05"
+        ],
+        "terminal_pending_po": "0"
+      }
+    },
+    {
+      "case": "zero_lt_observes_different_phase",
+      "stock_policy": "ROPQ",
+      "actual": {
+        "boh": [
+          "10",
+          "0",
+          "13"
+        ],
+        "due_in": [
+          "0",
+          "0",
+          "0"
+        ],
+        "eoh": [
+          "0",
+          "13",
+          "3"
+        ],
+        "backorder_close": [
+          "0",
+          "0",
+          "0"
+        ],
+        "purchase_order": [
+          "0",
+          "23",
+          "0"
+        ],
+        "pending_po_close": [
+          "0",
+          "0",
+          "0"
+        ],
+        "demand_allocation": [
+          "10",
+          "0",
+          "10"
+        ],
+        "stock_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "weekly_allocation_rate": [
+          "1",
+          "0",
+          "1"
+        ],
+        "exp_mos": [
+          "0",
+          "1.3",
+          "0.3"
+        ],
+        "order_dates": [
+          "2026-10-05"
+        ],
+        "due_dates": [
+          "2026-10-05"
+        ],
+        "terminal_pending_po": "0"
+      }
+    },
+    {
+      "case": "zero_lt_observes_different_phase",
+      "stock_policy": "MINQ",
+      "actual": {
+        "boh": [
+          "10",
+          "0",
+          "13"
+        ],
+        "due_in": [
+          "0",
+          "0",
+          "0"
+        ],
+        "eoh": [
+          "0",
+          "13",
+          "3"
+        ],
+        "backorder_close": [
+          "0",
+          "0",
+          "0"
+        ],
+        "purchase_order": [
+          "0",
+          "23",
+          "0"
+        ],
+        "pending_po_close": [
+          "0",
+          "0",
+          "0"
+        ],
+        "demand_allocation": [
+          "10",
+          "0",
+          "10"
+        ],
+        "stock_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "weekly_allocation_rate": [
+          "1",
+          "0",
+          "1"
+        ],
+        "exp_mos": [
+          "0",
+          "1.3",
+          "0.3"
+        ],
+        "order_dates": [
+          "2026-10-05"
+        ],
+        "due_dates": [
+          "2026-10-05"
+        ],
+        "terminal_pending_po": "0"
+      }
+    },
+    {
+      "case": "zero_lt_observes_different_phase",
+      "stock_policy": "SFST",
+      "actual": {
+        "boh": [
+          "10",
+          "0",
+          "13"
+        ],
+        "due_in": [
+          "0",
+          "0",
+          "0"
+        ],
+        "eoh": [
+          "0",
+          "13",
+          "3"
+        ],
+        "backorder_close": [
+          "0",
+          "0",
+          "0"
+        ],
+        "purchase_order": [
+          "0",
+          "23",
+          "0"
+        ],
+        "pending_po_close": [
+          "0",
+          "0",
+          "0"
+        ],
+        "demand_allocation": [
+          "10",
+          "0",
+          "10"
+        ],
+        "stock_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "weekly_allocation_rate": [
+          "1",
+          "0",
+          "1"
+        ],
+        "exp_mos": [
+          "0",
+          "1.3",
+          "0.3"
+        ],
+        "order_dates": [
+          "2026-10-05"
+        ],
+        "due_dates": [
+          "2026-10-05"
+        ],
+        "terminal_pending_po": "0"
+      }
+    }
+  ],
+  "trigger": {
+    "case": "position_equals_rop",
+    "actual": {
+      "order_triggered": false
+    }
+  },
+  "lots": [
+    {
+      "case": "offset_lattice",
+      "actual": "25"
+    },
+    {
+      "case": "below_minimum",
+      "actual": "5"
+    },
+    {
+      "case": "equal_max_is_not_hard_cap",
+      "actual": "25"
+    },
+    {
+      "case": "above_max_uses_max_offset",
+      "actual": "32"
+    }
+  ],
+  "arrivals": [
+    {
+      "case": "zero_lt",
+      "actual": {
+        "lead_time_days": 0,
+        "due_date": "2026-09-28",
+        "containing_bucket_start": "2026-09-28"
+      }
+    },
+    {
+      "case": "midweek",
+      "actual": {
+        "lead_time_days": 3,
+        "due_date": "2026-10-01",
+        "containing_bucket_start": "2026-09-28"
+      }
+    },
+    {
+      "case": "exact_next_boundary",
+      "actual": {
+        "lead_time_days": 7,
+        "due_date": "2026-10-05",
+        "containing_bucket_start": "2026-10-05"
+      }
+    },
+    {
+      "case": "outside_horizon",
+      "actual": {
+        "lead_time_days": 21,
+        "due_date": "2026-10-19",
+        "containing_bucket_start": null
+      }
+    }
+  ],
+  "policies": [
+    {
+      "case": "explicit_base_month_differs_from_week_start",
+      "actual": {
+        "base_month": "202609",
+        "rop": "20"
+      }
+    },
+    {
+      "case": "missing_base_month_uses_start_month_not_wednesday",
+      "actual": {
+        "base_month": "202608",
+        "rop": "10"
+      }
+    }
+  ],
+  "selections": [
+    {
+      "case": "threshold_equality_component",
+      "actual": {
+        "individual_condition_met": [
+          false
+        ],
+        "force_eligible_label": "A",
+        "final_selected_label": null
+      }
+    },
+    {
+      "case": "all_below_service_no_forced_target_selection",
+      "actual": {
+        "individual_condition_met": [
+          false,
+          false
+        ],
+        "force_eligible_label": "A",
+        "final_selected_label": null
+      }
+    }
+  ],
+  "unsupported": [
+    {
+      "case": "missing_cost_is_not_zero_cost",
+      "reason": "NO_COMPARABLE_LEGACY_COST_CONTRACT"
+    }
+  ]
+}

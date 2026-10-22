@@ -1,0 +1,1797 @@
+{
+  "description": "Development-only input vectors, not expected values. Actual C# output is captured separately.",
+  "replay_cases": [
+    {
+      "case": "policy_OUTL",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "10",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "OUTL",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-05",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-12",
+            "quantity": "10"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "23",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "policy_ROPQ",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "10",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "ROPQ",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-05",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-12",
+            "quantity": "10"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "23",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "policy_MINQ",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "10",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "MINQ",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-05",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-12",
+            "quantity": "10"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "23",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "policy_SFST",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "10",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "SFST",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-05",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-12",
+            "quantity": "10"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "23",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "policy_UNKNOWN",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "10",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "UNKNOWN",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-05",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-12",
+            "quantity": "10"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "23",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "zero_lt",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "10",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "0",
+        "stock_policy": "OUTL",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-05",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-12",
+            "quantity": "10"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "23",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "fraction_day_truncates_zero",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "10",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "14400",
+        "stock_policy": "OUTL",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-05",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-12",
+            "quantity": "10"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "23",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "midweek_current_write",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "10",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "86400",
+        "stock_policy": "OUTL",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-05",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-12",
+            "quantity": "10"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "23",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "fractional_days_truncate",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "10",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "230399.99",
+        "stock_policy": "OUTL",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-05",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-12",
+            "quantity": "10"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "23",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "outside_horizon",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "10",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "604800",
+        "stock_policy": "OUTL",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-05",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-12",
+            "quantity": "10"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "23",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "fractional_OUTL",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "7.125",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "OUTL",
+        "lot": {
+          "minimum": "0.25",
+          "maximum": "10.25",
+          "step": "0.25"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "12.75"
+          },
+          {
+            "when": "2026-10-05",
+            "quantity": "1.5"
+          },
+          {
+            "when": "2026-10-12",
+            "quantity": "4.25"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "6.5",
+            "target": "22.25",
+            "mos": "1.25",
+            "ma_demand": "2.675"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "fractional_ROPQ",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "7.125",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "ROPQ",
+        "lot": {
+          "minimum": "0.25",
+          "maximum": "10.25",
+          "step": "0.25"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "12.75"
+          },
+          {
+            "when": "2026-10-05",
+            "quantity": "1.5"
+          },
+          {
+            "when": "2026-10-12",
+            "quantity": "4.25"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "6.5",
+            "target": "22.25",
+            "mos": "1.25",
+            "ma_demand": "2.675"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "fractional_MINQ",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "7.125",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "MINQ",
+        "lot": {
+          "minimum": "0.25",
+          "maximum": "10.25",
+          "step": "0.25"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "12.75"
+          },
+          {
+            "when": "2026-10-05",
+            "quantity": "1.5"
+          },
+          {
+            "when": "2026-10-12",
+            "quantity": "4.25"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "6.5",
+            "target": "22.25",
+            "mos": "1.25",
+            "ma_demand": "2.675"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "fractional_SFST",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "7.125",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "SFST",
+        "lot": {
+          "minimum": "0.25",
+          "maximum": "10.25",
+          "step": "0.25"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "12.75"
+          },
+          {
+            "when": "2026-10-05",
+            "quantity": "1.5"
+          },
+          {
+            "when": "2026-10-12",
+            "quantity": "4.25"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "6.5",
+            "target": "22.25",
+            "mos": "1.25",
+            "ma_demand": "2.675"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "rop_equal",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "10",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "OUTL",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "23",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "rop_ulp_below",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "9.999999999999998",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "OUTL",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "23",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "rop_ulp_above",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "10.000000000000002",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "OUTL",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "23",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "initial_backlog_pending_and_receipts",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "0.125",
+        "backorder": "0.375",
+        "pending_po": "10.5",
+        "internal_lead_time": "201600",
+        "stock_policy": "OUTL",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "0.25"
+          },
+          {
+            "when": "2026-10-05",
+            "quantity": "12.3"
+          },
+          {
+            "when": "2026-10-12",
+            "quantity": "0.125"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "23",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": [
+          {
+            "when": "2026-09-28",
+            "quantity": "3"
+          },
+          {
+            "when": "2026-10-18",
+            "quantity": "1.5"
+          }
+        ]
+      }
+    },
+    {
+      "case": "first_match_duplicate_rows",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "10",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "OUTL",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "2"
+          },
+          {
+            "when": "2026-09-28",
+            "quantity": "99"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "23",
+            "mos": "1",
+            "ma_demand": "10"
+          },
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "999",
+            "target": "1000",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": [
+          {
+            "when": "2026-09-28",
+            "quantity": "1"
+          },
+          {
+            "when": "2026-09-28",
+            "quantity": "100"
+          }
+        ]
+      }
+    },
+    {
+      "case": "first_match_reversed_rows",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "10",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "OUTL",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "99"
+          },
+          {
+            "when": "2026-09-28",
+            "quantity": "2"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "999",
+            "target": "1000",
+            "mos": "1",
+            "ma_demand": "10"
+          },
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "23",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": [
+          {
+            "when": "2026-09-28",
+            "quantity": "100"
+          },
+          {
+            "when": "2026-09-28",
+            "quantity": "1"
+          }
+        ]
+      }
+    },
+    {
+      "case": "monthly_base_not_week_start",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": "202610"
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "10",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "OUTL",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-05",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-12",
+            "quantity": "10"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-09-01",
+            "end": "2026-09-30",
+            "rop": "10",
+            "target": "23",
+            "mos": "1",
+            "ma_demand": "10"
+          },
+          {
+            "start": "2026-10-01",
+            "end": "2026-10-31",
+            "rop": "20",
+            "target": "30",
+            "mos": "1.5",
+            "ma_demand": "4"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "missing_policy_zero",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "10",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "OUTL",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-05",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-12",
+            "quantity": "10"
+          }
+        ],
+        "policies": [],
+        "receipts": []
+      }
+    },
+    {
+      "case": "zero_mos_denominator",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "0",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "OUTL",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "0",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "negative_pending_after_source_receipt",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "0",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "OUTL",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "2"
+          },
+          {
+            "when": "2026-10-05",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-12",
+            "quantity": "10"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "23",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": [
+          {
+            "when": "2026-09-28",
+            "quantity": "5"
+          }
+        ]
+      }
+    },
+    {
+      "case": "target_below_position_negative_raw",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-04",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "5",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "OUTL",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "1",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "overlap_writes_previously_calculated_bucket",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "202640",
+            "start": "2026-09-28",
+            "end": "2026-10-18",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202641",
+            "start": "2026-10-05",
+            "end": "2026-10-11",
+            "base_month": null
+          },
+          {
+            "bucket_id": "202642",
+            "start": "2026-10-12",
+            "end": "2026-10-18",
+            "base_month": null
+          }
+        ],
+        "boh": "10",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "OUTL",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [
+          {
+            "when": "2026-09-28",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-05",
+            "quantity": "10"
+          },
+          {
+            "when": "2026-10-12",
+            "quantity": "10"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "23",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": []
+      }
+    },
+    {
+      "case": "year_and_month_boundary",
+      "input": {
+        "buckets": [
+          {
+            "bucket_id": "YEAR-0",
+            "start": "2026-12-28",
+            "end": "2027-01-03",
+            "base_month": null
+          },
+          {
+            "bucket_id": "YEAR-1",
+            "start": "2027-01-04",
+            "end": "2027-01-10",
+            "base_month": null
+          },
+          {
+            "bucket_id": "YEAR-2",
+            "start": "2027-01-11",
+            "end": "2027-01-17",
+            "base_month": null
+          }
+        ],
+        "boh": "10",
+        "backorder": "0",
+        "pending_po": "0",
+        "internal_lead_time": "201600",
+        "stock_policy": "OUTL",
+        "lot": {
+          "minimum": "0",
+          "maximum": "1000000",
+          "step": "1"
+        },
+        "demands": [
+          {
+            "when": "2026-12-28",
+            "quantity": "10"
+          },
+          {
+            "when": "2027-01-04",
+            "quantity": "10"
+          },
+          {
+            "when": "2027-01-11",
+            "quantity": "10"
+          }
+        ],
+        "policies": [
+          {
+            "start": "2026-01-01",
+            "end": "2027-12-31",
+            "rop": "10",
+            "target": "23",
+            "mos": "1",
+            "ma_demand": "10"
+          }
+        ],
+        "receipts": []
+      }
+    }
+  ],
+  "round_cases": [
+    {
+      "case": "round_0",
+      "value": "2.675",
+      "digits": 2
+    },
+    {
+      "case": "round_1",
+      "value": "1.005",
+      "digits": 2
+    },
+    {
+      "case": "round_2",
+      "value": "0.005",
+      "digits": 2
+    },
+    {
+      "case": "round_3",
+      "value": "0.015",
+      "digits": 2
+    },
+    {
+      "case": "round_4",
+      "value": "0.025",
+      "digits": 2
+    },
+    {
+      "case": "round_5",
+      "value": "0.125",
+      "digits": 2
+    },
+    {
+      "case": "round_6",
+      "value": "-2.675",
+      "digits": 2
+    },
+    {
+      "case": "round_7",
+      "value": "-0.005",
+      "digits": 2
+    },
+    {
+      "case": "round_8",
+      "value": "999999999999.995",
+      "digits": 2
+    },
+    {
+      "case": "round_9",
+      "value": "10000000000000000",
+      "digits": 2
+    },
+    {
+      "case": "round_10",
+      "value": "-0",
+      "digits": 2
+    },
+    {
+      "case": "round_11",
+      "value": "1.225",
+      "digits": 2
+    },
+    {
+      "case": "round_12",
+      "value": "1.235",
+      "digits": 2
+    },
+    {
+      "case": "even_integer",
+      "value": "2.5",
+      "digits": 0
+    },
+    {
+      "case": "odd_integer",
+      "value": "3.5",
+      "digits": 0
+    },
+    {
+      "case": "fifteen_digits",
+      "value": "0.1234567890123455",
+      "digits": 15
+    }
+  ],
+  "decimal_ceiling_cases": [
+    {
+      "case": "decimal_0",
+      "value": "10.000000000000002"
+    },
+    {
+      "case": "decimal_1",
+      "value": "0.30000000000000004"
+    },
+    {
+      "case": "decimal_2",
+      "value": "1.000000000000001"
+    },
+    {
+      "case": "decimal_3",
+      "value": "0.9999999999999999"
+    },
+    {
+      "case": "decimal_4",
+      "value": "1e-28"
+    },
+    {
+      "case": "decimal_5",
+      "value": "4e-29"
+    },
+    {
+      "case": "decimal_6",
+      "value": "5e-29"
+    },
+    {
+      "case": "decimal_7",
+      "value": "6e-29"
+    },
+    {
+      "case": "decimal_8",
+      "value": "-6e-29"
+    },
+    {
+      "case": "decimal_9",
+      "value": "-1.000000000000001"
+    },
+    {
+      "case": "decimal_10",
+      "value": "1e20"
+    },
+    {
+      "case": "decimal_11",
+      "value": "-1e20"
+    },
+    {
+      "case": "decimal_12",
+      "value": "999999999999999.9"
+    },
+    {
+      "case": "decimal_13",
+      "value": "123456789012345.6"
+    }
+  ],
+  "lot_cases": [
+    {
+      "case": "offset_lattice",
+      "raw": "16",
+      "min": "5",
+      "max": "100",
+      "step": "10"
+    },
+    {
+      "case": "below_min",
+      "raw": "2",
+      "min": "5",
+      "max": "100",
+      "step": "10"
+    },
+    {
+      "case": "at_max",
+      "raw": "22",
+      "min": "5",
+      "max": "22",
+      "step": "10"
+    },
+    {
+      "case": "over_max",
+      "raw": "26",
+      "min": "5",
+      "max": "22",
+      "step": "10"
+    },
+    {
+      "case": "fractional_lattice",
+      "raw": "0.3",
+      "min": "0.1",
+      "max": "0.7",
+      "step": "0.2"
+    },
+    {
+      "case": "near_integer_cast",
+      "raw": "10.000000000000002",
+      "min": "0",
+      "max": "100",
+      "step": "1"
+    },
+    {
+      "case": "at_decimal_max",
+      "raw": "0.7",
+      "min": "0.1",
+      "max": "0.7",
+      "step": "0.2"
+    },
+    {
+      "case": "negative_raw",
+      "raw": "-4",
+      "min": "0",
+      "max": "100",
+      "step": "1"
+    }
+  ]
+}

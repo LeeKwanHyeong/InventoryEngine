@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
 
-from .canonical import CONTEXT_FIELDS, ROW_FIELDS, METADATA_FIELDS
+from .canonical import CONTEXT_FIELDS, ROW_FIELDS, METADATA_FIELDS, V2_MAX_BYTES
 from .values import (
     canonical_json,
     choice,
@@ -87,23 +87,40 @@ class SourceInputRequest:
 
     @classmethod
     def from_dict(cls, value: dict) -> "SourceInputRequest":
+        v2 = value.get("contract_id") == "io-source-input-v2"
+        from .development_universe import seal_development_universe
+
         data = shape(
             value,
             {
-                "contract_id": choice("io-source-input-v1"),
-                "contract_version": choice("1.0.0"),
+                "contract_id": choice("io-source-input-v2" if v2 else "io-source-input-v1"),
+                "contract_version": choice("2.1.0" if v2 else "1.0.0"),
                 "context": lambda v: shape(v, CONTEXT_FIELDS),
                 "quantity_rules": lambda v: records(
                     v,
                     {
                         "uom": identifier,
-                        "scale": integer,
+                        **(
+                            {"planning_scale": integer, "physical_scale": integer}
+                            if v2
+                            else {"scale": integer}
+                        ),
                         "tolerance_qty": text,
                         "approval_reference": text,
                     },
                     100,
                 ),
                 "source_bindings": lambda v: shape(v, {k: binding for k in ROW_FIELDS}),
+                **(
+                    {
+                        "development_universe": seal_development_universe,
+                        "upstream_bindings": lambda v: shape(
+                            v, {k: binding for k in ("calendar", "master", "forecast")}
+                        ),
+                    }
+                    if v2
+                    else {}
+                ),
             },
         )
         require(
@@ -148,10 +165,12 @@ class SourceSnapshot:
         shape(data["metadata"], METADATA_FIELDS[data["snapshot_type"]])
         require(data["row_count"] == len(data["rows"]), "SOURCE_ROW_COUNT_MISMATCH")
         require(data["content_hash"] == source_hash(data), "SOURCE_HASH_MISMATCH")
-        return cls(canonical_json(data))
+        document = canonical_json(data)
+        require(len(document.encode("utf-8")) <= V2_MAX_BYTES, "INPUT_SIZE_LIMIT")
+        return cls(document)
 
     def to_dict(self) -> dict:
-        return read_json(self.document)
+        return read_json(self.document, max_bytes=V2_MAX_BYTES)
 
 
 def source_hash(data: dict) -> str:

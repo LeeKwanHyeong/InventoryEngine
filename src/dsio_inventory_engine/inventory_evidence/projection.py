@@ -147,7 +147,12 @@ class VerifyDsimProjectionUseCase:
     def __init__(self, *, projector: DsimSourceProjector, store: ProjectionArtifactStore):
         self.projector, self.store = projector, store
 
-    def execute(self, *, request, reference: str, expected_hash: str) -> VerifiedDsimProjection:
+    def _read_integrity(self, *, request, reference: str, expected_hash: str):
+        """Decode a historical package, without declaring its Source/Run gates valid.
+
+        Only the repair adapter uses this weaker result. Writers and ordinary
+        readers MUST keep calling execute(), which rebuilds authoritative rows.
+        """
         request = InventoryRuntimeExecutionRequest.from_dict(request.to_dict())
         obj = self.store.read_artifact(reference)
         require(
@@ -277,6 +282,13 @@ class VerifyDsimProjectionUseCase:
             and manifest["table_row_counts"] == counts
             and manifest["projection_content_hash"] == digest(tables),
             "PROJECTION_COUNTS_OR_HASH_MISMATCH",
+        )
+        return manifest, tables
+
+    def execute(self, *, request, reference: str, expected_hash: str) -> VerifiedDsimProjection:
+        request = InventoryRuntimeExecutionRequest.from_dict(request.to_dict())
+        manifest, tables = self._read_integrity(
+            request=request, reference=reference, expected_hash=expected_hash
         )
         # Re-sealing forged rows is insufficient: rebuild from authoritative source bytes.
         source = self.projector.build(

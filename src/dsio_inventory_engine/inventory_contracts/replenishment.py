@@ -464,7 +464,12 @@ class RecommendationRequest:
                 "REPLENISHMENT_MODEL_APPROVAL_BINDING_MISMATCH",
             )
             policies = execution["effective_item_policies"]
-            policy_by_item = {row["item_id"]: row for row in policies}
+            from .development_universe import scoped_effective_policies
+
+            admitted = scoped_effective_policies(
+                value["canonical_input"], policies, execution["effective_policy_binding"]
+            )
+            policy_by_item = {row["item_id"]: row for row in admitted}
             require(
                 set(policy_by_item) == {row["item_id"] for row in controls},
                 "EFFECTIVE_POLICY_UNIVERSE_MISMATCH",

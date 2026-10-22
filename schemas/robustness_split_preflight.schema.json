@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "inventory-robustness-split-resource-preflight:1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_id", "contract_version", "protocol_hash", "work_plan_hash", "sample_hashes", "pool_id", "status", "blocking_reasons", "work_population_counts", "known_catalog_proxy", "known_catalog_proxy_with_margin", "margin_percent", "full_raw_bytes", "full_physical_bytes", "full_wall_ns", "full_files", "unmeasured_components", "estimate_is_hard_upper_bound", "cost_profiles_multiply_psi_runs", "global_control_overhead_is_constant", "invocation_limit_is_entire_study_limit", "official_paths_generated", "official_execution_allowed", "automatic_publish_allowed", "automatic_order_allowed", "operational_policy_approved", "database_writes", "content_hash"],
+  "properties": {
+    "contract_id": {"const": "inventory-robustness-split-resource-preflight"},
+    "contract_version": {"const": "1.0.0"},
+    "protocol_hash": {"const": "a3e35fcf23915e87823883ea8c1f09448b245ae7ea1fffa8c77482bab0433280"},
+    "work_plan_hash": {"$ref": "#/$defs/hash"},
+    "sample_hashes": {"type": "array", "minItems": 3, "uniqueItems": true, "items": {"$ref": "#/$defs/hash"}},
+    "pool_id": {"$ref": "#/$defs/hash"},
+    "status": {"const": "BLOCKED_INCOMPLETE_MEASUREMENTS"},
+    "blocking_reasons": {"type": "array", "minItems": 6, "uniqueItems": true, "items": {"enum": ["LOCKED_SINGLE_POLICY_52_WEEK_TERMINAL_REPLAY", "RANGE_PROJECTION_COST_REPRICING_SELECTION_AND_SPLIT_MANIFEST", "POPULATED_ROOT_RESCAN_AND_COLD_PROCESS_GROWTH", "OFFICIAL_ITEM_AND_PATH_SIZE_VARIATION", "INTERRUPTION_QUARANTINE_AND_RETRY_HEADROOM", "OFFICIAL_SOURCE_GENERATION_AND_FULL_POPULATION_CLASSIFICATION", "KNOWN_CATALOG_PROXY_EXCEEDS_RAW_BUDGET", "KNOWN_CATALOG_PROXY_EXCEEDS_FILE_LIMIT", "MEASURED_BANK_CALL_WITH_MARGIN_EXCEEDS_DEADLINE"]}},
+    "work_population_counts": {
+      "type": "object", "additionalProperties": false,
+      "required": ["PRIMARY", "STRESS", "TERMINAL_UPPER_BOUND", "TIMING"],
+      "properties": {"PRIMARY": {"const": 198}, "STRESS": {"const": 16}, "TERMINAL_UPPER_BOUND": {"const": 180}, "TIMING": {"const": 27}}
+    },
+    "known_catalog_proxy": {"$ref": "#/$defs/proxy"},
+    "known_catalog_proxy_with_margin": {"$ref": "#/$defs/proxy"},
+    "margin_percent": {"type": "integer", "minimum": 25, "maximum": 100},
+    "full_raw_bytes": {"type": "null"},
+    "full_physical_bytes": {"type": "null"},
+    "full_wall_ns": {"type": "null"},
+    "full_files": {"type": "null"},
+    "unmeasured_components": {"const": ["LOCKED_SINGLE_POLICY_52_WEEK_TERMINAL_REPLAY", "RANGE_PROJECTION_COST_REPRICING_SELECTION_AND_SPLIT_MANIFEST", "POPULATED_ROOT_RESCAN_AND_COLD_PROCESS_GROWTH", "OFFICIAL_ITEM_AND_PATH_SIZE_VARIATION", "INTERRUPTION_QUARANTINE_AND_RETRY_HEADROOM", "OFFICIAL_SOURCE_GENERATION_AND_FULL_POPULATION_CLASSIFICATION"]},
+    "estimate_is_hard_upper_bound": {"const": false},
+    "cost_profiles_multiply_psi_runs": {"const": false},
+    "global_control_overhead_is_constant": {"const": false},
+    "invocation_limit_is_entire_study_limit": {"const": false},
+    "official_paths_generated": {"const": false},
+    "official_execution_allowed": {"const": false},
+    "automatic_publish_allowed": {"const": false},
+    "automatic_order_allowed": {"const": false},
+    "operational_policy_approved": {"const": false},
+    "database_writes": {"const": false},
+    "content_hash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "proxy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["raw_bytes", "physical_bytes", "files", "wall_ns"],
+      "properties": {"raw_bytes": {"type": "integer", "minimum": 1}, "physical_bytes": {"type": "integer", "minimum": 1}, "files": {"type": "integer", "minimum": 1}, "wall_ns": {"type": "integer", "minimum": 1}}
+    }
+  }
+}

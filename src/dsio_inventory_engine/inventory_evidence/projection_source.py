@@ -7,6 +7,7 @@ source data is rejected rather than replaced with manufactured hashes or values.
 from __future__ import annotations
 
 import copy
+from dsio_inventory_engine.inventory_contracts.observation_storage import expanded_action_rows
 from decimal import Decimal, ROUND_CEILING, localcontext
 
 from dsio_inventory_engine.inventory_contracts.runtime import InventoryRuntimeExecutionRequest
@@ -32,13 +33,66 @@ SNAPSHOT_TYPES = {
 RECEIPT_TABLE = "dsim.tb_io_publication_receipt"
 
 
+def apply_claim_action_gates(claim, *, publish_allowed, order_allowed):
+    """A row may narrow item permission, never escalate its enclosing Run."""
+    publish = publish_allowed is True and claim.get("expected_automatic_publish_allowed") is True
+    order = (
+        publish and order_allowed is True and claim.get("expected_automatic_order_allowed") is True
+    )
+    return {"automatic_publish_allowed": publish, "automatic_order_allowed": order}
+
+
+def snapshot_projection_source(canonical, kind, binding):
+    """Keep Claim authority separate from the normalized calculation snapshot.
+
+    Calendar/Master/Forecast can have upstream identities whose hashes cover
+    their original representation. The Canonical document seals the exact
+    transformed rows; neither identity is allowed to replace the other.
+    """
+    snapshot = canonical["snapshots"][kind]
+    upstream = canonical.get("upstream_bindings", {})
+    authority = (
+        upstream.get(kind, snapshot) if kind in {"calendar", "master", "forecast"} else snapshot
+    )
+    require(
+        authority["snapshot_id"] == binding["source_snapshot_id"]
+        and authority["content_hash"] == binding["source_content_hash"],
+        "PROJECTION_INPUT_BINDING_MISMATCH",
+    )
+    metadata = copy.deepcopy(snapshot["metadata"])
+    arrays = {}
+    for field in ("source_events", "adjustments"):
+        if field in metadata:
+            values = metadata.pop(field)
+            arrays[field] = {"row_count": len(values), "content_hash": digest(values)}
+    result = {
+        "snapshot_type": kind,
+        "status": snapshot["status"],
+        "metadata": metadata,
+        "array_evidence": arrays,
+    }
+    if authority is not snapshot:
+        result.update(
+            canonical_snapshot={
+                key: snapshot[key] for key in ("snapshot_id", "content_hash", "row_count")
+            },
+            source_row_count_basis="CANONICAL_SNAPSHOT",
+        )
+    return result
+
+
 class DsimSourceProjector:
     def __init__(
-        self, *, catalog: dict, bundle_verifier: ReadAndVerifyInventoryResultBundleUseCase
+        self,
+        *,
+        catalog: dict,
+        bundle_verifier: ReadAndVerifyInventoryResultBundleUseCase,
+        target_result_reader=None,
     ):
         self.catalog = copy.deepcopy(catalog)
         self.verifier = bundle_verifier
         self.repository = bundle_verifier.repository
+        self.target_result_reader = target_result_reader
 
     def build(self, *, request: InventoryRuntimeExecutionRequest, bundle_reference: str) -> dict:
         # Reconstruct the base class: never trust a mutable hostile subclass.
@@ -196,18 +250,8 @@ class DsimSourceProjector:
         )
         for kind, input_type in SNAPSHOT_TYPES.items():
             snapshot = canonical["snapshots"][kind]
-            metadata = copy.deepcopy(snapshot["metadata"])
-            arrays = {}
-            for field in ("source_events", "adjustments"):
-                if field in metadata:
-                    values = metadata.pop(field)
-                    arrays[field] = {"row_count": len(values), "content_hash": digest(values)}
             b = bindings[input_type]
-            require(
-                snapshot["snapshot_id"] == b["source_snapshot_id"]
-                and snapshot["content_hash"] == b["source_content_hash"],
-                "PROJECTION_INPUT_BINDING_MISMATCH",
-            )
+            source_metadata = snapshot_projection_source(canonical, kind, b)
             emit(
                 "snapshot_manifest",
                 input_type=input_type,
@@ -224,12 +268,7 @@ class DsimSourceProjector:
                 byte_content_hash=canonical_obj.byte_content_hash,
                 source_row_count=snapshot["row_count"],
                 sealed_at=snapshot["metadata"].get("sealed_at"),
-                source_metadata={
-                    "snapshot_type": kind,
-                    "status": snapshot["status"],
-                    "metadata": metadata,
-                    "array_evidence": arrays,
-                },
+                source_metadata=source_metadata,
             )
         if classification is not None:
             obj = classification_object
@@ -450,8 +489,11 @@ class DsimSourceProjector:
                     disposition=validation["status"],
                     approval_level=admission["effective_approval_level"] if admission else None,
                     order_action=admission["effective_order_action"] if admission else None,
-                    automatic_publish_allowed=bool(auto and admission["automatic_publish_allowed"]),
-                    automatic_order_allowed=bool(auto and admission["automatic_order_allowed"]),
+                    **apply_claim_action_gates(
+                        claim,
+                        publish_allowed=bool(auto and admission["automatic_publish_allowed"]),
+                        order_allowed=bool(auto and admission["automatic_order_allowed"]),
+                    ),
                     adjustment_reason_codes=validation["reason_codes"],
                     action_artifact_reference=artifact.reference,
                     action_content_hash=artifact.content_hash,
@@ -535,15 +577,27 @@ class DsimSourceProjector:
                 by_id = {r["decision_id"]: r for r in validations["rows"]}
                 actions(
                     child["child_result_id"],
-                    [
+                    (
                         {**row, "validation": by_id[row["observation"]["decision_id"]]}
-                        for row in raw_actions["rows"]
-                    ],
+                        for row in expanded_action_rows(raw_actions)
+                    ),
                     obj,
                     child["execution_role"],
                 )
         if analysis is not None:
             self._analysis(analysis_docs, registry, emit, psi, actions, buffers, run)
+        if self.target_result_reader is not None:
+            from .target_result_projection import project_target_result
+
+            linked = self.target_result_reader.read(
+                request=request, bundle_reference=bundle_reference
+            )
+            for obj in (*linked.source_artifacts, linked.artifact):
+                stored, _ = read(obj.reference)
+                require(stored == obj, "PROJECTION_TARGET_SOURCE_ARTIFACT_MISMATCH")
+            project_target_result(
+                self, linked, analysis_docs, registry, emit, psi, actions, buffers, run
+            )
         if verified.run_cost_evidence is not None:
             # Existing pricing Assessment/Component stay authoritative, no duplicate monetary rows.
             for artifact in verified.run_cost_evidence.artifacts:

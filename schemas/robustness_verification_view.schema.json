@@ -1,0 +1,249 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dsai:inventory-robustness-verification-view:1.0.0",
+  "title": "Stored artifact integrity versus actual PSI recalculation (not operational authorization)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_id",
+    "contract_version",
+    "verification_level",
+    "artifact_integrity_status",
+    "source_recalculation_status",
+    "psi_recalculation_status",
+    "metrics_recalculation_status",
+    "execution_id",
+    "input_hash",
+    "manifest_hash",
+    "result_hash",
+    "content_hash",
+    "context",
+    "counts",
+    "automatic_publish_allowed",
+    "automatic_order_allowed",
+    "operational_policy_approved",
+    "database_writes"
+  ],
+  "properties": {
+    "contract_id": {
+      "const": "inventory-robustness-verification-view"
+    },
+    "contract_version": {
+      "const": "1.0.0"
+    },
+    "verification_level": {
+      "enum": [
+        "ARTIFACT_INTEGRITY",
+        "FULL_PSI_RECALCULATION"
+      ]
+    },
+    "artifact_integrity_status": {
+      "const": "VERIFIED"
+    },
+    "source_recalculation_status": {
+      "enum": [
+        "NOT_RUN",
+        "VERIFIED"
+      ]
+    },
+    "psi_recalculation_status": {
+      "enum": [
+        "NOT_RUN",
+        "VERIFIED"
+      ]
+    },
+    "metrics_recalculation_status": {
+      "enum": [
+        "NOT_RUN",
+        "VERIFIED"
+      ]
+    },
+    "execution_id": {
+      "$ref": "#/$defs/id"
+    },
+    "input_hash": {
+      "$ref": "#/$defs/hash"
+    },
+    "manifest_hash": {
+      "$ref": "#/$defs/hash"
+    },
+    "result_hash": {
+      "$ref": "#/$defs/hash"
+    },
+    "content_hash": {
+      "$ref": "#/$defs/hash"
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "company_cd",
+        "subs_cd",
+        "site_cd",
+        "plan_id",
+        "engine_run_id",
+        "plan_yyyyww",
+        "plan_start_date"
+      ],
+      "properties": {
+        "company_cd": {
+          "$ref": "#/$defs/id"
+        },
+        "subs_cd": {
+          "$ref": "#/$defs/id"
+        },
+        "site_cd": {
+          "$ref": "#/$defs/id"
+        },
+        "plan_id": {
+          "$ref": "#/$defs/id"
+        },
+        "engine_run_id": {
+          "$ref": "#/$defs/id"
+        },
+        "plan_yyyyww": {
+          "type": "string",
+          "pattern": "^[0-9]{4}(0[1-9]|[1-4][0-9]|5[0-3])$"
+        },
+        "plan_start_date": {
+          "type": "string",
+          "format": "date",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_count",
+        "successful_count",
+        "failed_count",
+        "psi_row_count",
+        "leaf_count"
+      ],
+      "properties": {
+        "candidate_count": {
+          "enum": [
+            32,
+            88
+          ]
+        },
+        "successful_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 88
+        },
+        "failed_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 88
+        },
+        "psi_row_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5720
+        },
+        "leaf_count": {
+          "enum": [
+            2,
+            6
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "candidate_count": {
+                "const": 32
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "leaf_count": {
+                "const": 2
+              },
+              "successful_count": {
+                "maximum": 32
+              },
+              "failed_count": {
+                "maximum": 32
+              },
+              "psi_row_count": {
+                "maximum": 2080
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "leaf_count": {
+                "const": 6
+              }
+            }
+          }
+        }
+      ]
+    },
+    "automatic_publish_allowed": {
+      "const": false
+    },
+    "automatic_order_allowed": {
+      "const": false
+    },
+    "operational_policy_approved": {
+      "const": false
+    },
+    "database_writes": {
+      "const": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "verification_level": {
+            "const": "ARTIFACT_INTEGRITY"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "source_recalculation_status": {
+            "const": "NOT_RUN"
+          },
+          "psi_recalculation_status": {
+            "const": "NOT_RUN"
+          },
+          "metrics_recalculation_status": {
+            "const": "NOT_RUN"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "source_recalculation_status": {
+            "const": "VERIFIED"
+          },
+          "psi_recalculation_status": {
+            "const": "VERIFIED"
+          },
+          "metrics_recalculation_status": {
+            "const": "VERIFIED"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"
+    }
+  }
+}

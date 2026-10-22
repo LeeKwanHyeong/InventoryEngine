@@ -1,0 +1,70 @@
+"""Closed two-table projection contract; no Runtime/Gate or approval authority."""
+
+HEADER_TABLE = "dsim.tb_io_segmentation_analysis"
+ITEM_TABLE = "dsim.tb_io_segmentation_analysis_item"
+VERSION = "1.0.0"
+SOURCE_KEY = "inventory.segmentation_analysis_source"
+PROJECTION_KEY = "inventory.segmentation_analysis_projection"
+
+HEADER_COLUMNS = (
+    ("segmentation_analysis_id", "UUID"),
+    ("classification_snapshot_id", "UUID"),
+    ("classification_content_hash", "CHAR(64)"),
+    ("analysis_method_id", "VARCHAR(32)"),
+    ("analysis_contract_version", "VARCHAR(16)"),
+    ("implementation_version", "VARCHAR(32)"),
+    ("rules_profile_id", "VARCHAR(64)"),
+    ("rules_profile_hash", "CHAR(64)"),
+    ("feature_snapshot_id", "VARCHAR(160)"),
+    ("feature_content_hash", "CHAR(64)"),
+    ("analysis_content_hash", "CHAR(64)"),
+    ("reference_calculator_build_hash", "CHAR(64)"),
+    ("decision_yyyyww", "CHAR(6)"),
+    ("history_start_yyyyww", "CHAR(6)"),
+    ("history_end_yyyyww", "CHAR(6)"),
+    ("master_as_of_date", "DATE"),
+    ("master_snapshot_revision", "VARCHAR(160)"),
+    ("calendar_snapshot_id", "VARCHAR(160)"),
+    ("input_cutoff", "TIMESTAMPTZ"),
+    ("universe_content_hash", "CHAR(64)"),
+    ("feature_source_bindings", "JSONB"),
+    ("source_artifact_reference", "TEXT"),
+    ("source_artifact_content_hash", "CHAR(64)"),
+    ("source_artifact_byte_hash", "CHAR(64)"),
+    ("item_count", "BIGINT"),
+    ("assigned_item_count", "BIGINT"),
+    ("unclassified_item_count", "BIGINT"),
+    ("projection_content_hash", "CHAR(64)"),
+    ("development_only", "BOOLEAN"),
+    ("operational_approved", "BOOLEAN"),
+)
+ITEM_COLUMNS = (
+    ("segmentation_analysis_id", "UUID"),
+    ("classification_snapshot_id", "UUID"),
+    ("item_id", "VARCHAR(160)"),
+    ("feature_status", "VARCHAR(16)"),
+    ("assignment_status", "VARCHAR(16)"),
+    ("history_observation_count", "INTEGER"),
+    ("mean_weekly_demand_qty", "NUMERIC"),
+    ("weekly_demand_stddev_qty", "NUMERIC"),
+    ("physical_lead_time_days", "INTEGER"),
+    ("unit_cost_usd", "NUMERIC"),
+    ("reference_rop_qty", "NUMERIC"),
+    ("rop_cover_numerator", "NUMERIC"),
+    ("rop_cover_denominator", "NUMERIC"),
+    ("rop_cover_months", "NUMERIC"),
+    ("rop_factor_code", "VARCHAR(2)"),
+    ("lead_factor_code", "VARCHAR(2)"),
+    ("price_factor_code", "VARCHAR(2)"),
+    ("factor_group_id", "VARCHAR(64)"),
+    ("search_group_id", "VARCHAR(160)"),
+    ("routing_score", "SMALLINT"),
+    ("candidate_profile_id", "VARCHAR(16)"),
+    ("range_source", "VARCHAR(24)"),
+    ("item_exception", "JSONB"),
+    ("primary_reason_code", "VARCHAR(64)"),
+    ("reason_codes", "JSONB"),
+    ("reference_evidence", "JSONB"),
+    ("row_content_hash", "CHAR(64)"),
+)
+TABLE_COLUMNS = {HEADER_TABLE: HEADER_COLUMNS, ITEM_TABLE: ITEM_COLUMNS}

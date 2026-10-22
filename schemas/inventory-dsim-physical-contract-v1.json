@@ -2078,7 +2078,7 @@
         }
       ],
       "checks": [
-        "(candidate_id IS NULL AND simulation_id = 'BASE') OR (candidate_id IS NOT NULL AND simulation_id = candidate_id)",
+        "(candidate_id IS NULL AND simulation_id IN ('BASE', 'SELECTED_ORDER_PLAN')) OR (candidate_id IS NOT NULL AND simulation_id = candidate_id AND simulation_id <> 'SELECTED_ORDER_PLAN')",
         "on_hand_boh_qty = boh_qty + reserved_qty",
         "available_qty = boh_qty + confirmed_supplier_receipt_qty + recommended_receipt_qty",
         "eoh_qty = available_qty - fulfilled_backorder_qty - fulfilled_confirmed_customer_order_qty - fulfilled_forecast_qty",
