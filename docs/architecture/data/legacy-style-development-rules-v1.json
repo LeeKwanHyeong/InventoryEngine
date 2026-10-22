@@ -1,0 +1,295 @@
+{
+  "lifecycle_status": "DEFINED_NOT_IMPLEMENTED",
+  "profile_content_hash": "a3121dfa885f8b4d2e0df54605789ad841661693b0f386329fe4fa60946ecbae",
+  "profile": {
+    "contract_id": "inventory-legacy-style-development-rules",
+    "contract_version": "1.0.0",
+    "profile_id": "LEGACY_STYLE_DEVELOPMENT_V1",
+    "method_id": "LEGACY_STYLE",
+    "evidence_basis": "DEVELOPMENT_ASSUMPTION",
+    "development_only": true,
+    "operational_approved": false,
+    "legacy_equivalence_verified": false,
+    "reference_feature_policy": {
+      "formula": "HISTORICAL_NORMAL_R_S_V1",
+      "lookback_weeks": 26,
+      "stddev_ddof": 0,
+      "reference_service_level": "0.95",
+      "reference_review_cycle_weeks": 1,
+      "lead_time_basis": "PHYSICAL_SOURCE_ONLY",
+      "lead_time_mapping": "CEIL_CALENDAR_WEEKS",
+      "quantity_uom": "EA",
+      "reference_quantity_scale": 0,
+      "month_basis": "52_WEEKS_PER_YEAR",
+      "decimal_precision": 40,
+      "decimal_rounding": "ROUND_HALF_EVEN",
+      "quantity_rounding": "SEQUENTIAL_UOM_CEILING",
+      "coverage_comparison": "EXACT_CROSS_MULTIPLICATION",
+      "forecast_or_realized_future_features_allowed": false,
+      "approved_override_or_legacy_fallback_features_allowed": false
+    },
+    "factors": {
+      "rop_cover_months": {
+        "unit": "MONTH",
+        "cut_values": [
+          "0.5",
+          "1.5"
+        ],
+        "codes": [
+          "R1",
+          "R2",
+          "R3"
+        ],
+        "lower_bound_inclusive": true,
+        "rank_scores": [
+          0,
+          1,
+          2
+        ]
+      },
+      "physical_lead_time_days": {
+        "unit": "DAY",
+        "cut_values": [
+          14,
+          42
+        ],
+        "codes": [
+          "L1",
+          "L2",
+          "L3"
+        ],
+        "minimum": 0,
+        "maximum": 3660,
+        "integer_only": true,
+        "lower_bound_inclusive": true,
+        "rank_scores": [
+          0,
+          1,
+          2
+        ]
+      },
+      "unit_cost": {
+        "unit": "USD_PER_EA",
+        "cut_values": [
+          "10",
+          "100"
+        ],
+        "codes": [
+          "P1",
+          "P2",
+          "P3"
+        ],
+        "minimum_exclusive": "0",
+        "maximum": "1000000000000",
+        "maximum_age_days": 91,
+        "automatic_fx_conversion_allowed": false,
+        "lower_bound_inclusive": true,
+        "rank_scores": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "routing": {
+      "group_id_template": "LS1:{rop_code}-{lead_code}-{price_code}",
+      "score_formula": "ROP_RANK_PLUS_LEAD_RANK_MINUS_PRICE_RANK",
+      "profile_rules": [
+        {
+          "maximum_score": 0,
+          "profile_id": "SMALL"
+        },
+        {
+          "maximum_score": 2,
+          "profile_id": "MEDIUM"
+        },
+        {
+          "maximum_score": null,
+          "profile_id": "LARGE"
+        }
+      ],
+      "maximum_factor_groups": 27,
+      "empty_or_small_groups_merged": false,
+      "abc_xyz_used_as_routing_feature": false
+    },
+    "candidate_profiles": {
+      "SMALL": {
+        "policy_kinds": [
+          "ROP_FIXED_Q",
+          "PERIODIC_ORDER_UP_TO"
+        ],
+        "rmos_values": [
+          "0",
+          "0.5"
+        ],
+        "emos_values": [
+          "0.25",
+          "0.5"
+        ],
+        "service_level_values": [
+          "0.95",
+          "0.99"
+        ],
+        "review_cycle_weeks": [
+          1,
+          2
+        ]
+      },
+      "MEDIUM": {
+        "policy_kinds": [
+          "ROP_FIXED_Q",
+          "PERIODIC_ORDER_UP_TO"
+        ],
+        "rmos_values": [
+          "0",
+          "1.5"
+        ],
+        "emos_values": [
+          "0.5",
+          "1"
+        ],
+        "service_level_values": [
+          "0.95",
+          "0.99"
+        ],
+        "review_cycle_weeks": [
+          1,
+          3
+        ]
+      },
+      "LARGE": {
+        "policy_kinds": [
+          "ROP_FIXED_Q",
+          "PERIODIC_ORDER_UP_TO"
+        ],
+        "rmos_values": [
+          "0",
+          "3"
+        ],
+        "emos_values": [
+          "1",
+          "2"
+        ],
+        "service_level_values": [
+          "0.95",
+          "0.99"
+        ],
+        "review_cycle_weeks": [
+          1,
+          4
+        ]
+      }
+    },
+    "candidate_semantics": {
+      "formula_profile": "MONTHLY_COVER_SEARCH_V1_NOT_LEGACY_EOQ",
+      "rmos": "MONTHLY_ROP_COVERAGE_LOWER_BOUND",
+      "emos": "MONTHLY_BASE_ORDER_Q_COVERAGE_NOT_Q_OVER_2",
+      "reference_rop_replaces_candidate_rop": false,
+      "ved_floor_and_sde_hml_fsn_plc_controls_unchanged": true,
+      "source_constraints_and_approved_override_precedence_unchanged": true
+    },
+    "feature_source_rules": {
+      "allowed_evidence_kinds": [
+        "OBSERVED_PINNED",
+        "SYNTHETIC_PINNED"
+      ],
+      "unknown_evidence_kind": "UNVERIFIED",
+      "content_hash_verification_required": true,
+      "source_kind_changes_operational_eligibility": false,
+      "history_quantity_semantics": "UNCENSORED_DEMAND",
+      "historical_calendar_must_end_before_w0": true,
+      "price_as_of_must_not_exceed_master_as_of_date": true,
+      "source_available_at_must_not_exceed_input_cutoff": true,
+      "reserved_or_available_inventory_is_not_a_feature": true
+    },
+    "missing_data": {
+      "zero_fill_missing_history": false,
+      "impute_missing_price_or_lead_time": false,
+      "force_abc_xyz_grade": false,
+      "fallback_profile_id": null,
+      "preserve_baseline_and_all_reason_codes": true,
+      "primary_reason_order": [
+        "LS_INVALID_FEATURE_VALUE",
+        "LS_MISSING_REQUIRED_FACTOR",
+        "LS_HISTORY_INCOMPLETE",
+        "LS_SOURCE_UNVERIFIED",
+        "LS_UNSUPPORTED_UOM",
+        "LS_CURRENCY_MISMATCH",
+        "LS_FUTURE_OR_STALE_FEATURE",
+        "LS_NON_POSITIVE_UNIT_COST",
+        "LS_ZERO_MEAN_DEMAND",
+        "LS_REFERENCE_ROP_UNAVAILABLE"
+      ],
+      "run_failure_reasons": [
+        "LS_RULES_HASH_MISMATCH",
+        "LS_SOURCE_BINDING_MISMATCH",
+        "LS_SCOPE_OR_W0_MISMATCH",
+        "LS_DUPLICATE_ITEM",
+        "LS_ORPHAN_ITEM",
+        "LS_OVERRIDE_DUPLICATE",
+        "LS_OVERRIDE_INVALID"
+      ]
+    },
+    "item_exception_rules": {
+      "scope": "COMPANY_SUBS_SITE_ITEM",
+      "profile_choices": [
+        "SMALL",
+        "MEDIUM",
+        "LARGE"
+      ],
+      "override_reason_required": true,
+      "source_revision_required": true,
+      "effective_interval": "START_INCLUSIVE_END_EXCLUSIVE",
+      "missing_factor_bypass_allowed": false,
+      "operational_override_allowed": false,
+      "group_id_template": "LS1:ITEM:{scope_item_sha256}",
+      "default_item_exceptions": []
+    },
+    "comparison": {
+      "mode": "OFFLINE_EQUAL_CANDIDATE_BUDGET",
+      "abc_profile_by_xyz": {
+        "X": "SMALL",
+        "Y": "MEDIUM",
+        "Z": "LARGE"
+      },
+      "existing_abc_configuration_or_previous_experiment_changed": false,
+      "narrow_candidates_per_item": 32,
+      "wide_reference": "EXACT_SEMANTIC_UNION_OF_SHARED_PROFILES",
+      "unique_wide_candidates_per_item": 88,
+      "raw_profile_expansions_before_dedup_per_item": 96,
+      "implicit_cartesian_superset_allowed": false,
+      "minimum_fill_rate": "0.95",
+      "ending_backorder_qty_required": "0",
+      "cost_missing_status": "COST_PROFILE_NOT_BOUND",
+      "no_demand_status": "NO_DEMAND_IN_HORIZON",
+      "selection_rule": "EXISTING_SERVICE_COST_INVENTORY_ORDER_COUNT_CANDIDATE_ID",
+      "policy_semantic_key_fields": [
+        "policy_kind",
+        "rmos",
+        "emos",
+        "target_service_level",
+        "review_cycle_weeks"
+      ],
+      "semantic_key_replaces_existing_candidate_id": false,
+      "holdout_reselection_allowed": false,
+      "parameter_tuning_on_holdout_allowed": false,
+      "input_guard_and_gate_hashes_must_match_across_arms": true,
+      "maximum_observation_work": 200000,
+      "work_formula": "UNIVERSE_SIZE_TIMES_UNIQUE_CANDIDATES_TIMES_H_TIMES_H_PLUS_1_OVER_2",
+      "initial_horizon_weeks": 13,
+      "initial_maximum_total_items": 8,
+      "optional_cost_sensitivity": "SEPARATE_SHARED_SCENARIO_NOT_ROUTING_FEATURE",
+      "new_untouched_holdout_required": true,
+      "previous_experiment_holdout_is_not_new_holdout": true
+    },
+    "compatibility": {
+      "contract_scope": "DOCUMENTED_INTERNAL_OFFLINE_PROFILE_NOT_ACTIVE_CONFIG",
+      "persisted_config_schema_changed": false,
+      "existing_run_or_snapshot_hash_projection_changed": false,
+      "current_abc_mandatory_gate_removed": false,
+      "native_offline_candidate_catalog_runner_implemented": false,
+      "legacy_group_cast_to_abc_segment_allowed": false,
+      "group_assignment_means_operational_admission": false
+    }
+  }
+}

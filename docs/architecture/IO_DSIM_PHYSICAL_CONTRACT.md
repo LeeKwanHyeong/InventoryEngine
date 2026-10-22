@@ -4,6 +4,19 @@
 
 대상: InventoryEngine `inventory_engine_dev` · dsai-platform `codex/inventory-psi-strategy-v2`.
 
+## 2026-10-21 선정 PSI·Writer 후속 보완
+
+[선정 PSI 정합화](IO_SELECTED_PSI_WRITER_ALIGNMENT.md)를 Offline으로 완료했다.
+선정 PSI CHECK/Trigger와 Platform 목표 Reader 주입을 보완했으며 결과 ID·Hash·행 데이터는 보존했다.
+물리 Catalog/새 Manifest 지문만 변경했다. 실제 DB 적용·적재·기본 Runtime 활성화는 하지 않았다.
+
+## 2026-10-21 실제 DB 읽기 전용 대사
+
+[최신 적재 범위 대사](IO_INDEPENDENT_PROJECTION_DB_RECONCILIATION.md)를 완료했다.
+21개 결과 테이블·4개 Domain은 미존재이며 기존 분석/비용 테이블은 재사용한다.
+선정 PSI의 SQL CHECK/Trigger와 Platform Reader 조립 보완이 먼저 필요하다.
+DB 변경·Canary·실제 Write는 하지 않았다. 아래 2026-10-15 내용은 당시 설계/검증 이력이다.
+
 ## 최신 구현 상태 — 2026-10-15
 
 [Projection Writer·Verifier](IO_DSIM_PROJECTION_WRITER_VERIFIER.md)는 로컬 구현·Offline 검증을 완료했다.

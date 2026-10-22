@@ -1,0 +1,188 @@
+{
+  "evidence_date": "2026-10-21",
+  "scope": "InventoryEngine calculation-role, Canonical mapping and Guard-boundary declarations only",
+  "status": "CONTRACT_AND_DOCUMENTATION_VERIFIED_EXECUTION_NOT_CONNECTED",
+  "baseline": {
+    "repository": "/Users/igwanhyeong/PycharmProjects/InventoryEngine",
+    "branch": "inventory_engine_dev",
+    "head": "99f2f1286d90dfe0e26025e603786a813ea51dac"
+  },
+  "preservation": {
+    "preexisting_files_checked": 602,
+    "missing_preexisting_files": [],
+    "changed_preexisting_files": [
+      "docs/architecture/IO_DEVELOPMENT_BASELINE.md",
+      "docs/architecture/IO_LEGACY_PYTHONNET_EXPERIMENT.md",
+      "docs/architecture/IO_SELECTED_POLICY_ORDER_PLAN_CONTRACT.md"
+    ],
+    "all_preexisting_calculation_contract_schema_test_script_files_unchanged": true
+  },
+  "artifact_sha256": {
+    "docs/architecture/IO_CALCULATION_BOUNDARY_CONTRACT.md": "b7fc3ea9a242001b908d7d091911eacbb8cd867cfddef20f3462feed6c1b45de",
+    "docs/architecture/IO_DEVELOPMENT_BASELINE.md": "bab34df875f6a806b6beab4238fae9a4fac3d74c1a2992089ffcdb75f85784e3",
+    "docs/architecture/IO_LEGACY_PYTHONNET_EXPERIMENT.md": "200818d112f8e11cbf7a4a1ded66174f3047080bbd2e579072036b478c271d4b",
+    "docs/architecture/IO_SELECTED_POLICY_ORDER_PLAN_CONTRACT.md": "89092fbdc3fb8f1876fb42dd521485f43f496f19c4a1b1c09029de9d1edf1db8",
+    "schemas/inventory_calculation_boundary_binding.schema.json": "5b8186a0a8e5e48cfd6d1b18e5660212001c8b5c19398891fd86898f6ba6eaa6",
+    "src/dsio_inventory_engine/inventory_contracts/calculation_boundary.py": "abbc034cfa9395a05bfeb78d1fbfb6d5121bb79fce67d77e8ddbf33edf741b12",
+    "tests/contract/test_calculation_boundary_contract.py": "989fd3d167d833af6068d74499c60d263196abb98b6e227aabc399cee790b1db"
+  },
+  "main_document_links": [
+    {
+      "target": "../../src/dsio_inventory_engine/inventory_contracts/calculation_boundary.py",
+      "exists": true,
+      "pending_evidence_creation": false
+    },
+    {
+      "target": "../../schemas/inventory_calculation_boundary_binding.schema.json",
+      "exists": true,
+      "pending_evidence_creation": false
+    },
+    {
+      "target": "../../tests/contract/test_calculation_boundary_contract.py",
+      "exists": true,
+      "pending_evidence_creation": false
+    },
+    {
+      "target": "evidence/calculation-boundary-contract-verification-20261021.json",
+      "exists": true,
+      "pending_evidence_creation": false
+    }
+  ],
+  "schema_top_level_field_count": 14,
+  "declaration": {
+    "contract_id": "inventory-calculation-boundary-binding",
+    "contract_version": "1.0.0",
+    "execution_mode": "CALCULATION_ONLY",
+    "backends": [
+      "CSHARP_PYTHONNET",
+      "PYTHON_EXISTING",
+      "PYTHON_REFERENCE"
+    ],
+    "semantics_profiles": [
+      "LEGACY_REPLAY",
+      "TARGET_GUARDED"
+    ],
+    "guard_orders": {
+      "LEGACY_REPLAY": "DIAGNOSTIC_POSTCHECK_NO_MUTATION",
+      "TARGET_GUARDED_BASELINE": "NO_NEW_ACTIONS",
+      "TARGET_GUARDED_RECOMMENDED": "VALIDATE_BEFORE_STATE_COMMIT"
+    },
+    "reuses_existing_run_snapshot_prepared_config_and_build_references": true,
+    "creates_additional_run_snapshot_or_binding_ids": false,
+    "creates_additional_binding_content_hash": false,
+    "validates_source_reference_consistency": true,
+    "replaces_existing_projection_cutoff_scope_model_or_gate_validation": false,
+    "executable_backend_registration": false,
+    "current_legacy_dll_supports_target_profile": false
+  },
+  "tests": {
+    "new_contract": {
+      "passed": 81,
+      "elapsed_seconds": 0.58,
+      "target": "tests/contract/test_calculation_boundary_contract.py",
+      "note": "Included in the main related regression below; not an additional independent 81 tests."
+    },
+    "related_regression": {
+      "passed": 610,
+      "subtests_passed": 102,
+      "elapsed_seconds": 27.1,
+      "targets": [
+        "tests/contract/test_calculation_boundary_contract.py",
+        "tests/unit/test_legacy_pythonnet.py",
+        "tests/unit/test_legacy_benchmark.py",
+        "tests/unit/test_legacy_python_semantics.py",
+        "tests/unit/test_legacy_reference.py",
+        "tests/integration/test_legacy_python_semantics_offline.py",
+        "tests/integration/test_native_legacy_reference_offline.py",
+        "tests/integration/test_legacy_reference_offline.py",
+        "tests/contract/test_legacy_python_semantics_contract.py",
+        "tests/unit/test_replenishment.py",
+        "tests/contract/test_replenishment_contract.py",
+        "tests/unit/test_seven_axis_segmentation.py",
+        "tests/unit/test_segmentation_adapters.py",
+        "tests/contract/test_segmentation_compatibility_contract.py",
+        "tests/unit/test_policy_search.py",
+        "tests/unit/test_policy_selection.py",
+        "tests/integration/test_policy_search_offline.py",
+        "tests/integration/test_policy_selection_offline.py",
+        "tests/unit/test_candidate_catalog.py",
+        "tests/integration/test_catalog_search_offline.py",
+        "tests/unit/test_catalog_policy_selection.py",
+        "tests/integration/test_catalog_policy_selection_offline.py",
+        "tests/unit/test_selected_order_plan.py",
+        "tests/unit/test_selected_policy_order_plan_binding.py",
+        "tests/contract/test_selected_policy_order_plan_contract.py",
+        "tests/integration/test_selected_order_plan_offline.py",
+        "tests/unit/test_mathematical_policy.py",
+        "tests/contract/test_mathematical_contract.py",
+        "tests/contract/test_canonical_contract.py",
+        "tests/unit/test_development_input.py"
+      ]
+    },
+    "additional_regression": {
+      "passed": 48,
+      "subtests_passed": 56,
+      "elapsed_seconds": 1,
+      "targets": [
+        "tests/unit/test_baseline_psi.py",
+        "tests/unit/test_canonical_v2.py",
+        "tests/integration/test_baseline_cli_offline.py",
+        "tests/integration/test_mathematical_cli_offline.py",
+        "tests/contract/test_inventory_canonical_context_binding_contract.py"
+      ],
+      "note": "A separate invocation with distinct test files; duration is not combined with the main regression."
+    },
+    "static": {
+      "ruff_check": "PASSED: src tests scripts",
+      "ruff_format_check": "PASSED: 394 files already formatted",
+      "json_schema_consistency": "Covered by the new contract tests",
+      "git_diff_check": "PASSED"
+    },
+    "coverage": [
+      "Strict Python/JSON Schema profile, backend, scenario, guard-order and implementation-version parity",
+      "All eight SEALED Source snapshot hashes, row counts and exact binding references",
+      "Separate Run identity because Canonical input hash excludes engine_run_id",
+      "Plan/Site/W0/Config, source, prepared/build/strategy input tampering rejection",
+      "Canonical V1/V2/V2.1 and original upstream forecast reference preservation",
+      "No new publication permission fields and no implicit calculator/CLR imports",
+      "Deterministic declaration and caller data immutability",
+      "Related existing Python calculation, selection, FSN/segmentation and order-plan regression"
+    ],
+    "not_run": [
+      "Full repository test suite",
+      "New C# DLL compilation or execution",
+      "New Python.NET performance or memory benchmark",
+      "Coverage measurement",
+      "Independent review"
+    ]
+  },
+  "preserved_boundaries": {
+    "existing_improved_python_calculations": true,
+    "existing_python_legacy_reference": true,
+    "existing_pythonnet_adapter_and_csharp_sources": true,
+    "existing_canonical_replenishment_result_bundle_contracts": true,
+    "existing_fsn_configuration_and_operational_gates": true,
+    "preexisting_golden_and_evidence_files": true,
+    "personal_reports_and_environment_settings": true,
+    "platform_code": true,
+    "database_and_runtime": true,
+    "forecasts": true
+  },
+  "not_performed": [
+    "Actual Canonical-to-C# input/output conversion",
+    "Target C# state transition or external-action interface implementation",
+    "Runtime/Run Plan/Result Bundle backend registration or execution wiring",
+    "Artifact writer or database projection wiring",
+    "Database access/write/migration",
+    "Dependency installation",
+    "Deployment or runtime restart",
+    "Forecast execution or actual orders",
+    "Git commit/push or branch changes"
+  ],
+  "next_work": [
+    "Formal C# DLL interfaces and explicit Canonical/legacy-parameter Adapter with precision and coverage checks",
+    "Guard-before-state-commit integration and same-profile/build candidate evaluation, selection and order planning",
+    "Existing artifact storage/read/recovery and independent IO verification before Platform/Demand integration"
+  ],
+  "approval_boundary": "Database writes/migrations and shared Runtime deployments require separate explicit approval."
+}

@@ -1,0 +1,95 @@
+{
+  "status": "PASSED_WITH_EXPLICIT_SCOPE_LIMITS",
+  "branch": "inventory_engine_dev",
+  "head": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+  "full_output_files": 198,
+  "full_output_rows": 2800512,
+  "binary_bytes_retained": 369678672,
+  "mismatches": 0,
+  "original_payload_hashes_preserved": true,
+  "raw_result_json_recomputed": true,
+  "existing_files_checked": 586,
+  "existing_modified_files": [
+    "docs/architecture/IO_DEVELOPMENT_BASELINE.md"
+  ],
+  "existing_calculation_schemas_and_tests_unchanged": true,
+  "tests": {
+    "new_unit_passed": 25,
+    "related_regression_passed": 489,
+    "related_subtests_passed": 51,
+    "related_seconds": 27.11,
+    "full_suite": false
+  },
+  "static": {
+    "ruff": "PASSED",
+    "format": "392 files already formatted",
+    "git_diff_check": "PASSED"
+  },
+  "interruption": {
+    "pre_cancelled": "PASSED",
+    "timer_cancel_seconds": 0.10596966699813493,
+    "worker_termination_and_fresh_recompute": [
+      {
+        "kind": "sigterm",
+        "status": "PASSED",
+        "exit_code": 143,
+        "ready_seconds": 0.3065466669941088,
+        "stop_seconds": 0.11347929199109785,
+        "deadline_seconds": null,
+        "recovery": {
+          "status": "PASSED",
+          "sha256": "13f50b6ffcf5294cd6ebc21368bf25634d198ad8ddd37698ff9c5208b5101ec7"
+        }
+      },
+      {
+        "kind": "hard_timeout",
+        "status": "PASSED",
+        "exit_code": -9,
+        "ready_seconds": 0.3198195839941036,
+        "stop_seconds": 0.003910207989974879,
+        "deadline_seconds": 0.15,
+        "recovery": {
+          "status": "PASSED",
+          "sha256": "13f50b6ffcf5294cd6ebc21368bf25634d198ad8ddd37698ff9c5208b5101ec7"
+        }
+      },
+      {
+        "kind": "sigkill",
+        "status": "PASSED",
+        "exit_code": -9,
+        "ready_seconds": 0.3171585009986302,
+        "stop_seconds": 0.003393291000975296,
+        "deadline_seconds": null,
+        "recovery": {
+          "status": "PASSED",
+          "sha256": "13f50b6ffcf5294cd6ebc21368bf25634d198ad8ddd37698ff9c5208b5101ec7"
+        }
+      }
+    ]
+  },
+  "preserved": [
+    "EXISTING_IMPROVED_PYTHON",
+    "EXISTING_REFERENCE_PYTHON",
+    "FSN",
+    "OPERATIONAL_GATES",
+    "DB",
+    "PLATFORM",
+    "PUBLIC_RUNTIME",
+    "PERSONAL_REPORTS_AND_ENVIRONMENT"
+  ],
+  "not_performed": [
+    "CANONICAL_RUNTIME_BINDING",
+    "DB_OR_EVIDENCE_PUBLICATION",
+    "CHECKPOINT_RESUME",
+    "LONG_RUNNING_MEMORY_SOAK",
+    "INDEPENDENT_AGENT_REVIEW",
+    "COVERAGE",
+    "COMMIT",
+    "PUSH",
+    "DEPLOYMENT"
+  ],
+  "evidence_sha256": {
+    "legacy-pythonnet-experiment-preparation-20261021.json": "c4fa294b3d52ac49c153c9106c9cb32423ec8c41a5320e5172c54abca4407ec5",
+    "legacy-pythonnet-experiment-results-20261021.json": "a2adc095e4af1e726d51cdb03a58290beb31bfc08c28007ae7ac1cbdfcfbf802"
+  }
+}

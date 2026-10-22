@@ -2,6 +2,9 @@
 
 기준일: 2026-10-15 · InventoryEngine `inventory_engine_dev` / Platform `codex/inventory-psi-strategy-v2`.
 
+> 2026-10-21 후속: [선정 PSI·Platform Writer](IO_SELECTED_PSI_WRITER_ALIGNMENT.md)의 SQL 규칙과 같은 Reader 주입을 보완했다.
+> 원 결과 ID/Hash·행 데이터는 보존하며 Catalog/새 Manifest 지문은 구분한다. 실제 DB 적재와 기본 Runtime 활성화는 하지 않았다.
+
 > 최신 추가: [Source·설치 Build·Projection 실행 조립](IO_DSIM_SOURCE_EXECUTION.md)을 완료했다.
 > 분석 OFF 실행의 별도 분류 Header 봉인/Resolver와 설치 Build 대사 항목은 해소했다.
 > 아래 기존 수치는 Writer 검증 이력이며 실제 DB 미적용·Runtime 기본 미활성 경계는 유지한다.

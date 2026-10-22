@@ -1,0 +1,282 @@
+{
+  "contract_id": "inventory-robustness-immutable-preparation-verification",
+  "contract_version": "1.0.0",
+  "date": "2026-10-20",
+  "repository": "InventoryEngine",
+  "branch": "inventory_engine_dev",
+  "base_head": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+  "scope": "LOCAL_OFFLINE_HAND_CASES_ONLY",
+  "implementation": {
+    "preparation_key": [
+      "deployment_company_and_environment",
+      "actual_full_recommendation_document_json",
+      "actual_canonical_source_json",
+      "actual_canonical_source_request_json",
+      "expected_source_hash"
+    ],
+    "retained_value": "internally_validated_immutable_JSON_strings_and_hashes",
+    "candidate_checkout": "fresh_JSON_dicts_and_lists; effective_policy_admission_and_all_state_transitions_recomputed",
+    "max_retained_slots": 1,
+    "max_retained_utf8_bytes": 128000000,
+    "overflow": "compute_without_retaining_valid_inputs",
+    "lifetime": "one_Catalog_execution_context; no_cross_process_or_cross_build_cache",
+    "candidate_strategy_or_dynamic_state_cached": false,
+    "realization_cached_or_exposed_to_strategy": false,
+    "input_hash_meaning": "unchanged_digest_of_execution; computed_once_per_candidate",
+    "durable_full_actual_replay_preserved": true,
+    "v1_v2_v3_storage_code_or_format_changed": false,
+    "fast_read_separate_from_actual_replay_implemented": false
+  },
+  "verification": {
+    "new_unit_tests": 10,
+    "new_contract_tests": 1,
+    "new_offline_integration_tests": 7,
+    "focused_tests": {
+      "new_tests_passed": 18,
+      "existing_related_passed": 51
+    },
+    "checks": [
+      "distinct_objects_same_content",
+      "detached_policies_calendar_demands_positions_receipts",
+      "source_tamper_same_claimed_hash",
+      "source_request_change",
+      "expected_hash_change",
+      "invalid_request_version",
+      "deployment_scope_change",
+      "policy_control_change",
+      "single_slot_invalidation",
+      "retained_size_overflow_without_reuse",
+      "production_and_bad_flags_rejected",
+      "all_32_32_88_candidate_original_bytes_and_hashes",
+      "reversed_leaf_order_and_returned_result_mutation",
+      "FSN_BLOCK_REVIEW_and_failure_denominator",
+      "actual_1040_strategy_calls_per_16_candidate_leaf_replay",
+      "wrong_realization_binding_rejected"
+    ],
+    "full_regression": {
+      "status": "PASSED",
+      "passed": 1609,
+      "skipped": 9,
+      "warnings": 3,
+      "subtests_passed": 669,
+      "seconds": 735.4,
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.:src:tests:tests/support DSAI_PLATFORM_ROOT=/Users/igwanhyeong/PycharmProjects/dsai-platform /Users/igwanhyeong/PycharmProjects/dsai-platform/backend/.venv/bin/python -m pytest -q -p no:cacheprovider tests/unit tests/contract tests/integration/*offline.py",
+      "warning_class": "existing_StarletteDeprecationWarning"
+    },
+    "static": {
+      "ruff": "PASSED",
+      "format_python_files": 342,
+      "json_schemas_valid": 37,
+      "diff_check": "PASSED",
+      "manual_local_document_references": {
+        "checked": 6,
+        "missing": []
+      }
+    },
+    "limitations": [
+      "coverage_bandit_mypy_unavailable",
+      "no_independent_agent_review",
+      "oma_docs_CLI_and_shared_core_references_unavailable; manual_local_reference_check"
+    ]
+  },
+  "performance": {
+    "output_root": "/private/tmp/inventory-preparation-comparison-20261020.UW8he3",
+    "spec_hash": "7ba5a1e2de445b4286903cdb9eac65f28e1ea2218efdb80de71946a574d1c8ef",
+    "source_hash": "10b56c0ebbcc2b2395291ecbc8203c8dde77cb6df628152df58d71bed49ba95a",
+    "status": "COMPLETE",
+    "trial_count": 18,
+    "manual_w0": "2055-01-04",
+    "manual_path_id": "HAND-CATALOG-PATH",
+    "manual_seed": 71,
+    "horizon_weeks": 65,
+    "repetitions_per_variant": 3,
+    "cpu_workers": 1,
+    "fresh_process_per_trial": true,
+    "os_cache_cleared": false,
+    "includes_storage_read_or_recovery_timings": false,
+    "contrast": "both_variants_include_input_hash_hoisting; isolates_preparation_slot_reuse_not_old_commit_speed",
+    "preparation_calls_without_reuse": [
+      32,
+      32,
+      88
+    ],
+    "preparation_calls_with_reuse": [
+      1,
+      1,
+      1
+    ],
+    "unchanged_results": {
+      "ABC_XYZ_SHARED_BUDGET": "a04d8830ff370b3717dff144042abfcc9a4d6d882a4b10d60f415de851277ee7",
+      "LEGACY_STYLE": "fbd77610f2019fb44b68dbf12a3667dbe6f31238e2d428909355bc7e7f1c67c6",
+      "WIDE_REFERENCE": "0c2a92d7fdd6d835a665d3c2bf1a4865b0fe797e0851e0a9268750fbfa31759b"
+    },
+    "summaries": {
+      "ABC_XYZ_SHARED_BUDGET": {
+        "IMMUTABLE_REUSE": {
+          "max_peak_rss_bytes": 390987776,
+          "median_peak_rss_bytes": 341442560,
+          "median_phase_nanoseconds": {
+            "ASSEMBLY_AND_EVALUATION": 370239167,
+            "CANDIDATE_COMPUTE_INCLUDING_PREPARATION": 3251565542,
+            "CONTEXT_PREPARATION": 106627208
+          },
+          "median_preparation_subphase_nanoseconds": 18740751,
+          "median_total_nanoseconds": 3727993333,
+          "min_peak_rss_bytes": 339722240
+        },
+        "PREPARATION_EACH_CANDIDATE": {
+          "max_peak_rss_bytes": 414220288,
+          "median_peak_rss_bytes": 380715008,
+          "median_phase_nanoseconds": {
+            "ASSEMBLY_AND_EVALUATION": 374456834,
+            "CANDIDATE_COMPUTE_INCLUDING_PREPARATION": 3665748417,
+            "CONTEXT_PREPARATION": 107155667
+          },
+          "median_preparation_subphase_nanoseconds": 422224835,
+          "median_total_nanoseconds": 4144762542,
+          "min_peak_rss_bytes": 343228416
+        }
+      },
+      "LEGACY_STYLE": {
+        "IMMUTABLE_REUSE": {
+          "max_peak_rss_bytes": 517668864,
+          "median_peak_rss_bytes": 490684416,
+          "median_phase_nanoseconds": {
+            "ASSEMBLY_AND_EVALUATION": 368055583,
+            "CANDIDATE_COMPUTE_INCLUDING_PREPARATION": 3346992291,
+            "CONTEXT_PREPARATION": 107124791
+          },
+          "median_preparation_subphase_nanoseconds": 19384374,
+          "median_total_nanoseconds": 3823531083,
+          "min_peak_rss_bytes": 344670208
+        },
+        "PREPARATION_EACH_CANDIDATE": {
+          "max_peak_rss_bytes": 495009792,
+          "median_peak_rss_bytes": 376946688,
+          "median_phase_nanoseconds": {
+            "ASSEMBLY_AND_EVALUATION": 383069625,
+            "CANDIDATE_COMPUTE_INCLUDING_PREPARATION": 3766173500,
+            "CONTEXT_PREPARATION": 107737625
+          },
+          "median_preparation_subphase_nanoseconds": 432278248,
+          "median_total_nanoseconds": 4256650167,
+          "min_peak_rss_bytes": 337362944
+        }
+      },
+      "WIDE_REFERENCE": {
+        "IMMUTABLE_REUSE": {
+          "max_peak_rss_bytes": 946749440,
+          "median_peak_rss_bytes": 783040512,
+          "median_phase_nanoseconds": {
+            "ASSEMBLY_AND_EVALUATION": 1014987125,
+            "CANDIDATE_COMPUTE_INCLUDING_PREPARATION": 8995484291,
+            "CONTEXT_PREPARATION": 119182875
+          },
+          "median_preparation_subphase_nanoseconds": 32029041,
+          "median_total_nanoseconds": 10129656833,
+          "min_peak_rss_bytes": 766263296
+        },
+        "PREPARATION_EACH_CANDIDATE": {
+          "max_peak_rss_bytes": 986628096,
+          "median_peak_rss_bytes": 971358208,
+          "median_phase_nanoseconds": {
+            "ASSEMBLY_AND_EVALUATION": 1028566250,
+            "CANDIDATE_COMPUTE_INCLUDING_PREPARATION": 10203975208,
+            "CONTEXT_PREPARATION": 119438208
+          },
+          "median_preparation_subphase_nanoseconds": 1189602708,
+          "median_total_nanoseconds": 11351871125,
+          "min_peak_rss_bytes": 818724864
+        }
+      }
+    },
+    "interpretation": "manual_case_median_total_time_decreased_10.1_10.2_10.8_percent; peak_RSS_not_consistently_lower; no_policy_outperformance_or_full_study_resource_claim",
+    "metadata_file_count": 20,
+    "metadata_raw_and_physical_bytes": 73905,
+    "append_only_report_sha256": {
+      "1-LEGACY_STYLE-IMMUTABLE_REUSE/trial.json": "f56ac041dd799f21dce4d7777db51605eb4555be9ad7cd38642e7224ab3c7877",
+      "2-WIDE_REFERENCE-PREPARATION_EACH_CANDIDATE/trial.json": "9715cb28399ce41e6eefe71e80f698e14a0a5d87cff89b5bb0a2935596d5f550",
+      "3-ABC_XYZ_SHARED_BUDGET-IMMUTABLE_REUSE/trial.json": "a0ffbe9c0aae331316578caac1e328eaa0b6b7d6bbab0bd2fae85808c3120344",
+      "2-LEGACY_STYLE-IMMUTABLE_REUSE/trial.json": "307eaf1f62176fe4ee2016ad67f3134a5f81e0fa7f2c1711c3f91e152983d969",
+      "2-ABC_XYZ_SHARED_BUDGET-IMMUTABLE_REUSE/trial.json": "0cc263b325313d196718344dc2b5ffe9531f5bb4940e4c9cdf0ddb560ed8a0c7",
+      "1-ABC_XYZ_SHARED_BUDGET-IMMUTABLE_REUSE/trial.json": "9b4809b24860af3b2c303e77400c68936f6a77a08750941de8e3a07e1a60fc27",
+      "3-WIDE_REFERENCE-IMMUTABLE_REUSE/trial.json": "6f21adaba2a7c1e732e26eaff9240f9d9a6f206f46bb0e6927d29f060629c7a5",
+      "3-WIDE_REFERENCE-PREPARATION_EACH_CANDIDATE/trial.json": "f5ee7ec7a9ac3e5d1cd6834f260717887363ebaf781562918229e2467c8087e7",
+      "2-WIDE_REFERENCE-IMMUTABLE_REUSE/trial.json": "1ae46f9d1b6dc04dfa67482e3e6c7973f3c43168c5e5b6a88df012cbfb9b0ba2",
+      "2-ABC_XYZ_SHARED_BUDGET-PREPARATION_EACH_CANDIDATE/trial.json": "00ec76e64567d80c782d3b34cc8ccd4d3bb31a294d5798d7680cdf9d50067d15",
+      "1-LEGACY_STYLE-PREPARATION_EACH_CANDIDATE/trial.json": "9a5f635e3b6709a4690a74e66df534d07bab6bbace06b3d7a62dd916be28c65a",
+      "complete.json": "0f9a71a9cc6008d706cd51bebea2be7b66550dd298f4d1f71d3eb8f60de560d2",
+      "1-WIDE_REFERENCE-IMMUTABLE_REUSE/trial.json": "83f08b7948ae0ee83918155916c94ec0dc411414cc21e91db4896658d2985499",
+      "2-LEGACY_STYLE-PREPARATION_EACH_CANDIDATE/trial.json": "ce064e8458b2bc93dcd91e5759cc0757b1ff56e43469cd5ebd35aaf942071fc0",
+      "3-LEGACY_STYLE-PREPARATION_EACH_CANDIDATE/trial.json": "162fe807e3ddf50b0df8ff1035573f6d95db8a6331bb1f9d9251813b54b14bcf",
+      "1-WIDE_REFERENCE-PREPARATION_EACH_CANDIDATE/trial.json": "e818639f908a83656a006624f436c4eb76a072aa80c55df53a4b134ff8b466e4",
+      "3-LEGACY_STYLE-IMMUTABLE_REUSE/trial.json": "f53e55d5d1796f0aee592ee194c9c076eb547e3fa2995b2fada959890f42f0f2",
+      "pinned-source.json": "fc51f21d3e951958736b31c3b66ecea63a14a3f373e4132d5168a9e315b5b83a",
+      "1-ABC_XYZ_SHARED_BUDGET-PREPARATION_EACH_CANDIDATE/trial.json": "8bfa7d45bd2c59e09e1cd0d87f250404953ab70cc72481ef8fea9b8bd64e0b0c",
+      "3-ABC_XYZ_SHARED_BUDGET-PREPARATION_EACH_CANDIDATE/trial.json": "893fa3e9117d027ef8612c85e429310f25dec022e805e2b1b1ab7d5a2ca2da3f"
+    }
+  },
+  "preservation": {
+    "status": "VERIFIED",
+    "protected_files_at_start": 515,
+    "unchanged_existing_files": 509,
+    "missing_existing_files": [],
+    "changed_existing_files": [
+      {
+        "path": "docs/architecture/IO_CATALOG_ROBUSTNESS_CONTRACT.md",
+        "before_sha256": "869630f5e290e4b51d7c3cba07d9fd923e539009099bab150e583aa688f48435",
+        "after_sha256": "e0b7f547d483ff2ba84336e0368db98349cfaffc4c7862060da60dff6b0d7449"
+      },
+      {
+        "path": "src/dsio_inventory_engine/evaluate_replenishment/robustness/causal_simulation.py",
+        "before_sha256": "f20fc647acd73b1fd71171eef3a7e8fbd229fd90264acbc9e8cba009eee9156f",
+        "after_sha256": "eabe76e17217a50b2ca29430946f28174d5ff06dd2a05cb6c04ce014d09dfdad"
+      },
+      {
+        "path": "src/dsio_inventory_engine/evaluate_replenishment/robustness/durable.py",
+        "before_sha256": "266f4713ad5ff7c772b2f3f95d93fbbc8feb92afd7c132ad661ea036d8b516b5",
+        "after_sha256": "b45eb1d207ad013e6aeb5e8770bf87d772f9ef7c77bf82879459a5e2bb5211c5"
+      },
+      {
+        "path": "src/dsio_inventory_engine/evaluate_replenishment/robustness/item_execution.py",
+        "before_sha256": "87f51d7be09a2bd00918f54a70ca548f554be72254cba5ce4a07b018fbbb686d",
+        "after_sha256": "301dd37fe42037e5d7008f15c6023c18a8605a83942a95e9a9108625d8159e71"
+      },
+      {
+        "path": "src/dsio_inventory_engine/evaluate_replenishment/robustness/item_execution_steps.py",
+        "before_sha256": "77e4bc02add5148a0599272ff7bc0c830112b5cc8e1dd382a65efacdf0fbdb70",
+        "after_sha256": "d974073a8a7a176e09a68426a6b67d356158396fb64c6ee29fe080a7b8b98ae3"
+      },
+      {
+        "path": "docs/architecture/IO_DEVELOPMENT_BASELINE.md",
+        "before_sha256": "585c0d357a2ed094ca1235e6004e66e741dba1734a989e9a7c1c76871738da6b",
+        "after_sha256": "f1d588a4d371eb37db7e9b05404583a7c54f29467f5a5d09a493db4c0103c906"
+      }
+    ],
+    "new_files": [
+      "docs/architecture/IO_ROBUSTNESS_IMMUTABLE_PREPARATION_CONTRACT.md",
+      "docs/architecture/evidence/robustness-immutable-preparation-20261020.json",
+      "scripts/benchmark_robustness_preparation.py",
+      "src/dsio_inventory_engine/evaluate_replenishment/robustness/immutable_preparation.py",
+      "tests/contract/test_robustness_preparation_contract.py",
+      "tests/integration/test_robustness_preparation_reuse_offline.py",
+      "tests/unit/test_robustness_immutable_preparation.py"
+    ],
+    "personal_report_unchanged": true,
+    "personal_report_sha256": "3d0f5e9bb762b590beef00a65b39b2578b0b281f07fd1f5a2630261dfcb4835e",
+    "previous_shared_and_compression_evidence_unchanged": true
+  },
+  "boundaries": {
+    "FSN_configuration_changed": false,
+    "operational_gates_changed": false,
+    "ABC_XYZ_results_or_hashes_changed": false,
+    "database_access_or_writes": false,
+    "official_paths_generated": false,
+    "main_experiment_run": false,
+    "public_runtime_deployed": false,
+    "platform_changed": false,
+    "real_orders_placed": false,
+    "committed": false,
+    "pushed": false
+  }
+}

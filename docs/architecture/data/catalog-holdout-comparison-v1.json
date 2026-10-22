@@ -1,0 +1,54 @@
+{
+  "contract_id": "inventory-catalog-comparison-protocol",
+  "contract_version": "1.0.0",
+  "experiment_id": "CATALOG-HOLDOUT-2033-2034-V1",
+  "source_type": "SYNTHETIC_DEVELOPMENT_HOLDOUT",
+  "scope": {"company_cd": "DSE", "subs_cd": "C100", "site_cd": "V101"},
+  "horizon_weeks": 13,
+  "mathematical_lookback_weeks": 26,
+  "classification_lookback_weeks": 52,
+  "periods": [
+    {"case_id": "NEW-HOLDOUT-A", "start_date": "2033-01-03", "seed": 2033010301},
+    {"case_id": "NEW-HOLDOUT-B", "start_date": "2034-07-03", "seed": 2034070301}
+  ],
+  "previously_used_periods": [
+    {"label": "POLICY_PROFILE_TRAIN_VALIDATION_HOLDOUT", "start_date": "2023-01-02", "end_date": "2024-06-30"},
+    {"label": "CATALOG_GOLDENS_AND_HORIZON_SENSITIVITY", "start_date": "2026-09-28", "end_date": "2028-10-22"},
+    {"label": "ML_PPO_STABILITY_AND_TERMINAL_EXTENSION", "start_date": "2026-01-05", "end_date": "2031-10-26"}
+  ],
+  "items": [
+    {"item_id": "HC-STABLE-LOCAL", "demand_pattern": "STABLE", "lead_time_days": 7, "unit_cost_usd": "5", "known_order_qty": "2"},
+    {"item_id": "HC-STABLE-LONG", "demand_pattern": "STABLE", "lead_time_days": 49, "unit_cost_usd": "2", "known_order_qty": "2"},
+    {"item_id": "HC-INTERMITTENT-HIGH", "demand_pattern": "INTERMITTENT", "lead_time_days": 7, "unit_cost_usd": "250", "known_order_qty": "0"},
+    {"item_id": "HC-VOLATILE-REGIONAL", "demand_pattern": "VOLATILE", "lead_time_days": 21, "unit_cost_usd": "20", "known_order_qty": "0"}
+  ],
+  "generator_version": "HASH_DRAW_CATALOG_HOLDOUT_V1",
+  "forecast_rule": "CEILING_OF_PRE_W0_26_WEEK_MEAN_CONSTANT",
+  "initial_inventory_rule": "CEILING_OF_PRE_W0_MEAN_TIMES_CEIL_LEAD_WEEKS_PLUS_TWO",
+  "confirmed_receipt_rule": {"relative_week": 4, "historical_mean_multiplier": "2"},
+  "moq": "5",
+  "order_multiple": "5",
+  "cost_assumptions": {
+    "currency": "USD", "source_type": "DEVELOPMENT_ASSUMPTION", "allocation_basis": "PER_ITEM_ORDER",
+    "holding_cost_per_unit_week": "1", "backorder_cost_per_unit_week": "10",
+    "fixed_order_cost": "25", "variable_order_cost_per_unit": "2"
+  },
+  "candidate_modes": ["ABC_XYZ_SHARED_BUDGET", "LEGACY_STYLE", "WIDE_REFERENCE"],
+  "candidate_counts": {"ABC_XYZ_SHARED_BUDGET": 32, "LEGACY_STYLE": 32, "WIDE_REFERENCE": 88},
+  "rules_profile_hash": "a3121dfa885f8b4d2e0df54605789ad841661693b0f386329fe4fa60946ecbae",
+  "minimum_fill_rate": "0.95",
+  "ending_backorder_qty_required": "0",
+  "good_candidate_definition": "SERVICE_ELIGIBLE_MINIMUM_COST_AVERAGE_INVENTORY_ORDER_COUNT_TIES_BEFORE_ID",
+  "terminal_condition": "FINITE_HORIZON_NO_TERMINAL_VALUE_ARRIVALS_OUTSIDE_HORIZON_REJECTED",
+  "timing_repetitions": 3,
+  "timing_order": "ROTATE_MODE_ORDER_EACH_REPETITION_AND_CASE",
+  "timing_warmup": "NONE_REPORT_COLD_EFFECTS",
+  "timing_includes": ["CATALOG_PRODUCTION", "ACTUAL_PSI_SEARCH", "FULL_SOURCE_REPLAY_AND_SELECTION"],
+  "timing_excludes_reported_separately": ["COMMON_CLASSIFICATION_AND_FEATURES", "REALIZED_WIDE_REPLAY", "ARTIFACT_STORAGE_AND_READBACK"],
+  "holdout_reselection_allowed": false,
+  "parameter_tuning_allowed": false,
+  "database_writes": false,
+  "automatic_publish_allowed": false,
+  "automatic_order_allowed": false,
+  "operational_policy_approved": false
+}

@@ -1,0 +1,172 @@
+{
+  "as_of_date": "2026-10-21",
+  "repository": "InventoryEngine",
+  "branch": "inventory_engine_dev",
+  "head_commit": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+  "scope": "ISOLATED_PYTHON_REFERENCE_FOR_EXTRACTED_CSHARP_PSI_NO_RUNTIME_BINDING",
+  "existing_improved_python_changed": false,
+  "new_python_reference_added": true,
+  "original_legacy_source_changed": false,
+  "fsn_changed": false,
+  "operational_gates_changed": false,
+  "db_changed": false,
+  "platform_changed": false,
+  "public_runtime_changed": false,
+  "execution": {
+    "native_csharp_performed": true,
+    "image_digest": "sha256:f7e28a0a3f6f9235929ec19274fd0ddf8534e9159f99fac602ac73304f1ce99f",
+    "sdk": "8.0.426",
+    "framework": ".NET 8.0.32",
+    "architecture": "Linux Arm64",
+    "network": "none",
+    "source_mount": "read-only",
+    "extra_input_mount": "single fixture file read-only",
+    "build_outputs": "container tmpfs",
+    "db_secret_socket_mounts": [],
+    "container_removed_on_exit": true,
+    "source_files": 7,
+    "source_fragments": 21,
+    "source_manifest": "legacy-python-reference-extraction-20261021.json",
+    "extended_native_executions": 2,
+    "extended_output_repeat_identical": true,
+    "fresh_original_output_equals_preserved_capture": true,
+    "original_entrypoint_executed": false,
+    "warnings": [
+      "CS8632 in original nullable DTO annotations; compilation succeeded",
+      "Read-only SDK workload verification notice; no workload update performed"
+    ]
+  },
+  "comparison": {
+    "original_calculations": {
+      "orders": 12,
+      "transitions": 4,
+      "lots": 4,
+      "arrivals": 4,
+      "policies": 2,
+      "trigger": 1
+    },
+    "extended_calculations": {
+      "psi": 27,
+      "rounds": 16,
+      "decimal_ceilings": 14,
+      "lots": 8
+    },
+    "total_compared": 92,
+    "mismatches": 0,
+    "numeric_comparison": "EXACT_BINARY64_USING_FLOAT_HEX_AFTER_CSHARP_ROUNDTRIP_PARSE",
+    "tolerance": null,
+    "signed_zero_checked": true,
+    "dates_counts_order_exact": true,
+    "full_legacy_engine_equivalence_verified": false,
+    "selection_or_svc_lv_equivalence_verified": false
+  },
+  "inputs": {
+    "manual_golden": "../../../tests/fixtures/golden_legacy_python_semantics.json",
+    "manual_golden_sha256": "309f86c8c035cde337160227cd6c93b895a023dead4d5995024c9afefdfa6046",
+    "original_capture": "../../../tests/fixtures/native_legacy_reference_output.json",
+    "original_capture_sha256": "0427950c32527b5d53a75572f08964ac14b6aa085f9b07e47f2e0df7a8050f5d",
+    "extended_fixture": "../../../tests/fixtures/legacy_replay_vectors.json",
+    "extended_input_sha256": "6480f886a701abbb2ea53c9cb57587a30716df4a8798128f3e4cafff3263de88",
+    "extended_actual_output": "../../../tests/fixtures/native_legacy_replay_vectors_output.json",
+    "extended_capture_sha256": "1038d1e4e4199e0fbe51a7c148405310aca20f18a0f78dc7611632235867b645"
+  },
+  "verification": {
+    "new_tests_passed": 54,
+    "focused_seconds": 0.04,
+    "targeted_regression_passed": 425,
+    "subtests_passed": 124,
+    "targeted_seconds": 21.48,
+    "full_regression_rerun": false,
+    "ruff_check": "PASS: src tests scripts --no-cache",
+    "ruff_format": "PASS: 385 Python files",
+    "diff_check": "PASS",
+    "local_markdown_links_verified": 147,
+    "original_source_and_fragment_hashes": "PASS: 7 files / 21 fragments",
+    "coverage_run": false,
+    "coverage_unavailable": "No module named coverage in existing test environment; no dependency installed"
+  },
+  "corrections_during_verification": [
+    "Preserved negative zero when .NET decimal Ceiling returns signed zero",
+    "Corrected a test-verifier parenthesis during membership-check tightening; final regression passes"
+  ],
+  "implementation_and_capture_fingerprints": [
+    {
+      "path": "docs/architecture/evidence/legacy-python-reference-extraction-20261021.json",
+      "sha256": "b5a85a63111b5103389f02e47ac480534066ae008b4a566ebe7701a48c75c717"
+    },
+    {
+      "path": "src/dsio_inventory_engine/simulate_inventory/application/legacy_numbers.py",
+      "sha256": "3b2b63087390a931d8d72b5adfab3ad882a2b40665bdad983db255d2fb4d8d62"
+    },
+    {
+      "path": "src/dsio_inventory_engine/simulate_inventory/application/legacy_reference.py",
+      "sha256": "b725e088acdbb8589260298f8a9ed0fe3b66107e386b793515a90f4be25718ed"
+    },
+    {
+      "path": "tests/fixtures/legacy_replay_vectors.json",
+      "sha256": "6480f886a701abbb2ea53c9cb57587a30716df4a8798128f3e4cafff3263de88"
+    },
+    {
+      "path": "tests/fixtures/native_legacy_replay_vectors_output.json",
+      "sha256": "1038d1e4e4199e0fbe51a7c148405310aca20f18a0f78dc7611632235867b645"
+    },
+    {
+      "path": "tests/integration/test_legacy_reference_offline.py",
+      "sha256": "0157344ee0e4d8ebf6019665269b3e06df8a7bacad8a378d4d023645e42d0c7c"
+    },
+    {
+      "path": "tests/reference/legacy_csharp/ReferenceHarness.cs",
+      "sha256": "d36f73bf4ff4a14ca9db13167673b67121ee7100770747657dc66ce41f87b106"
+    },
+    {
+      "path": "tests/reference/legacy_csharp/verify_python_replay.py",
+      "sha256": "961ec0fc91d8c6e52df65a1a5e6044f4f4ac8ee41404f58dcf4ce77b9a647bae"
+    },
+    {
+      "path": "tests/support/legacy_reference_fixtures.py",
+      "sha256": "64daef01d875a5457251339a7945966bda1acf220da031dd2d72c3217a3cbdea"
+    },
+    {
+      "path": "tests/unit/test_legacy_reference.py",
+      "sha256": "cd2e4e6ad6c9d5928c260f9488d8126ed086a4195586cbf3c208f39539c81ef7"
+    }
+  ],
+  "preservation": {
+    "existing_files_at_start": 586,
+    "existing_files_unchanged": 580,
+    "existing_changed": [
+      "tests/reference/legacy_csharp/README.md",
+      "tests/reference/legacy_csharp/ReferenceHarness.cs",
+      "docs/architecture/IO_LEGACY_COMPATIBLE_PERFORMANCE_PLAN.md",
+      "docs/architecture/IO_LEGACY_CSHARP_PYTHON_RECONCILIATION.md",
+      "docs/architecture/IO_DEVELOPMENT_BASELINE.md",
+      "docs/architecture/IO_LEGACY_REPLAY_GOLDEN_CONTRACT.md"
+    ],
+    "new_files": 11,
+    "existing_source_and_schema_unchanged": true,
+    "existing_manual_and_native_goldens_unchanged": true,
+    "existing_abc_xyz_results_and_hashes_unchanged": true,
+    "personal_reports_environment_and_temporary_outputs_preserved": true
+  },
+  "limits": [
+    "Date-only Calendar; timestamp inputs explicitly rejected",
+    "Finite nonnegative Source quantities and initial stock/backlog/pending; invalid Lot configuration rejected, not full Legacy exception parity",
+    "No exhaustive binary64/platform equivalence claim",
+    "No upstream physical PO LT conversion, economic EOQ/RMOS/EMOS, SVC_LV or full optimizer/group-item expansion validation",
+    "No actual operational Plan, DB-to-DB or deployed binary equivalence test"
+  ],
+  "performance_measurement_performed": false,
+  "performance_optimization_performed": false,
+  "new_dependency_installed": false,
+  "commit_or_push_performed": false,
+  "independent_agent_review_performed": false,
+  "local_artifacts_remaining": [
+    "Private temporary C# staging under /private/tmp, mounted read-only; no original source edits",
+    "Previously cached official SDK image reused"
+  ],
+  "next_work": [
+    "Fix benchmark workload and measurement phases using only equality-validated inputs",
+    "Then measure unoptimized C# Release and Python reference under equal resources",
+    "Only after baseline measurement optimize bottlenecks and recheck equality"
+  ]
+}

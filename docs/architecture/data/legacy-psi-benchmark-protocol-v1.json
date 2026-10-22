@@ -1,0 +1,76 @@
+{
+  "name": "LEGACY_PSI_SERIAL_BASELINE_20261021",
+  "status": "FROZEN_BEFORE_MEASUREMENT",
+  "scope": "EXTRACTED_CSHARP_PSI_VS_UNOPTIMIZED_PYTHON_REFERENCE",
+  "dataset": {
+    "source": "DEVELOPMENT_DETERMINISTIC_POLICY_GRID_NOT_OPERATIONAL",
+    "start_date": "2026-09-28",
+    "weeks": 52,
+    "candidates": 32,
+    "workloads": [
+      {"name": "ONE_ITEM", "items": 1, "rows": 1664},
+      {"name": "SIXTEEN_ITEMS", "items": 16, "rows": 26624}
+    ],
+    "candidate_generation": "4 ROP values x 8 target increments; no candidate pruning",
+    "policy_codes": ["OUTL", "ROPQ", "MINQ", "SFST"],
+    "lead_times_internal": [0, 86400, 201600, 403200],
+    "randomness": "NONE"
+  },
+  "execution": {
+    "architecture": "linux/arm64",
+    "cpu_quota": 1,
+    "memory_bytes": 1073741824,
+    "pids_limit": 256,
+    "network": "none",
+    "root_filesystem": "read-only",
+    "source_mount": "read-only",
+    "runtime_data_mount": "same host temporary directory filesystem",
+    "launches_per_language_workload": 3,
+    "cold_calls": 1,
+    "verification_calls": 1,
+    "warmup_calls": 3,
+    "measured_calls": 7,
+    "launch_language_order": [["csharp", "python"], ["python", "csharp"], ["csharp", "python"]],
+    "worker_threads": 1,
+    "dotnet_configuration": "Release",
+    "dotnet_tiered_compilation": "0",
+    "python_hash_seed": "0",
+    "process_timeout_seconds": 300,
+    "forced_gc": false,
+    "gc_disabled": false
+  },
+  "measurement": {
+    "preparation": "input read, input SHA256, parsing and reusable request construction once per fresh process",
+    "compute": "fresh state, SetBucket preparation, original bucket loop, result objects; not serialization",
+    "serialize": "all PSI rows into identical little-endian binary layout, including order and due dates",
+    "hash": "SHA256 over full serialized payload",
+    "store": "exclusive new file, full write, file fsync and close; no directory fsync or database",
+    "total": "compute + serialize + hash + store within one call; excludes preparation and container/build/startup",
+    "statistics": "median, nearest-rank sample P95, min, max, population standard deviation; no samples dropped",
+    "equality": "all payload SHA256 and exact bytes must agree across languages and repetitions",
+    "compare_cost_or_selection": false,
+    "stop_on_any_mismatch": true
+  },
+  "artifact": {
+    "magic_ascii": "BPSI0001",
+    "header_struct": "<8s32siiii",
+    "header_fields": ["magic", "raw_input_sha256", "rows", "items", "candidates", "weeks"],
+    "row_struct": "<iiiii14d",
+    "row_fields": [
+      "item_index", "candidate_index", "bucket_index", "order_date_ordinal_or_zero", "due_date_ordinal_or_zero",
+      "demand", "due_in", "boh", "eoh", "backorder", "backorder_close", "pending_po_close", "purchase_order",
+      "demand_allocation", "stock_allocation", "weekly_allocation_rate", "exp_mos", "rop", "target"
+    ],
+    "order": "item, candidate, original Calendar sequence",
+    "directory_publication_or_receipt": false,
+    "production_artifact_contract": false
+  },
+  "excluded": [
+    "source database access, canonical sealing and input admission",
+    "segmentation and policy candidate generation runtime",
+    "service aggregation and final policy selection",
+    "actual JSON/Parquet Evidence Writer, outbox and publication",
+    "production parallel execution and deployed binary identity",
+    "algorithm optimization, JIT/Numba or production strategy changes"
+  ]
+}

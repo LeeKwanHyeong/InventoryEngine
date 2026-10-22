@@ -1,0 +1,158 @@
+{
+  "contract_id": "inventory-catalog-robustness-pure-evaluator-verification",
+  "contract_version": "1.0.0",
+  "date": "2026-10-19",
+  "status": "PURE_EVALUATOR_VERIFIED_OFFICIAL_EXPERIMENT_NOT_EXECUTED",
+  "repository": "InventoryEngine",
+  "branch": "inventory_engine_dev",
+  "base_commit": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+  "protocol_hash": "a3e35fcf23915e87823883ea8c1f09448b245ae7ea1fffa8c77482bab0433280",
+  "scope": "PURE_HAND_LEDGER_EVALUATION_ONLY_NOT_OFFICIAL_EXPERIMENT",
+  "implemented": [
+    "Closed bounded inputs with immutable-by-copy processing and Decimal precision 40 HALF_EVEN",
+    "Continuous 65-week PSI arithmetic replay using the existing common transition",
+    "Separate 52-week score, 13-week tail and same-run 13/26/52-week prefixes",
+    "Current-demand fill excluding prior customer-backorder fulfillment",
+    "Five independent cost assumptions with accepted-decision-date order attribution",
+    "Reserved/on-hand holding exposure and terminal known/recommended pipeline diagnostics",
+    "Empirical path success ratio, nearest-rank P10 and ceil-tail mean shortage",
+    "No-demand service exclusion with its cost retained and uncleared BO rejection",
+    "Technical path failure invalidates the candidate and leaves aggregate risk/cost null",
+    "Separate service-risk eligibility and cost availability",
+    "Nominal Forecast and eight-path risk selectors with numeric semantic tie-breaking",
+    "No Nominal or Legacy fallback when no candidate qualifies",
+    "Locked policy evaluation without Validation/Holdout/Stress reselection",
+    "Raw-row recomputation for Scorecard and selection verification after resealing"
+  ],
+  "authority_boundary": {
+    "verification_profile": "PURE_PSI_ARITHMETIC_NOT_SOURCE_AUTHORITY",
+    "supplied_gate_is_reapproved": false,
+    "hash_alone_proves_source_authenticity": false,
+    "actual_strategy_guard_source_intake_connected": false,
+    "future_intake_requires": "Exact original Catalog/strategy/Guard replay before projection to the pure evaluator",
+    "pure_candidate_set_limit": 88,
+    "official_32_32_88_catalog_manifest_completeness_enforced_here": false,
+    "official_full_catalog_coverage_requires": "Separate Source Producer and full Manifest verification",
+    "cross_validation_holdout_source_registry_implemented": false
+  },
+  "hand_ledger_scope": {
+    "w0": "2055-01-04",
+    "weeks": 65,
+    "random_generator_used": false,
+    "official_seeds_or_dates_used": false,
+    "orders_are_guard_approved_operational_actions": false,
+    "small_sets_are_official_catalogs": false
+  },
+  "hand_cost_example": {
+    "currency": "USD",
+    "unit_price": "250",
+    "on_hand_eoh_unit_weeks": "260",
+    "customer_backorder_unit_weeks": "2",
+    "scored_order_count": 2,
+    "scored_order_qty": "10",
+    "forecast_shortage_qty": "1",
+    "expected_display_cost": {
+      "FIXED_COMPATIBILITY": "350.00",
+      "PRICE_BASE": "3550.00",
+      "PRICE_HOLDING_HIGH": "3800.00",
+      "PRICE_ORDER_HIGH": "3700.00",
+      "PRICE_NO_FORECAST_PENALTY": "3300.00"
+    },
+    "score_end_pipeline_qty": "18",
+    "score_end_pipeline_value": "4500",
+    "tail_order_qty_excluded_from_score_cost": "100"
+  },
+  "hand_risk_examples": [
+    {
+      "fills": "15 paths at .99 and one at .94",
+      "success_ratio": "0.9375",
+      "worst_two_mean_loss": "0.035",
+      "eligible": true
+    },
+    {
+      "fills": "15 paths at .99 and one at 0",
+      "success_ratio": "0.9375",
+      "worst_two_mean_loss": "0.505",
+      "eligible": false
+    },
+    {
+      "fills": "15 paths at 1 and one at .8",
+      "worst_two_mean_loss": "0.1",
+      "eligible": true
+    },
+    {
+      "fills": "15 paths at 1 and one at .799999",
+      "worst_two_mean_loss": "0.1000005",
+      "eligible": false
+    }
+  ],
+  "verification": {
+    "new_pure_evaluator_unit_tests_passed": 84,
+    "latest_focused_with_protocol_and_compatibility_passed": 113,
+    "initial_full_regression": {
+      "passed": 1299,
+      "skipped": 9,
+      "subtests_passed": 669,
+      "warnings": 3,
+      "seconds": 189.16,
+      "note": "Collected before the final large-cost boundary test; a fresh final full run is pending"
+    },
+    "final_full_regression": {
+      "passed": 1300,
+      "skipped": 9,
+      "subtests_passed": 669,
+      "warnings": 3,
+      "seconds": 188.24,
+      "scope": "tests/unit tests/contract tests/integration/*offline.py",
+      "warnings_note": "Three existing Platform Starlette deprecation warnings; no new warnings"
+    },
+    "ruff": "PASSED",
+    "format_files": 307,
+    "valid_existing_json_schemas": 37,
+    "diff_check": "PASSED",
+    "protected_preexisting_files": 384,
+    "changed_protected_files": [],
+    "coverage_percentage_measured": false,
+    "independent_subagent_review_performed": false
+  },
+  "implementation_files_sha256": {
+    "src/dsio_inventory_engine/evaluate_replenishment/robustness/__init__.py": "d4568f3d58d8f1b21e4af53a30b5f48cd178e0540ef2ecb188a3673c96d1dcb6",
+    "src/dsio_inventory_engine/evaluate_replenishment/robustness/contracts.py": "38e1e0e02d0561bc61958b901e2f17d384def812c33858f76a4f5c41835bddbe",
+    "src/dsio_inventory_engine/evaluate_replenishment/robustness/scoring.py": "1e9f0e598eeecf64b726306d33418770f06eb210921f8b22246491ac044cf15f",
+    "src/dsio_inventory_engine/evaluate_replenishment/robustness/selection.py": "1516142feb17bc903f80700253314b4b10995cbb59c83149bb4f838c7c681f2b",
+    "tests/support/robustness_fixtures.py": "74cb8fb23e65b68ab5028225fff5bae4d2937c296cd9bb8129d689a5057be7ee",
+    "tests/unit/test_robustness_scoring.py": "60c1c0dc55382194078ca134eb2461aaea3f2c66ee0d2a79a20ef352a9c266d0",
+    "tests/unit/test_robustness_selection.py": "ed0701e9b3e449d580ef60d641970502f7125f8a2bef8058c62e7558afb0f003"
+  },
+  "preserved": {
+    "frozen_protocol": true,
+    "existing_abc_xyz_results_and_hashes": true,
+    "fsn_configuration": true,
+    "operational_gates": true,
+    "existing_worktree_changes": true,
+    "personal_report_sha256": "3d0f5e9bb762b590beef00a65b39b2578b0b281f07fd1f5a2630261dfcb4835e"
+  },
+  "not_performed": [
+    "Official history, warmup or demand path generation",
+    "Official robustness experiment or claims of statistical superiority",
+    "New ML/PPO training or activation",
+    "Development PostgreSQL connection, migration or data write",
+    "FSN or operational Gate changes",
+    "Platform or Runtime code changes and deployment",
+    "Operational policy approval or order placement",
+    "Commit or Push"
+  ],
+  "documentation": {
+    "baseline_and_robustness_contract_updates": "AWAITING_USER_RESPONSE",
+    "frozen_definition_time_protocol_and_previous_evidence_preserved": true,
+    "oma_docs_cli_available": false,
+    "oma_docs_auto_index_or_sync_performed": false
+  },
+  "next_order": [
+    "Independent Warm-up/Path Source Producer contract and future-Truth observation separation with hand examples",
+    "Original classification-to-item projection and verified Catalog/Guard result projection",
+    "Chunk Manifest/Verifier, restart recovery and technical resource preflight without official generation",
+    "Only after the preceding checks and a separate execution request, generate sealed official inputs and run the frozen comparison",
+    "Actual DB and shared Runtime changes require separate approval"
+  ]
+}

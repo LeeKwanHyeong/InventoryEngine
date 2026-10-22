@@ -1,0 +1,101 @@
+{
+  "contract_id": "inventory-offline-catalog-policy-selection-local-verification",
+  "contract_version": "1.0.0",
+  "as_of_date": "2026-10-19",
+  "repository": "InventoryEngine",
+  "branch": "inventory_engine_dev",
+  "head_commit_before_changes": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+  "scope": "Working-tree implementation, local Unit/Contract/Offline Integration only",
+  "new_result_contract": "inventory-offline-catalog-policy-selection-result/1.0.0",
+  "test_environment": "Existing dsai-platform/backend/.venv with InventoryEngine working tree on PYTHONPATH",
+  "environment_packages_installed_or_changed": false,
+  "new_test_count": 61,
+  "final_full_regression": {
+    "passed": 1175,
+    "skipped": 9,
+    "subtests_passed": 669,
+    "warnings": 3,
+    "warning_kind": "Starlette HTTP_422_UNPROCESSABLE_ENTITY deprecation in unchanged Platform adapters",
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.:src:tests:tests/support DSAI_PLATFORM_ROOT=/Users/igwanhyeong/PycharmProjects/dsai-platform /Users/igwanhyeong/PycharmProjects/dsai-platform/backend/.venv/bin/python -m pytest -q -p no:cacheprovider tests/unit tests/contract tests/integration/*offline.py"
+  },
+  "static_checks": {
+    "ruff_src_tests": "PASS",
+    "ruff_format_src_tests_file_count": 293,
+    "python_json_schema_field_and_reason_alignment": "PASS",
+    "json_schema_positive_and_negative_validation": "PASS",
+    "git_diff_check": "PASS",
+    "coverage_percentage": null,
+    "coverage_note": "coverage is not installed in the reused test environment; no coverage percentage claimed"
+  },
+  "hand_calculated_case": {
+    "history_mean_weekly_demand": "10",
+    "starting_on_hand": "10",
+    "forecast": ["10", "10", "10"],
+    "physical_lead_time_days": 7,
+    "rop_qty": "10",
+    "base_q_qty": "11",
+    "target_inventory_qty": "21",
+    "selected_policy_kind": "PERIODIC_ORDER_UP_TO",
+    "recommended_order_quantities": ["11", "10"],
+    "weekly_eoh": ["0", "1", "1"],
+    "current_demand_fulfilled_qty": "30",
+    "total_cost": "54",
+    "currency": "USD",
+    "cheaper_fixed_q_cost": "28",
+    "cheaper_fixed_q_reason": "FILL_RATE_BELOW_MINIMUM",
+    "is_legacy_equivalence_or_performance_holdout": false
+  },
+  "compatibility_and_determinism": {
+    "hash_seeds": [1, 77],
+    "same_hashes_in_both_processes": true,
+    "existing_hashes_unchanged": {
+      "abc_search": "5e1808cb4bde77ee48feb065679065614f3513bcb72326a3882d3d59cd45fc75",
+      "abc_selection": "1dc99a92df87938682b845042f4d48f9a23ae731bf90f7ba97583736b4a9ae17",
+      "classification": "a42c083bd1d9268535b8271babd678c9d36a5f93d2582163c12ee4f91814b47d",
+      "candidate_catalog": "1d11c82942dea8959794bcd079d037a9a95557e4479384f5a5f1f2ba32cb044d",
+      "catalog_psi": "3a0be0139205650756f43258463c902d5d2e6aee5344492036a8f9e890f61630"
+    },
+    "new_catalog_selection": "d61c42ec7662a8b2e3ade7800b9c88a9616e252b301fbb28c37a1631ad86cf51"
+  },
+  "protected_files": {
+    "existing_src_test_schema_and_rule_file_count": 343,
+    "unchanged_file_count": 342,
+    "only_changed_existing_file": "src/dsio_inventory_engine/recommend_replenishment/application/policy_selection.py",
+    "change": "Explicit OCCP ranking support; PC default and ABC contracts/results unchanged",
+    "before_sha256": "ee4418727a00b13bfb7705e6ceb175d622ec1208eab7ce6bda560e984d3469d6",
+    "after_sha256": "6bf9ddcd53382ae12e300ea0625c93af14b1103475acfd3bfbd5556d64f547e6",
+    "personal_report_unchanged_sha256": "3d0f5e9bb762b590beef00a65b39b2578b0b281f07fd1f5a2630261dfcb4835e"
+  },
+  "verified_boundaries": [
+    "Actual Mathematical candidate strategy, common Guard, PSI and metrics replay",
+    "Failed/excluded candidates and Baseline included in exact Source replay",
+    "Missing/duplicated candidates and resealed false failures rejected",
+    "Cost, service, order, PSI, admission gate and input-scope mutations rejected",
+    "Quantity fill above 95 percent still rejected when ending customer backorder remains",
+    "FSN BLOCK remains ineligible even with sufficient starting stock",
+    "REVIEW remains selected only for local evidence; automatic publication/order false",
+    "No-demand service and unbound-cost differences remain null",
+    "Per-item selection with Baseline comparison and original failure/exclusion reasons",
+    "Coherent wrong winner and altered explanations rejected by result replay",
+    "Parent-first append-only storage, idempotent write and fresh-object recovery",
+    "Missing/corrupt/wrong-input parent rejected; no latest-Source discovery"
+  ],
+  "side_effects": {
+    "fsn_settings_changed": false,
+    "operational_gate_changed": false,
+    "development_postgresql_connection_requested": false,
+    "development_database_changed": false,
+    "migration_applied": false,
+    "shared_runtime_deployed": false,
+    "forecast_rerun": false,
+    "actual_order_issued": false,
+    "committed": false,
+    "pushed": false,
+    "temporary_test_stores_used": true
+  },
+  "remaining_scope": [
+    "New held-out same-condition comparison of ABC_XYZ_SHARED_BUDGET, LEGACY_STYLE and WIDE_REFERENCE",
+    "Platform Run/Studio and DSIM Projection binding of the new result contract",
+    "Separately approved development DB input/write/recovery verification before Demand integration"
+  ]
+}

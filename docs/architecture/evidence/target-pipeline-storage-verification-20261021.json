@@ -1,0 +1,825 @@
+{
+  "date": "2026-10-21",
+  "repository": "InventoryEngine",
+  "branch": "inventory_engine_dev",
+  "base_commit": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+  "scope": "Offline local target calculation Binding, all candidates, selection, order plan storage/read/replay/recovery",
+  "new_tests": {
+    "passed": 39,
+    "seconds": 21.73,
+    "targets": [
+      "tests/unit/test_target_pipeline_artifacts.py",
+      "tests/integration/test_target_durable_offline.py"
+    ]
+  },
+  "regression_targets": [
+    "tests/contract/test_calculation_boundary_contract.py",
+    "tests/unit/test_legacy_pythonnet.py",
+    "tests/unit/test_legacy_benchmark.py",
+    "tests/unit/test_legacy_python_semantics.py",
+    "tests/unit/test_legacy_reference.py",
+    "tests/integration/test_legacy_python_semantics_offline.py",
+    "tests/integration/test_native_legacy_reference_offline.py",
+    "tests/integration/test_legacy_reference_offline.py",
+    "tests/contract/test_legacy_python_semantics_contract.py",
+    "tests/unit/test_replenishment.py",
+    "tests/contract/test_replenishment_contract.py",
+    "tests/unit/test_seven_axis_segmentation.py",
+    "tests/unit/test_segmentation_adapters.py",
+    "tests/contract/test_segmentation_compatibility_contract.py",
+    "tests/unit/test_policy_search.py",
+    "tests/unit/test_policy_selection.py",
+    "tests/integration/test_policy_search_offline.py",
+    "tests/integration/test_policy_selection_offline.py",
+    "tests/unit/test_candidate_catalog.py",
+    "tests/integration/test_catalog_search_offline.py",
+    "tests/unit/test_catalog_policy_selection.py",
+    "tests/integration/test_catalog_policy_selection_offline.py",
+    "tests/unit/test_selected_order_plan.py",
+    "tests/unit/test_selected_policy_order_plan_binding.py",
+    "tests/contract/test_selected_policy_order_plan_contract.py",
+    "tests/integration/test_selected_order_plan_offline.py",
+    "tests/unit/test_mathematical_policy.py",
+    "tests/contract/test_mathematical_contract.py",
+    "tests/contract/test_canonical_contract.py",
+    "tests/unit/test_development_input.py",
+    "tests/unit/test_baseline_psi.py",
+    "tests/unit/test_canonical_v2.py",
+    "tests/integration/test_baseline_cli_offline.py",
+    "tests/integration/test_mathematical_cli_offline.py",
+    "tests/contract/test_inventory_canonical_context_binding_contract.py",
+    "tests/unit/test_calculation_adapter.py",
+    "tests/unit/test_target_execution.py",
+    "tests/unit/test_target_pipeline_artifacts.py",
+    "tests/integration/test_target_durable_offline.py",
+    "tests/unit/test_robustness_artifact_store.py",
+    "tests/integration/test_robustness_durable_offline.py"
+  ],
+  "static_checks": {
+    "ruff": "passed",
+    "format_check": "409 files already formatted",
+    "git_diff_check": "passed",
+    "schema_json_parse_count": 42
+  },
+  "actual_dll_verification": {
+    "check_count": 7,
+    "image": "sha256:a0b6ba2e267b11262a0f42d0f67ebf64f1b9b14d7c2dab38c923713142d372c0",
+    "dll_sha256": "9bc7b1576eb3bcd00d11fb28affb77f7b875764667f120ca54ac98faa944fe7f",
+    "network": "none",
+    "code_and_dll_mounts": "read-only",
+    "output": "private task temporary directory",
+    "checks": [
+      {
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "database_writes": false,
+        "fresh_process_verified": true,
+        "input_reference": {
+          "byte_count": 52812,
+          "content_hash": "180c326b73ce6a981d968f4d513016166015f839741445c68ca6228a05708fa4",
+          "kind": "INPUT"
+        },
+        "mode": "ABC_XYZ_SHARED_BUDGET",
+        "verification_status": "RECOMPUTED_VERIFIED",
+        "calculation_binding": {
+          "calculation_backend": "CSHARP_PYTHONNET",
+          "canonical_input_hash": "c6a2d7a4fefd6c516340183f7d8db08a851b545a304ff61f809ef3b6595abfe8",
+          "contract_id": "inventory-calculation-boundary-binding",
+          "contract_version": "1.0.0",
+          "engine_run_id": "IO-GOLDEN-math-catalog-select-golden",
+          "execution_mode": "CALCULATION_ONLY",
+          "guard_order": "VALIDATE_BEFORE_STATE_COMMIT",
+          "input_bindings": {
+            "calendar": {
+              "content_hash": "15e37189fb9b12dc0f5fe90d5509e80633fa49c4e25c8df16dfd2a0b9c05b943",
+              "snapshot_id": "math-catalog-select-golden:calendar"
+            },
+            "customer_orders": {
+              "content_hash": "54476e9c367252cfb909fb4a5f3314f0f814ea4f627c8f5d8cb6740e504e8f28",
+              "snapshot_id": "math-catalog-select-golden:customer_orders"
+            },
+            "forecast": {
+              "content_hash": "a56c2057a99c67ec494ea39db568cce9e87b81148927162c3e0de7b3fe51acba",
+              "snapshot_id": "math-catalog-select-golden:forecast"
+            },
+            "inventory": {
+              "content_hash": "e817d3023f0327383a4240e1264244e4e4aaf5674c2e1f34063f81ca8993a047",
+              "snapshot_id": "math-catalog-select-golden:inventory"
+            },
+            "master": {
+              "content_hash": "6714a6ee352f65f0befb3e0eacd9fff333057333deaf0843e6ad87c28a56242a",
+              "snapshot_id": "math-catalog-select-golden:master"
+            },
+            "policies": {
+              "content_hash": "dadff207e1b9efbd6b1f1c34f56c7a44cc53a9cb4432bb2bbff9f9033a966613",
+              "snapshot_id": "math-catalog-select-golden:policies"
+            },
+            "prior_inventory": {
+              "content_hash": "e40e72f6833f3b7dcc28cd9f02d260f5197a01210f09bf1e2c9786c7867966f1",
+              "snapshot_id": "math-catalog-select-golden:prior_inventory"
+            },
+            "receipts": {
+              "content_hash": "e619cc69d03d37f990c88e757725de51bb00140e8a110d359b547b138ffe9f9f",
+              "snapshot_id": "math-catalog-select-golden:receipts"
+            }
+          },
+          "legacy_parameters_binding": null,
+          "prepared_content_hash": "057495c1e97e0dabf475331dcd09ba4cff6169ab5625e4878e3d891c083e2c53",
+          "psi_scenario_type": "RECOMMENDED",
+          "psi_simulator": {
+            "implementation_content_hash": "9bc7b1576eb3bcd00d11fb28affb77f7b875764667f120ca54ac98faa944fe7f",
+            "implementation_id": "inventory.psi.target_guarded.csharp",
+            "version": "1.0.0"
+          },
+          "replenishment_execution_binding": {
+            "replenishment_config_content_hash": "e3326f75053b1fa8dce1a002284d386d9d5252f38930f1d883ec463bcdc151f6",
+            "strategy": {
+              "implementation_id": "historical-normal-r-s",
+              "model": null,
+              "strategy_type": "MATHEMATICAL",
+              "version": "1.0.0"
+            },
+            "strategy_input_binding": {
+              "content_hash": "e02c1ad7c5f1d0a71526cb38302fffa3b268309650aa405749090084c2d31aff",
+              "contract_id": "io-mathematical-policy-input-v1",
+              "contract_version": "1.0.0",
+              "snapshot_id": "MATH-INPUT-catalog-select-golden"
+            }
+          },
+          "semantics_profile": "TARGET_GUARDED"
+        },
+        "counts": {
+          "baseline_row_count": 3,
+          "candidate_count": 32,
+          "candidate_psi_row_count": 96,
+          "decision_content_hash": "e36f8158dd6f97f40cc7300d3a10f547efdbfd669e4c69e6a4f5157670527257",
+          "decision_count": 3,
+          "not_selected_item_count": 0,
+          "order_count": 2,
+          "orders_content_hash": "2c547e79c932d03cdb4c78152516e02a2e0e45468d33c8755c71b4da88f67677",
+          "psi_content_hash": "f2a929f9b88d7edcf41cbf3cf2d528aca808fa90490a894d3669c9a86dd17ccd",
+          "recommended_row_count": 3,
+          "search_content_hash": "0df0df26e1c824428af1181f197739639d44bdf3d0adb93e0d07e42c860606f7",
+          "selected_item_count": 1,
+          "selection_content_hash": "0c99e01a363208970e331631c6e28789fada7e10c7fb793ada89fd51a6238634",
+          "selection_count": 1
+        }
+      },
+      {
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "database_writes": false,
+        "fresh_process_verified": true,
+        "input_reference": {
+          "byte_count": 52995,
+          "content_hash": "a702f6d1eaa6b592dbf55d5d8639617a46a1ccf9bb86628bb824933f3a6792f4",
+          "kind": "INPUT"
+        },
+        "mode": "LEGACY_STYLE",
+        "verification_status": "RECOMPUTED_VERIFIED",
+        "calculation_binding": {
+          "calculation_backend": "CSHARP_PYTHONNET",
+          "canonical_input_hash": "c6a2d7a4fefd6c516340183f7d8db08a851b545a304ff61f809ef3b6595abfe8",
+          "contract_id": "inventory-calculation-boundary-binding",
+          "contract_version": "1.0.0",
+          "engine_run_id": "IO-GOLDEN-math-catalog-select-golden",
+          "execution_mode": "CALCULATION_ONLY",
+          "guard_order": "VALIDATE_BEFORE_STATE_COMMIT",
+          "input_bindings": {
+            "calendar": {
+              "content_hash": "15e37189fb9b12dc0f5fe90d5509e80633fa49c4e25c8df16dfd2a0b9c05b943",
+              "snapshot_id": "math-catalog-select-golden:calendar"
+            },
+            "customer_orders": {
+              "content_hash": "54476e9c367252cfb909fb4a5f3314f0f814ea4f627c8f5d8cb6740e504e8f28",
+              "snapshot_id": "math-catalog-select-golden:customer_orders"
+            },
+            "forecast": {
+              "content_hash": "a56c2057a99c67ec494ea39db568cce9e87b81148927162c3e0de7b3fe51acba",
+              "snapshot_id": "math-catalog-select-golden:forecast"
+            },
+            "inventory": {
+              "content_hash": "e817d3023f0327383a4240e1264244e4e4aaf5674c2e1f34063f81ca8993a047",
+              "snapshot_id": "math-catalog-select-golden:inventory"
+            },
+            "master": {
+              "content_hash": "6714a6ee352f65f0befb3e0eacd9fff333057333deaf0843e6ad87c28a56242a",
+              "snapshot_id": "math-catalog-select-golden:master"
+            },
+            "policies": {
+              "content_hash": "dadff207e1b9efbd6b1f1c34f56c7a44cc53a9cb4432bb2bbff9f9033a966613",
+              "snapshot_id": "math-catalog-select-golden:policies"
+            },
+            "prior_inventory": {
+              "content_hash": "e40e72f6833f3b7dcc28cd9f02d260f5197a01210f09bf1e2c9786c7867966f1",
+              "snapshot_id": "math-catalog-select-golden:prior_inventory"
+            },
+            "receipts": {
+              "content_hash": "e619cc69d03d37f990c88e757725de51bb00140e8a110d359b547b138ffe9f9f",
+              "snapshot_id": "math-catalog-select-golden:receipts"
+            }
+          },
+          "legacy_parameters_binding": null,
+          "prepared_content_hash": "057495c1e97e0dabf475331dcd09ba4cff6169ab5625e4878e3d891c083e2c53",
+          "psi_scenario_type": "RECOMMENDED",
+          "psi_simulator": {
+            "implementation_content_hash": "9bc7b1576eb3bcd00d11fb28affb77f7b875764667f120ca54ac98faa944fe7f",
+            "implementation_id": "inventory.psi.target_guarded.csharp",
+            "version": "1.0.0"
+          },
+          "replenishment_execution_binding": {
+            "replenishment_config_content_hash": "e3326f75053b1fa8dce1a002284d386d9d5252f38930f1d883ec463bcdc151f6",
+            "strategy": {
+              "implementation_id": "historical-normal-r-s",
+              "model": null,
+              "strategy_type": "MATHEMATICAL",
+              "version": "1.0.0"
+            },
+            "strategy_input_binding": {
+              "content_hash": "e02c1ad7c5f1d0a71526cb38302fffa3b268309650aa405749090084c2d31aff",
+              "contract_id": "io-mathematical-policy-input-v1",
+              "contract_version": "1.0.0",
+              "snapshot_id": "MATH-INPUT-catalog-select-golden"
+            }
+          },
+          "semantics_profile": "TARGET_GUARDED"
+        },
+        "counts": {
+          "baseline_row_count": 3,
+          "candidate_count": 32,
+          "candidate_psi_row_count": 96,
+          "decision_content_hash": "153b7f0efa7c0bc10fa2925f2860face506d0aadadc7e353891eb294c33c8203",
+          "decision_count": 3,
+          "not_selected_item_count": 0,
+          "order_count": 2,
+          "orders_content_hash": "dd99222861de73def1d201cdcbf1fcba6260c0437b3db3f4816e4ef754fb8378",
+          "psi_content_hash": "f2a929f9b88d7edcf41cbf3cf2d528aca808fa90490a894d3669c9a86dd17ccd",
+          "recommended_row_count": 3,
+          "search_content_hash": "2de685fe7011a63c9db2b96e7db8a703f092adaa0ce7356862b49d1edd04c12b",
+          "selected_item_count": 1,
+          "selection_content_hash": "d61c42ec7662a8b2e3ade7800b9c88a9616e252b301fbb28c37a1631ad86cf51",
+          "selection_count": 1
+        }
+      },
+      {
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "database_writes": false,
+        "fresh_process_verified": true,
+        "input_reference": {
+          "byte_count": 75998,
+          "content_hash": "5a28dfbf18f8a28bdc41911e9fbb3dad9c9809a4e2db4e9d5fd24e3876fb13b7",
+          "kind": "INPUT"
+        },
+        "mode": "WIDE_REFERENCE",
+        "verification_status": "RECOMPUTED_VERIFIED",
+        "calculation_binding": {
+          "calculation_backend": "CSHARP_PYTHONNET",
+          "canonical_input_hash": "c6a2d7a4fefd6c516340183f7d8db08a851b545a304ff61f809ef3b6595abfe8",
+          "contract_id": "inventory-calculation-boundary-binding",
+          "contract_version": "1.0.0",
+          "engine_run_id": "IO-GOLDEN-math-catalog-select-golden",
+          "execution_mode": "CALCULATION_ONLY",
+          "guard_order": "VALIDATE_BEFORE_STATE_COMMIT",
+          "input_bindings": {
+            "calendar": {
+              "content_hash": "15e37189fb9b12dc0f5fe90d5509e80633fa49c4e25c8df16dfd2a0b9c05b943",
+              "snapshot_id": "math-catalog-select-golden:calendar"
+            },
+            "customer_orders": {
+              "content_hash": "54476e9c367252cfb909fb4a5f3314f0f814ea4f627c8f5d8cb6740e504e8f28",
+              "snapshot_id": "math-catalog-select-golden:customer_orders"
+            },
+            "forecast": {
+              "content_hash": "a56c2057a99c67ec494ea39db568cce9e87b81148927162c3e0de7b3fe51acba",
+              "snapshot_id": "math-catalog-select-golden:forecast"
+            },
+            "inventory": {
+              "content_hash": "e817d3023f0327383a4240e1264244e4e4aaf5674c2e1f34063f81ca8993a047",
+              "snapshot_id": "math-catalog-select-golden:inventory"
+            },
+            "master": {
+              "content_hash": "6714a6ee352f65f0befb3e0eacd9fff333057333deaf0843e6ad87c28a56242a",
+              "snapshot_id": "math-catalog-select-golden:master"
+            },
+            "policies": {
+              "content_hash": "dadff207e1b9efbd6b1f1c34f56c7a44cc53a9cb4432bb2bbff9f9033a966613",
+              "snapshot_id": "math-catalog-select-golden:policies"
+            },
+            "prior_inventory": {
+              "content_hash": "e40e72f6833f3b7dcc28cd9f02d260f5197a01210f09bf1e2c9786c7867966f1",
+              "snapshot_id": "math-catalog-select-golden:prior_inventory"
+            },
+            "receipts": {
+              "content_hash": "e619cc69d03d37f990c88e757725de51bb00140e8a110d359b547b138ffe9f9f",
+              "snapshot_id": "math-catalog-select-golden:receipts"
+            }
+          },
+          "legacy_parameters_binding": null,
+          "prepared_content_hash": "057495c1e97e0dabf475331dcd09ba4cff6169ab5625e4878e3d891c083e2c53",
+          "psi_scenario_type": "RECOMMENDED",
+          "psi_simulator": {
+            "implementation_content_hash": "9bc7b1576eb3bcd00d11fb28affb77f7b875764667f120ca54ac98faa944fe7f",
+            "implementation_id": "inventory.psi.target_guarded.csharp",
+            "version": "1.0.0"
+          },
+          "replenishment_execution_binding": {
+            "replenishment_config_content_hash": "e3326f75053b1fa8dce1a002284d386d9d5252f38930f1d883ec463bcdc151f6",
+            "strategy": {
+              "implementation_id": "historical-normal-r-s",
+              "model": null,
+              "strategy_type": "MATHEMATICAL",
+              "version": "1.0.0"
+            },
+            "strategy_input_binding": {
+              "content_hash": "e02c1ad7c5f1d0a71526cb38302fffa3b268309650aa405749090084c2d31aff",
+              "contract_id": "io-mathematical-policy-input-v1",
+              "contract_version": "1.0.0",
+              "snapshot_id": "MATH-INPUT-catalog-select-golden"
+            }
+          },
+          "semantics_profile": "TARGET_GUARDED"
+        },
+        "counts": {
+          "baseline_row_count": 3,
+          "candidate_count": 88,
+          "candidate_psi_row_count": 264,
+          "decision_content_hash": "158521ff3e539c882c56dfa054a6ed0f464ae860d41381d89f8493e78547734d",
+          "decision_count": 3,
+          "not_selected_item_count": 0,
+          "order_count": 2,
+          "orders_content_hash": "26ecdd14c13d92edb8d42d603892ed39829f5dcf929ac32911bdb758531da19b",
+          "psi_content_hash": "f2a929f9b88d7edcf41cbf3cf2d528aca808fa90490a894d3669c9a86dd17ccd",
+          "recommended_row_count": 3,
+          "search_content_hash": "d79c30a3caeefcc09f280955b85b8bb1df14d56f3bf969075ee0d40231a63b03",
+          "selected_item_count": 1,
+          "selection_content_hash": "d81610f731caedcf74cbaf7bfb66c039512326daf5119cbd6184fe502067b876",
+          "selection_count": 1
+        }
+      },
+      {
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "database_writes": false,
+        "exit_code": -9,
+        "fresh_process_recovered": true,
+        "input_reference": {
+          "byte_count": 52995,
+          "content_hash": "a702f6d1eaa6b592dbf55d5d8639617a46a1ccf9bb86628bb824933f3a6792f4",
+          "kind": "INPUT"
+        },
+        "interruption": "INPUT",
+        "published_bytes_preserved": true,
+        "verification_status": "RECOMPUTED_VERIFIED",
+        "calculation_binding": {
+          "calculation_backend": "CSHARP_PYTHONNET",
+          "canonical_input_hash": "c6a2d7a4fefd6c516340183f7d8db08a851b545a304ff61f809ef3b6595abfe8",
+          "contract_id": "inventory-calculation-boundary-binding",
+          "contract_version": "1.0.0",
+          "engine_run_id": "IO-GOLDEN-math-catalog-select-golden",
+          "execution_mode": "CALCULATION_ONLY",
+          "guard_order": "VALIDATE_BEFORE_STATE_COMMIT",
+          "input_bindings": {
+            "calendar": {
+              "content_hash": "15e37189fb9b12dc0f5fe90d5509e80633fa49c4e25c8df16dfd2a0b9c05b943",
+              "snapshot_id": "math-catalog-select-golden:calendar"
+            },
+            "customer_orders": {
+              "content_hash": "54476e9c367252cfb909fb4a5f3314f0f814ea4f627c8f5d8cb6740e504e8f28",
+              "snapshot_id": "math-catalog-select-golden:customer_orders"
+            },
+            "forecast": {
+              "content_hash": "a56c2057a99c67ec494ea39db568cce9e87b81148927162c3e0de7b3fe51acba",
+              "snapshot_id": "math-catalog-select-golden:forecast"
+            },
+            "inventory": {
+              "content_hash": "e817d3023f0327383a4240e1264244e4e4aaf5674c2e1f34063f81ca8993a047",
+              "snapshot_id": "math-catalog-select-golden:inventory"
+            },
+            "master": {
+              "content_hash": "6714a6ee352f65f0befb3e0eacd9fff333057333deaf0843e6ad87c28a56242a",
+              "snapshot_id": "math-catalog-select-golden:master"
+            },
+            "policies": {
+              "content_hash": "dadff207e1b9efbd6b1f1c34f56c7a44cc53a9cb4432bb2bbff9f9033a966613",
+              "snapshot_id": "math-catalog-select-golden:policies"
+            },
+            "prior_inventory": {
+              "content_hash": "e40e72f6833f3b7dcc28cd9f02d260f5197a01210f09bf1e2c9786c7867966f1",
+              "snapshot_id": "math-catalog-select-golden:prior_inventory"
+            },
+            "receipts": {
+              "content_hash": "e619cc69d03d37f990c88e757725de51bb00140e8a110d359b547b138ffe9f9f",
+              "snapshot_id": "math-catalog-select-golden:receipts"
+            }
+          },
+          "legacy_parameters_binding": null,
+          "prepared_content_hash": "057495c1e97e0dabf475331dcd09ba4cff6169ab5625e4878e3d891c083e2c53",
+          "psi_scenario_type": "RECOMMENDED",
+          "psi_simulator": {
+            "implementation_content_hash": "9bc7b1576eb3bcd00d11fb28affb77f7b875764667f120ca54ac98faa944fe7f",
+            "implementation_id": "inventory.psi.target_guarded.csharp",
+            "version": "1.0.0"
+          },
+          "replenishment_execution_binding": {
+            "replenishment_config_content_hash": "e3326f75053b1fa8dce1a002284d386d9d5252f38930f1d883ec463bcdc151f6",
+            "strategy": {
+              "implementation_id": "historical-normal-r-s",
+              "model": null,
+              "strategy_type": "MATHEMATICAL",
+              "version": "1.0.0"
+            },
+            "strategy_input_binding": {
+              "content_hash": "e02c1ad7c5f1d0a71526cb38302fffa3b268309650aa405749090084c2d31aff",
+              "contract_id": "io-mathematical-policy-input-v1",
+              "contract_version": "1.0.0",
+              "snapshot_id": "MATH-INPUT-catalog-select-golden"
+            }
+          },
+          "semantics_profile": "TARGET_GUARDED"
+        },
+        "counts": {
+          "baseline_row_count": 3,
+          "candidate_count": 32,
+          "candidate_psi_row_count": 96,
+          "decision_content_hash": "153b7f0efa7c0bc10fa2925f2860face506d0aadadc7e353891eb294c33c8203",
+          "decision_count": 3,
+          "not_selected_item_count": 0,
+          "order_count": 2,
+          "orders_content_hash": "dd99222861de73def1d201cdcbf1fcba6260c0437b3db3f4816e4ef754fb8378",
+          "psi_content_hash": "f2a929f9b88d7edcf41cbf3cf2d528aca808fa90490a894d3669c9a86dd17ccd",
+          "recommended_row_count": 3,
+          "search_content_hash": "2de685fe7011a63c9db2b96e7db8a703f092adaa0ce7356862b49d1edd04c12b",
+          "selected_item_count": 1,
+          "selection_content_hash": "d61c42ec7662a8b2e3ade7800b9c88a9616e252b301fbb28c37a1631ad86cf51",
+          "selection_count": 1
+        }
+      },
+      {
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "database_writes": false,
+        "exit_code": -9,
+        "fresh_process_recovered": true,
+        "input_reference": {
+          "byte_count": 52995,
+          "content_hash": "a702f6d1eaa6b592dbf55d5d8639617a46a1ccf9bb86628bb824933f3a6792f4",
+          "kind": "INPUT"
+        },
+        "interruption": "PART",
+        "published_bytes_preserved": true,
+        "verification_status": "RECOMPUTED_VERIFIED",
+        "calculation_binding": {
+          "calculation_backend": "CSHARP_PYTHONNET",
+          "canonical_input_hash": "c6a2d7a4fefd6c516340183f7d8db08a851b545a304ff61f809ef3b6595abfe8",
+          "contract_id": "inventory-calculation-boundary-binding",
+          "contract_version": "1.0.0",
+          "engine_run_id": "IO-GOLDEN-math-catalog-select-golden",
+          "execution_mode": "CALCULATION_ONLY",
+          "guard_order": "VALIDATE_BEFORE_STATE_COMMIT",
+          "input_bindings": {
+            "calendar": {
+              "content_hash": "15e37189fb9b12dc0f5fe90d5509e80633fa49c4e25c8df16dfd2a0b9c05b943",
+              "snapshot_id": "math-catalog-select-golden:calendar"
+            },
+            "customer_orders": {
+              "content_hash": "54476e9c367252cfb909fb4a5f3314f0f814ea4f627c8f5d8cb6740e504e8f28",
+              "snapshot_id": "math-catalog-select-golden:customer_orders"
+            },
+            "forecast": {
+              "content_hash": "a56c2057a99c67ec494ea39db568cce9e87b81148927162c3e0de7b3fe51acba",
+              "snapshot_id": "math-catalog-select-golden:forecast"
+            },
+            "inventory": {
+              "content_hash": "e817d3023f0327383a4240e1264244e4e4aaf5674c2e1f34063f81ca8993a047",
+              "snapshot_id": "math-catalog-select-golden:inventory"
+            },
+            "master": {
+              "content_hash": "6714a6ee352f65f0befb3e0eacd9fff333057333deaf0843e6ad87c28a56242a",
+              "snapshot_id": "math-catalog-select-golden:master"
+            },
+            "policies": {
+              "content_hash": "dadff207e1b9efbd6b1f1c34f56c7a44cc53a9cb4432bb2bbff9f9033a966613",
+              "snapshot_id": "math-catalog-select-golden:policies"
+            },
+            "prior_inventory": {
+              "content_hash": "e40e72f6833f3b7dcc28cd9f02d260f5197a01210f09bf1e2c9786c7867966f1",
+              "snapshot_id": "math-catalog-select-golden:prior_inventory"
+            },
+            "receipts": {
+              "content_hash": "e619cc69d03d37f990c88e757725de51bb00140e8a110d359b547b138ffe9f9f",
+              "snapshot_id": "math-catalog-select-golden:receipts"
+            }
+          },
+          "legacy_parameters_binding": null,
+          "prepared_content_hash": "057495c1e97e0dabf475331dcd09ba4cff6169ab5625e4878e3d891c083e2c53",
+          "psi_scenario_type": "RECOMMENDED",
+          "psi_simulator": {
+            "implementation_content_hash": "9bc7b1576eb3bcd00d11fb28affb77f7b875764667f120ca54ac98faa944fe7f",
+            "implementation_id": "inventory.psi.target_guarded.csharp",
+            "version": "1.0.0"
+          },
+          "replenishment_execution_binding": {
+            "replenishment_config_content_hash": "e3326f75053b1fa8dce1a002284d386d9d5252f38930f1d883ec463bcdc151f6",
+            "strategy": {
+              "implementation_id": "historical-normal-r-s",
+              "model": null,
+              "strategy_type": "MATHEMATICAL",
+              "version": "1.0.0"
+            },
+            "strategy_input_binding": {
+              "content_hash": "e02c1ad7c5f1d0a71526cb38302fffa3b268309650aa405749090084c2d31aff",
+              "contract_id": "io-mathematical-policy-input-v1",
+              "contract_version": "1.0.0",
+              "snapshot_id": "MATH-INPUT-catalog-select-golden"
+            }
+          },
+          "semantics_profile": "TARGET_GUARDED"
+        },
+        "counts": {
+          "baseline_row_count": 3,
+          "candidate_count": 32,
+          "candidate_psi_row_count": 96,
+          "decision_content_hash": "153b7f0efa7c0bc10fa2925f2860face506d0aadadc7e353891eb294c33c8203",
+          "decision_count": 3,
+          "not_selected_item_count": 0,
+          "order_count": 2,
+          "orders_content_hash": "dd99222861de73def1d201cdcbf1fcba6260c0437b3db3f4816e4ef754fb8378",
+          "psi_content_hash": "f2a929f9b88d7edcf41cbf3cf2d528aca808fa90490a894d3669c9a86dd17ccd",
+          "recommended_row_count": 3,
+          "search_content_hash": "2de685fe7011a63c9db2b96e7db8a703f092adaa0ce7356862b49d1edd04c12b",
+          "selected_item_count": 1,
+          "selection_content_hash": "d61c42ec7662a8b2e3ade7800b9c88a9616e252b301fbb28c37a1631ad86cf51",
+          "selection_count": 1
+        }
+      },
+      {
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "database_writes": false,
+        "exit_code": -9,
+        "fresh_process_recovered": true,
+        "input_reference": {
+          "byte_count": 52995,
+          "content_hash": "a702f6d1eaa6b592dbf55d5d8639617a46a1ccf9bb86628bb824933f3a6792f4",
+          "kind": "INPUT"
+        },
+        "interruption": "MANIFEST",
+        "published_bytes_preserved": true,
+        "verification_status": "RECOMPUTED_VERIFIED",
+        "calculation_binding": {
+          "calculation_backend": "CSHARP_PYTHONNET",
+          "canonical_input_hash": "c6a2d7a4fefd6c516340183f7d8db08a851b545a304ff61f809ef3b6595abfe8",
+          "contract_id": "inventory-calculation-boundary-binding",
+          "contract_version": "1.0.0",
+          "engine_run_id": "IO-GOLDEN-math-catalog-select-golden",
+          "execution_mode": "CALCULATION_ONLY",
+          "guard_order": "VALIDATE_BEFORE_STATE_COMMIT",
+          "input_bindings": {
+            "calendar": {
+              "content_hash": "15e37189fb9b12dc0f5fe90d5509e80633fa49c4e25c8df16dfd2a0b9c05b943",
+              "snapshot_id": "math-catalog-select-golden:calendar"
+            },
+            "customer_orders": {
+              "content_hash": "54476e9c367252cfb909fb4a5f3314f0f814ea4f627c8f5d8cb6740e504e8f28",
+              "snapshot_id": "math-catalog-select-golden:customer_orders"
+            },
+            "forecast": {
+              "content_hash": "a56c2057a99c67ec494ea39db568cce9e87b81148927162c3e0de7b3fe51acba",
+              "snapshot_id": "math-catalog-select-golden:forecast"
+            },
+            "inventory": {
+              "content_hash": "e817d3023f0327383a4240e1264244e4e4aaf5674c2e1f34063f81ca8993a047",
+              "snapshot_id": "math-catalog-select-golden:inventory"
+            },
+            "master": {
+              "content_hash": "6714a6ee352f65f0befb3e0eacd9fff333057333deaf0843e6ad87c28a56242a",
+              "snapshot_id": "math-catalog-select-golden:master"
+            },
+            "policies": {
+              "content_hash": "dadff207e1b9efbd6b1f1c34f56c7a44cc53a9cb4432bb2bbff9f9033a966613",
+              "snapshot_id": "math-catalog-select-golden:policies"
+            },
+            "prior_inventory": {
+              "content_hash": "e40e72f6833f3b7dcc28cd9f02d260f5197a01210f09bf1e2c9786c7867966f1",
+              "snapshot_id": "math-catalog-select-golden:prior_inventory"
+            },
+            "receipts": {
+              "content_hash": "e619cc69d03d37f990c88e757725de51bb00140e8a110d359b547b138ffe9f9f",
+              "snapshot_id": "math-catalog-select-golden:receipts"
+            }
+          },
+          "legacy_parameters_binding": null,
+          "prepared_content_hash": "057495c1e97e0dabf475331dcd09ba4cff6169ab5625e4878e3d891c083e2c53",
+          "psi_scenario_type": "RECOMMENDED",
+          "psi_simulator": {
+            "implementation_content_hash": "9bc7b1576eb3bcd00d11fb28affb77f7b875764667f120ca54ac98faa944fe7f",
+            "implementation_id": "inventory.psi.target_guarded.csharp",
+            "version": "1.0.0"
+          },
+          "replenishment_execution_binding": {
+            "replenishment_config_content_hash": "e3326f75053b1fa8dce1a002284d386d9d5252f38930f1d883ec463bcdc151f6",
+            "strategy": {
+              "implementation_id": "historical-normal-r-s",
+              "model": null,
+              "strategy_type": "MATHEMATICAL",
+              "version": "1.0.0"
+            },
+            "strategy_input_binding": {
+              "content_hash": "e02c1ad7c5f1d0a71526cb38302fffa3b268309650aa405749090084c2d31aff",
+              "contract_id": "io-mathematical-policy-input-v1",
+              "contract_version": "1.0.0",
+              "snapshot_id": "MATH-INPUT-catalog-select-golden"
+            }
+          },
+          "semantics_profile": "TARGET_GUARDED"
+        },
+        "counts": {
+          "baseline_row_count": 3,
+          "candidate_count": 32,
+          "candidate_psi_row_count": 96,
+          "decision_content_hash": "153b7f0efa7c0bc10fa2925f2860face506d0aadadc7e353891eb294c33c8203",
+          "decision_count": 3,
+          "not_selected_item_count": 0,
+          "order_count": 2,
+          "orders_content_hash": "dd99222861de73def1d201cdcbf1fcba6260c0437b3db3f4816e4ef754fb8378",
+          "psi_content_hash": "f2a929f9b88d7edcf41cbf3cf2d528aca808fa90490a894d3669c9a86dd17ccd",
+          "recommended_row_count": 3,
+          "search_content_hash": "2de685fe7011a63c9db2b96e7db8a703f092adaa0ce7356862b49d1edd04c12b",
+          "selected_item_count": 1,
+          "selection_content_hash": "d61c42ec7662a8b2e3ade7800b9c88a9616e252b301fbb28c37a1631ad86cf51",
+          "selection_count": 1
+        }
+      },
+      {
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "database_writes": false,
+        "exit_code": -9,
+        "fresh_process_recovered": true,
+        "input_reference": {
+          "byte_count": 52995,
+          "content_hash": "a702f6d1eaa6b592dbf55d5d8639617a46a1ccf9bb86628bb824933f3a6792f4",
+          "kind": "INPUT"
+        },
+        "interruption": "COMPLETE",
+        "published_bytes_preserved": true,
+        "verification_status": "RECOMPUTED_VERIFIED",
+        "calculation_binding": {
+          "calculation_backend": "CSHARP_PYTHONNET",
+          "canonical_input_hash": "c6a2d7a4fefd6c516340183f7d8db08a851b545a304ff61f809ef3b6595abfe8",
+          "contract_id": "inventory-calculation-boundary-binding",
+          "contract_version": "1.0.0",
+          "engine_run_id": "IO-GOLDEN-math-catalog-select-golden",
+          "execution_mode": "CALCULATION_ONLY",
+          "guard_order": "VALIDATE_BEFORE_STATE_COMMIT",
+          "input_bindings": {
+            "calendar": {
+              "content_hash": "15e37189fb9b12dc0f5fe90d5509e80633fa49c4e25c8df16dfd2a0b9c05b943",
+              "snapshot_id": "math-catalog-select-golden:calendar"
+            },
+            "customer_orders": {
+              "content_hash": "54476e9c367252cfb909fb4a5f3314f0f814ea4f627c8f5d8cb6740e504e8f28",
+              "snapshot_id": "math-catalog-select-golden:customer_orders"
+            },
+            "forecast": {
+              "content_hash": "a56c2057a99c67ec494ea39db568cce9e87b81148927162c3e0de7b3fe51acba",
+              "snapshot_id": "math-catalog-select-golden:forecast"
+            },
+            "inventory": {
+              "content_hash": "e817d3023f0327383a4240e1264244e4e4aaf5674c2e1f34063f81ca8993a047",
+              "snapshot_id": "math-catalog-select-golden:inventory"
+            },
+            "master": {
+              "content_hash": "6714a6ee352f65f0befb3e0eacd9fff333057333deaf0843e6ad87c28a56242a",
+              "snapshot_id": "math-catalog-select-golden:master"
+            },
+            "policies": {
+              "content_hash": "dadff207e1b9efbd6b1f1c34f56c7a44cc53a9cb4432bb2bbff9f9033a966613",
+              "snapshot_id": "math-catalog-select-golden:policies"
+            },
+            "prior_inventory": {
+              "content_hash": "e40e72f6833f3b7dcc28cd9f02d260f5197a01210f09bf1e2c9786c7867966f1",
+              "snapshot_id": "math-catalog-select-golden:prior_inventory"
+            },
+            "receipts": {
+              "content_hash": "e619cc69d03d37f990c88e757725de51bb00140e8a110d359b547b138ffe9f9f",
+              "snapshot_id": "math-catalog-select-golden:receipts"
+            }
+          },
+          "legacy_parameters_binding": null,
+          "prepared_content_hash": "057495c1e97e0dabf475331dcd09ba4cff6169ab5625e4878e3d891c083e2c53",
+          "psi_scenario_type": "RECOMMENDED",
+          "psi_simulator": {
+            "implementation_content_hash": "9bc7b1576eb3bcd00d11fb28affb77f7b875764667f120ca54ac98faa944fe7f",
+            "implementation_id": "inventory.psi.target_guarded.csharp",
+            "version": "1.0.0"
+          },
+          "replenishment_execution_binding": {
+            "replenishment_config_content_hash": "e3326f75053b1fa8dce1a002284d386d9d5252f38930f1d883ec463bcdc151f6",
+            "strategy": {
+              "implementation_id": "historical-normal-r-s",
+              "model": null,
+              "strategy_type": "MATHEMATICAL",
+              "version": "1.0.0"
+            },
+            "strategy_input_binding": {
+              "content_hash": "e02c1ad7c5f1d0a71526cb38302fffa3b268309650aa405749090084c2d31aff",
+              "contract_id": "io-mathematical-policy-input-v1",
+              "contract_version": "1.0.0",
+              "snapshot_id": "MATH-INPUT-catalog-select-golden"
+            }
+          },
+          "semantics_profile": "TARGET_GUARDED"
+        },
+        "counts": {
+          "baseline_row_count": 3,
+          "candidate_count": 32,
+          "candidate_psi_row_count": 96,
+          "decision_content_hash": "153b7f0efa7c0bc10fa2925f2860face506d0aadadc7e353891eb294c33c8203",
+          "decision_count": 3,
+          "not_selected_item_count": 0,
+          "order_count": 2,
+          "orders_content_hash": "dd99222861de73def1d201cdcbf1fcba6260c0437b3db3f4816e4ef754fb8378",
+          "psi_content_hash": "f2a929f9b88d7edcf41cbf3cf2d528aca808fa90490a894d3669c9a86dd17ccd",
+          "recommended_row_count": 3,
+          "search_content_hash": "2de685fe7011a63c9db2b96e7db8a703f092adaa0ce7356862b49d1edd04c12b",
+          "selected_item_count": 1,
+          "selection_content_hash": "d61c42ec7662a8b2e3ade7800b9c88a9616e252b301fbb28c37a1631ad86cf51",
+          "selection_count": 1
+        }
+      }
+    ]
+  },
+  "preservation": {
+    "added_files": {
+      "docs/architecture/IO_TARGET_PIPELINE_STORAGE.md": "ed31e890aa29b475ccc5a25569e36a90280d518f5d96dcbc0bd13f1490db09cb",
+      "scripts/verify_target_storage.py": "ed00e1d46ac7feea0c9bd445dc124b688e72f816d74b861570bff31d0cc4aa01",
+      "src/dsio_inventory_engine/infrastructure/target_pipeline_artifacts.py": "d97f4cabd8d01091f24632656c39da6aa9d75a3a3d1f0eb6857649776266b61b",
+      "src/dsio_inventory_engine/recommend_replenishment/application/target_durable.py": "bd7305d26ba717db09d070ed66b084712ef5fabfc43b0ed12cc1df5c901513f4",
+      "tests/integration/test_target_durable_offline.py": "d4c6f6a5a8c79cfbffa0874a6ce80eb3cd972481de9f0b350b034251e42ffd06",
+      "tests/unit/test_target_pipeline_artifacts.py": "802669c1058e06b51c44fb6d1683cc4d0b6a9ee70cec6eb796ad028969f08ddd"
+    },
+    "changed_preexisting": {
+      "docs/architecture/IO_DEVELOPMENT_BASELINE.md": {
+        "after": "237afc9ab55979a75917e9690887335ace6753a4404903d93deb8be257f0cb9a",
+        "before": "c32fe6aba9fbce9e9a1b7ddab8b69f9d77f6957430f502b9d99815c4384ec3b4"
+      },
+      "docs/architecture/IO_SELECTED_POLICY_ORDER_PLAN_CONTRACT.md": {
+        "after": "c2d5f004fdde681a6f00542a59dd4dc88a23bf3c3d6743cacffef12cca58b097",
+        "before": "87546e10f0db0ead7a571322bfc9dbe385b5477f3e7b5647acdebd8ea634bb79"
+      },
+      "docs/architecture/IO_TARGET_GUARDED_EXECUTION.md": {
+        "after": "3fb9cd7999c74f871f47b63b575570ee720e084a9501e87f26877370a98594de",
+        "before": "6672f922bf791c2d8842e9397a2af559ad4113c7296f6f33bad75423bc50fd13"
+      }
+    },
+    "preexisting_file_count": 625
+  },
+  "behavior": {
+    "input_saved_before_numerical_call": true,
+    "publication_order": [
+      "INPUT",
+      "PARTS",
+      "MANIFEST",
+      "COMPLETE"
+    ],
+    "same_existing_run_input_reference": "exclusive",
+    "same_bytes": "idempotent",
+    "different_input_same_run": "conflict",
+    "partial_read": "blocked",
+    "missing_or_corrupt_committed_part": "fails closed; recover does not overwrite",
+    "integrity_read_status": "INTEGRITY_VERIFIED",
+    "full_replay_status": "RECOMPUTED_VERIFIED",
+    "recovery_source": "stored input/config/classification/catalog recipe; no Source DB/latest lookup",
+    "recovery_calculation": "full same-DLL pipeline replay, not a numerical loop checkpoint",
+    "existing_business_ids_and_hashes": "unchanged",
+    "storage_checksums": "separate record/manifest/pointer checksums only",
+    "maximum_record_bytes": 128000000,
+    "maximum_existing_target_view_bytes": 128000000
+  },
+  "database_access": false,
+  "database_writes": false,
+  "migrations_applied": false,
+  "runtime_registered": false,
+  "shared_runtime_deployed": false,
+  "actual_orders": false,
+  "commit": false,
+  "push": false,
+  "limitations": [
+    "not a whole-repository test run",
+    "not a performance or memory benchmark",
+    "not a V100 or real-source E2E",
+    "not Legacy full-engine equivalence",
+    "no Platform Result Bundle/Projection registration",
+    "no new resource-management optimization or official robustness experiment",
+    "private-root local storage is not an OS-administrator-resistant signature",
+    "stored exact input reference can be supplied by caller",
+    "no DB write/migration/shared deployment/ERP activation"
+  ],
+  "regression_result": {
+    "passed": 838,
+    "subtests_passed": 158,
+    "seconds": 152.77
+  }
+}

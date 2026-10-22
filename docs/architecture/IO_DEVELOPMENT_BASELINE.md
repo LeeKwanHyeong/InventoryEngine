@@ -1,5 +1,1988 @@
 # InventoryEngine 개발 기준선과 작업 순서
 
+## 2026-10-22 최신 — 계산 완료·C# 상세 조회 연결과 저장소 기준선 정리
+
+- 대표 9품목 Run `a791759c-92e5-48b0-a428-f8648ca4eec8`은 기존 봉인 결과를 유지한 채
+  계산 완료 이벤트 반영·중복 재시도와 실제 인증 화면 조회까지 완료했다.
+  Run은 `succeeded`, Evidence는 `pending`, `effective_run_id=NULL`이며 운영 검토는 남아 있다.
+- Platform Backend/Frontend에서 C# 후보 288개·선정 6품목·무수요 미선정 3품목·권고 주문 21건을
+  같은 Run의 저장 참조로 조회한다. 부모 Python 분석 81개는 별도 표시하며 합산하지 않는다.
+  큰 후보 PSI 원문이나 C# 재계산 없이 봉인 선정·Projection의 참조·Hash·건수를 확인한다.
+- 상세 조회 계약은 Platform `docs/backend/dsim/inventory-native-target-read-v1.md`,
+  실제 인증 조회 증적은 `docs/backend/dsim/evidence/inventory-v100-native-target-read-20261022.json`이다.
+  아래 절의 완료 이벤트·상세 화면 미완료 표기는 당시 이력이며 현재 다음 작업이 아니다.
+- 이번 저장소 정리는 InventoryEngine `inventory_engine_dev`와 Platform
+  `codex/inventory-psi-strategy-v2`의 관련 코드·계약·테스트·문서만 대상으로 한다.
+  개인 보고서·환경·임시 산출물·설치 Wheel·DLL·SQLite 원본은 제외한다.
+  개발 DB 재접속/Write·재계산·FSN/운영 Gate 변경·M3/공용 Runtime 배포·MR 생성은 하지 않는다.
+
+**현재 기준선 — 저장소별 선별 커밋과 전체 Offline 회귀 완료**
+
+- Engine Unit·Contract·Offline Integration은 **2,366 passed / 61 skipped / 655 subtests passed**,
+  기존 Starlette 경고 1건이다. 총 1,355.51초는 회귀 전체 소요시간이며 업무 계산 성능 지표가 아니다.
+  Platform 경로를 명시한 별도 목표 실행·Writer·복구 연결은 **47 passed / 0 skipped**다.
+- 최신 develop Rebase 후 Platform Inventory 관련 회귀·Migration 목차 계약은 **968 passed / 28 skipped**,
+  실제 설치 r5를 명시한 별도 연결은 **45 passed / 0 skipped**다. CI Backend 테스트 묶음도 **45 passed**다.
+  Frontend 전체 **527 passed**, TypeScript와 두 저장소의 후보 Ruff·Format을 통과했다.
+- Engine 315개 파일과 Platform 133개 파일을 선별했다. 원문 SQL 086의 기존 EOF 빈 줄 경고는
+  Checksum 보존을 위해 유지하며 나머지 후보 Diff Check는 통과했다. 상세 범위·Bash 환경 제약은
+  Platform `docs/backend/dsim/inventory-scm-baseline-20261022.md`에 기록했다.
+- Platform 새 로컬 커밋 3개만 `fb6f2fd36d77515f9a009c431eb77ce53eafcf17` 위로 Rebase했고
+  충돌과 커밋 내용 차이는 없다. 별도 문서 정정 커밋을 포함해 요청된 작업 브랜치에 일반 Push한다.
+  기존 공유 이력의 강제 Push·develop 직접 병합·MR 생성은 하지 않는다.
+
+**1. 실행·복구에서 반복되는 전수 재생을 줄인다 — 다음 작업 · InventoryEngine·로컬 Runtime Adapter**
+
+- 같은 호출의 불변 입력만 재사용하고 실제 계산 검증·Build/입력 Binding·결과 Hash·Gate를 유지한다.
+  상세 조회 GET은 이미 재계산하지 않으므로 다시 실행 대상으로 잡지 않는다.
+  자원 관리 고도화와 공식 강건성 본실험은 계속 보류한다.
+
+**2. 공용 환경 반영을 준비한다 — 승인 필요 · dsai-platform·M3**
+
+- 공유 반영이 필요할 때 정식 Migration 호환성과 Runtime 설치 참조를 정리하고 새 MR을 준비한다.
+  로컬 개발 DB에 적용한 SQL 원본은 Platform `infra/development-sql/inventory/`에 별도 보존한다.
+  원본 파일명·SQL Checksum과 기존 개발 DB 이력은 유지하며 자동 Migration에 등록하지 않는다.
+  MR 생성·공용 배포·운영 게시·실제 발주는 이번 커밋·Push와 별도다.
+
+## 2026-10-22 이전 이력 — 대표 9품목 C# 계산·적재·조회·중복 재시도 완료
+
+- InventoryEngine `inventory_engine_dev`·Platform `codex/inventory-psi-strategy-v2`에서 별도 설치 Wheel r5,
+  실제 DLL·TARGET_GUARDED Binding과 Plan 1.4.0·Runtime Manifest를 조립했다. 공용 배포는 없다.
+- 실제 288개 LEGACY_STYLE 후보의 계산 결과가 129,075,722바이트여서 종전 전체 128MB 검사에 걸렸다.
+  사용자 승인 후 후보별 저장·재생 검증으로 보정했다. 개별 레코드 128MB와 입력·조각·Manifest 원문 20GB 제한은 유지한다.
+  [저장 계약](IO_TARGET_PIPELINE_STORAGE.md)을 따르며 기존 레코드·계산 결과 Hash 형식은 바꾸지 않았다.
+- 실제 C# 결과는 301개 조각, 최대 1,979,439바이트다. 입력·Manifest 포함 원문은 150,641,003바이트이고
+  보정 전 진단과 보정 후 COMPLETE Manifest Hash가 같다. 후보·PSI·선정·행동·주문 내용이 보존됐다.
+- 로컬 프로세스 중단 후 Source 재조회 없이 복구해 `RECOMPUTED_VERIFIED`를 확인했다.
+  후보 288개·후보 PSI 7,488행, 선정 6품목·무수요 미선정 3품목, 권고 주문 21건이다.
+  기존 Python 분석 81개와 C# 분석은 분리하며 Projection은 Receipt 포함 21개 테이블·41,342행이다.
+  이후 별도 개발 Run에 같은 21개 테이블·41,342행을 실제 적재했고 전체 행 조회·중복 저장까지 통과했다.
+- 같은 호출에서 불변 입력과 검증 Binding만 재사용한다. 후보 재고 상태·PSI 결과를 캐시하지 않는다.
+  Engine 관련 302 passed 이후 Platform 경로를 지정한 나머지 26개도 통과했고, 설치 r5 Platform 관련 42 passed다.
+  전체 저장소 회귀나 운영 성능 검증 수치는 아니다. Ruff·Format·Diff Check를 통과했다.
+- 기존 Run·원본 Artifact·FSN·운영 Gate·활성 Config와 개선형 Python 계산을 유지한다.
+  별도 프로세스 독립 조회도 같은 포인터·건수와 실제 C# 재생으로 통과했다.
+  승인된 별도 개발 Config·분류·Cycle Revision 4와 새 Run `a791759c-92e5-48b0-a428-f8648ca4eec8` / Attempt 1을 생성했다.
+  같은 Claim의 멱등 재시도도 통과했다. 첫 저장 `replayed=false`, 중복 저장 `replayed=true`로 같은 Receipt를 반환했다.
+  별도 읽기 전용 SQL에서도 41,342행과 선정 발주 계획의 양수 권고 21행, 자동 게시·발주 true인 행 0건을 확인했다.
+- 첫 저장 시 선택 Hash를 `None`과 비교하던 개발 Reader 연결 오류는 결과 INSERT 전에 중단됐다.
+  저장된 Run 포인터에서 기대 Hash를 확인하도록 보정했으며 Hash 검사를 생략하지 않는다.
+  이후 같은 Run의 봉인 Projection으로 재시도했다. 최초 계산 Pipeline·Config·입력·Claim은 새로 만들지 않았다.
+- 두 차례 임시 Role/Role Permission/User Role은 모두 0행으로 회수했고 새 Resolver의 callback=false,
+  기존 `engine_report.read`=true를 확인했다. 기존 활성 Config·원래 Run의 행 지문과 원래 결과 건수가 전후 같다.
+  새 Run 원장은 아직 **created / pending**, Site running·`effective_run_id=NULL`이다.
+  계산 완료 이벤트·증적 VERIFIED·운영 유효 결과 게시나 신규 Run 화면 연결까지 완료한 것은 아니다.
+  Migration·Forecast 재실행·기존 Run 재계산·M3 배포·실제 발주·Commit/Push/MR은 없다.
+  자원 관리 고도화는 계속 보류한다.
+
+**현재 기준선 — 로컬 C# Runtime과 개발 DB의 계산 결과 저장·조회·재시도 완료**
+
+- 대표 9품목의 후보 생성→Simulation→품목별 선정→발주 계획을 실제 DLL과 개발 PostgreSQL에서 확인했다.
+  전체 품목·공유 Runtime·운영 발주 완료로 확대 해석하지 않는다. 아래는 남은 작업이다.
+
+**1. 새 Run의 완료 상태 전달과 결과 화면을 연결한다 — 다음 작업 · dsai-platform Backend/Frontend**
+
+- 기존 완료 API를 재사용해 저장 완료와 계산 완료·증적 검증·운영 검토를 구분한다. 새 계산은 필요 없다.
+  실제 완료 이벤트 Write와 공용 배포는 이번 완료 범위에 포함하지 않는다.
+
+**2. 같은 호출의 중복 전수 재계산을 줄인다 — 후속 작업 · InventoryEngine·로컬 Runtime Adapter**
+
+- 이번 Runtime 조립은 같은 결과를 여러 Reader 계층에서 반복 재생했다. 실제 재계산·입력/Build 고정·Gate를 유지하면서
+  요청 내부 중복을 제거하는 계약과 회귀 검증을 별도로 진행한다. 자원 관리 고도화·공식 강건성 실험 재개는 아니다.
+
+**3. 관련 코드·문서를 독립 커밋 후보로 정리한다 — 후속 작업 · 두 저장소**
+
+- InventoryEngine `inventory_engine_dev`, dsai-platform `codex/inventory-psi-strategy-v2`의 관련 변경만 정리한다.
+  개인 보고서·환경·임시 산출물은 제외하며 Commit/Push/MR은 별도 요청 시 진행한다.
+
+실제 상태와 증적은 Platform `docs/backend/dsim/inventory-v100-csharp-target-development-v1.md`,
+`docs/backend/dsim/evidence/inventory-v100-csharp-target-development-20261022.json`에서 관리한다.
+현재 로컬 검증·개발 DB 실행에는 MR이 필요 없다. 공유 M3 반영 시 최신 develop 대사와 새 MR·배포 승인이 필요하다.
+
+## 2026-10-22 이전 이력 — V100 대표 품목 개발 입력 준비 완료
+
+- [준비 계약](IO_CATALOG_DEVELOPMENT_INPUT_PREPARATION.md): 9품목·26주(`202438`~`202511`)·234행으로
+  새 로컬 개발 Config·원문 보존 분류·Feature·Catalog를 준비했다. ABC·XYZ/LEGACY_STYLE 각 288개,
+  넓은 참조 792개다. 품목당 32/32/88개이며 기존 8개 분류와 FSN REVIEW 사례를 포함한다.
+- 원 Master·전체 분류 3,622품목·상위 Forecast 참조·FSN·정책 Matrix·운영 Gate를 보존했다.
+  새 Config/분류 Binding은 별도 Draft이고 전체 유효 정책 Hash는 기존 `73510cf0…98e27c`와 같다.
+  차단 3품목·수요창 종료 3,378품목을 보존하고 나머지 3,610품목은 개발 표본 제외로 명시했다.
+- 봉인 합성 수요와 명시한 개발 비용·단가를 사용했으며 운영 실적으로 표시하지 않았다.
+  Universe v3 표본 제외는 계산 가능한 품목만 허용하고 v1/v2 Hash·Production 차단을 유지한다.
+- Engine 관련 76 passed / 2 subtests, Backend 관련 18 passed, 기존 Starlette 경고 5건이다.
+  전체 회귀는 아니며 Ruff/Format·Schema·Diff Check를 확인했다. 네트워크·PSI·목표 계산을 금지한
+  실제 입력 준비 재시도에서 원본·출력 지문이 같았다.
+- DB 접속/Write·Forecast/PSI/C# 실행·Claim·활성 설정 변경·M3 배포·Commit/Push는 하지 않았다.
+  Platform `.tmp/inventory-v100-catalog-preparation-20261022-r2/`가 최종 준비본이다.
+- 다음은 설치 Build·실제 DLL Calculation Binding·Plan/Runtime Manifest 조립이다.
+  이후 실제 DLL Offline 계산·저장·조회·복구를 검증하며 DB 적재는 별도 승인 대상이다.
+  아래 작업 순서는 각각 당시 이력이며 자원 관리 고도화는 계속 보류한다.
+
+## 2026-10-22 이전 이력 — 실제 인증·로컬 화면·기존 V100 결과 조회 확인
+
+- dsai-platform `codex/inventory-psi-strategy-v2`에서 기존 Inventory 결과 화면을 저장·계산·운영 검토로 나눴다.
+  실제 BFF·HttpOnly 쿠키·proxy·JWT·프로젝트 RBAC·PostgreSQL Repository·원본/파생/Receipt Reader를 연결했다.
+  Actor 주입이나 응답 재생 없이 기존 V100·202512 Run을 조회했다. 전체 Portal/M3 배포 검증은 아니다.
+- 일반 로그인의 last_login UPDATE를 피하기 위해 기존 개발 검증의 읽기 전용 인증 조립을 사용했다.
+  실제 비밀번호·계정 상태·Tenant 소속과 기존 JWT 발급/검증을 거치며 사용자·Secret·권한은 바꾸지 않았다.
+- Run `4f7c3cac-9264-4b34-bf77-0eda92f0b6b2`의 조회·새로고침은 200이며
+  저장 완료 / 계산 완료 / 검토 대기, 21개 테이블·588,066행을 표시했다. 증적 pending·유효 Run NULL·
+  자동 게시/발주 false는 그대로다. 무인증·로그아웃 후 조회는 401이며 인증 쿠키도 정리했다.
+- 시작/종료의 Run·Config·Revision·입력·Site·Run Metadata·사용자 행 지문, 이벤트 6건과 결과 건수,
+  원본/파생/Receipt Hash가 같았다. callback 권한은 false이며 새 권한을 부여하지 않았다.
+  FSN·운영 Gate·Engine 계산 코드·Build·ID·Hash·DB는 유지하고 재계산·재적재·완료 이벤트 재반영·M3 배포는 하지 않았다.
+- 관련 Backend 41 passed, Frontend 462 passed, TypeScript·Ruff·Format·Diff Check 통과다.
+  전체 Backend 회귀 수치는 아니며 기존 Starlette 경고 7건·ESLint 미설치 경계는 남는다.
+  로컬 두 서버는 종료했다. 자원 관리 고도화는 보류하며 Commit/Push는 하지 않았다.
+
+**1. 다음 독립 계산의 실제 검증 범위를 정한다 — 다음 작업 · InventoryEngine·dsai-platform Backend**
+
+- 이번 수학적 PSI 저장·완료·인증 조회와 C# 목표 계산·전체 후보·품목별 선정·발주 계획 검증을 구분한다.
+  기존 입력으로 가능한 범위를 정한 뒤 진행하며 신규 실제 DB Write·운영 게시·공용 배포는 별도 승인 대상이다.
+
+**2. 검증된 변경과 커밋 후보를 정리한다 — 후속 작업 · dsai-platform `codex/inventory-psi-strategy-v2`**
+
+- 관련 코드·테스트·문서를 기존 미커밋 변경과 구분한다. 개인 보고서·환경·임시 산출물은 제외하고 Commit/Push는 별도 요청 시 수행한다.
+
+실제 증적은 Platform `docs/backend/dsim/evidence/inventory-v100-authenticated-ui-readonly-20261022.json`,
+계약은 `docs/backend/dsim/inventory-stored-result-completion-v1.md`를 따른다.
+아래의 화면 연결·실제 인증 미완료 표기는 이전 단계의 이력이다.
+
+## 2026-10-22 이전 이력 — 기존 V100 Run 계산 완료·조회·중복 재시도 확인
+
+- 사용자 승인 후 로컬 dsai-platform Backend에서 V100·202512 기존 Run
+  `4f7c3cac-9264-4b34-bf77-0eda92f0b6b2` / Attempt 1에 계산 완료 이벤트 한 건을 반영했다.
+  Run은 `succeeded`다. 최초 응답 `replayed=false`와 중복 응답 `replayed=true` 모두 `event_seq=6`이며 중복 이벤트는 없다.
+- 같은 Run 조회는 `STORED`, `completion_event_required=false`, `review_required=true`를 반환했다.
+  실제 프로젝트 권한·Repository를 사용한 로컬 ASGI 검증이며 JWT 로그인·공용 서버 검증은 아니다.
+- 결과 21개 테이블의 Receipt 포함 588,066행·기존 Receipt·원본/파생/Receipt 전체 Hash와
+  Config·Revision·입력·Site·Run Metadata 지문은 보존했다. Engine 계산 코드·설치 Build·ID·Hash·FSN·운영 Gate는 그대로다.
+  Forecast/PSI 재계산·결과 재적재·Migration·운영 게시·M3/공용 배포·실제 발주·Commit/Push는 없다.
+- 프로젝트 한정 임시 callback 권한은 검증 후 회수했다. 별도 읽기 전용 확인에서도 임시 Role·권한 연결·
+  사용자 부여 행은 모두 0건, callback=false·기존 조회 권한=true다. 기본 Role·인증정보는 변경하지 않았다.
+- 계산 완료는 운영 게시와 별개다. Evidence `pending`, Site/Cycle `running`, `effective_run_id=NULL`과
+  자동 게시·발주 false를 유지했다. Cycle 전체 성공이나 C# 목표 계산·정책 탐색 E2E 완료로 표현하지 않는다.
+- 관련 Platform 15개 모듈 **273 passed / 0 skipped**, 기존 Starlette 경고 15건과 새 실행 명령·테스트의
+  Ruff·Format·Diff Check 통과다. 전체 저장소 회귀 수치는 아니며 실제 장애 복구는 Offline 검증과 구분한다.
+  자원 관리 고도화는 계속 보류한다.
+
+**1. 저장·계산 완료·검토 대기를 결과 화면에 연결한다 — 다음 작업 · dsai-platform Frontend**
+
+- 새 Backend 조회 계약으로 세 상태를 구분한다. M3/공용 배포는 별도 승인 대상이며 자동 게시·발주를 활성화하지 않는다.
+
+**2. 다음 독립 계산의 실제 검증 범위를 정한다 — 후속 작업 · InventoryEngine·dsai-platform Backend**
+
+- 이번 수학적 PSI 저장·완료와 C# 목표 계산·전체 후보·품목별 선정·발주 계획의 실제 검증은 분리한다.
+  신규 실제 DB Write는 승인 후 진행하며 Demand→IO 최종 연결·ERP 연계·공용 배포는 후속으로 유지한다.
+
+실제 적용·조회·재시도·권한 회수는 Platform
+`docs/backend/dsim/evidence/inventory-v100-calculation-completion-applied-20261022.json`,
+상세 계약은 `docs/backend/dsim/inventory-stored-result-completion-v1.md`를 따른다.
+아래의 승인 대기·미제출 표기는 이전 단계의 이력이다.
+
+## 2026-10-22 이전 이력 — 계산 완료·저장 결과 조회 연결 구현 / 실제 완료 이벤트 승인 대기
+
+- 실제 V100·202512 Run `4f7c3cac-9264-4b34-bf77-0eda92f0b6b2`을 읽기 전용으로 확인했다.
+  Receipt는 저장됐지만 마지막 이벤트는 `artifact_persistence / running`이며 전체 5건이다.
+  이전 적재 명령이 계산 완료 이벤트를 보내지 않은 것이 원인이고 비용 입력은 없는 Run이다.
+- dsai-platform Backend에서 기존 Receipt·Projection·Bundle·입력 Binding을 검증하는 저장 결과 조회와
+  기존 이벤트 트랜잭션을 재사용하는 계산 완료 API를 구현했다. 사용자는 Run·Project만 지정한다.
+  새 Table·Column·업무 ID/Hash는 없고 Engine 계산 코드·설치 Build·FSN·운영 Gate도 그대로다.
+- 실제 V100은 로컬 ASGI GET에서 200·STORED와 기존 봉인 참조·Receipt 포함 588,066행의 건수를 반환했다.
+  Actor는 로컬 주입이며 실제 프로젝트 권한과 Repository를 사용했다. JWT 로그인·공용 서버 검증은 아니다.
+  기본 읽기 전용 DB 연결로 Run 지문·이벤트 5건과 원본/파생/Receipt 전체 Hash가 전후 동일함을 확인했다.
+- 계산 완료 이벤트는 준비만 했다. 실제 Run `running`, Evidence `pending`, 유효 포인터 NULL,
+  callback=false를 유지했다. 실제 완료 트랜잭션은 아직 실행하지 않았고 운영 게시와 구분한다.
+  Forecast/PSI 재계산·Migration·M3/공용 배포·실제 발주·Commit/Push는 없다.
+
+**1. 준비된 계산 완료 이벤트를 실제 반영한다 — 승인 필요 · 로컬 Backend·개발 PostgreSQL**
+
+- 기존 Run에 이벤트 한 건만 반영하고 조회·동일 이벤트 재시도를 확인한다.
+  필요 시 프로젝트 한정 임시 callback 권한을 부여하고 회수한다. 결과 재적재·재계산·운영 유효 포인터 변경은 하지 않는다.
+
+**2. 결과 화면에서 저장·계산 완료·검토 대기를 구분한다 — 후속 작업 · dsai-platform Frontend**
+
+- 새 Backend 조회 계약을 화면에 연결하는 작업은 미완료다. 공용 배포는 별도 승인 대상이다.
+  C# 목표 계산·후보·선정·발주 계획의 다음 실제 독립 검증과 Demand→IO 최종 연결도 완료로 간주하지 않는다.
+
+상세 계약은 Platform `docs/backend/dsim/inventory-stored-result-completion-v1.md`,
+실제 증적은 `docs/backend/dsim/evidence/inventory-v100-stored-result-completion-20261022.json`을 따른다.
+아래는 2026-10-21 실제 적재 완료 이력이다.
+
+## 2026-10-21 기준선 — V100 실제 적재·같은 Run 조회·중복 재시도 완료
+
+- 사용자 승인 후 로컬 dsai-platform Backend에서 기존 V100·202512 Run
+  `4f7c3cac-9264-4b34-bf77-0eda92f0b6b2` / Attempt 1과 새 봉인 참조를 기존 Writer에 연결했다.
+  최초 적재는 `replayed=false`, 동일 요청 재시도는 `replayed=true`이며 같은 Receipt를 반환했다.
+  저장 결과의 같은 Run 조회도 원본·파생 Artifact와 전체 DB 행 대사를 통과했다.
+- 3,619품목·26주, 21개 테이블 대사 결과 Receipt 포함 **588,066행**이다.
+  Baseline/Mathematical PSI 각 94,094행·보충 권고 94,094행을 저장했다. 후보·평가·선정 테이블은 0행이다.
+  이번 결과는 수학적 PSI 영속화 검증이며 C# 목표 계산·전체 후보·품목별 선정·발주 계획의 실제 E2E 완료가 아니다.
+- 프로젝트 `9ed62f41` 한정 임시 callback 권한은 `finally`에서 회수했다. 종료 후 실제 Resolver와 DB를
+  별도 읽기 전용으로 확인해 callback=false, 기존 조회 권한=true와 임시 Role/연결/사용자 부여 행 0건을 확인했다.
+- 원본·파생 전체 SHA-256과 Config·Revision·입력·Run·Site 행 지문이 전후 동일하다.
+  권고의 자동 게시·발주 값은 모두 false이며 FSN·운영 Gate는 유지했다. Forecast/PSI 재계산·Migration·
+  M3/공용 Runtime 배포·실제 발주·Commit/Push는 없다. 자원 관리 고도화도 계속 보류한다.
+- Run/Site는 `running`, 원장 Evidence는 `pending`, `effective_run_id=NULL`을 유지했다.
+  저장·Receipt 검증과 원장 완료·운영 게시를 구분하며 false인 게시 Gate를 우회하지 않는다.
+- 관련 Platform **32 passed**, 6개 관련 파일 Ruff·Format 및 Diff Check 통과다. 전체 회귀 수치는 아니다.
+  실제 실행 1,007.284초는 Artifact 검증·적재·조회·재시도 전체 시간이며 PSI 계산 성능이 아니다.
+
+**1. 계산 완료 상태와 결과 조회 연결을 정리한다 — 다음 작업 · dsai-platform Backend**
+
+- 이미 저장한 Receipt를 재사용해 계산 완료 Event와 조회 연결을 대사한다. 운영 유효 결과 게시와 분리하고
+  FSN·운영 Gate를 완화하거나 유효 결과 포인터를 강제로 바꾸지 않는다.
+
+**2. 독립 IO의 다음 실제 계산 범위를 정한다 — 후속 작업 · InventoryEngine·dsai-platform Backend**
+
+- 수학적 PSI 저장을 기준선으로 C# 목표 계산·후보 평가·품목별 선정·발주 계획의 실제 검증 범위를 정한다.
+  신규 실제 DB Write는 승인 후 진행하고, Demand→IO 최종 연결·ERP 연계·공용 배포는 후속으로 유지한다.
+
+실제 포인터·Receipt·건수·보존 지문·권한 회수는 Platform
+`docs/backend/dsim/evidence/inventory-v100-repaired-load-read-retry-20261021.json`을 따른다.
+아래의 권한 승인 대기·DB 미적재 표기는 이전 단계의 이력이다.
+
+## 2026-10-21 이전 이력 — DB 읽기 전용 대사 완료 / 임시 권한 승인 대기
+
+- 기존 V100·202512 Run의 개발 PostgreSQL 적재·조회·재시도는 사용자 승인됐다.
+  대상·Cluster와 091/092 적용 완료를 확인했으며 Migration은 재실행하지 않았다.
+- 실제 결과 21개 테이블·Receipt는 모두 0행이다. 원장 `running`/`pending`, 자동 게시·발주 false를 유지한다.
+  실제 권한 Resolver에서 `admin`의 프로젝트 조회 권한은 있지만 `inventory_run.callback`은 없었다.
+  임시 프로젝트 권한 부여·검증 후 회수 승인을 별도로 요청했으며 아직 데이터나 권한은 변경하지 않았다.
+- Platform의 새 적재 명령은 기본 읽기 전용이며 `--apply`와 임시 권한 승인 옵션을 구분한다.
+  중간 권한 부여 실패도 회수하는 경로를 Offline으로 확인했다. 관련 **32 passed**, Ruff·Format·Diff Check 통과다.
+  원본·파생 전체 Hash·FSN·운영 Gate를 유지했다. Forecast/PSI 재계산·M3 배포·Commit/Push는 없다.
+
+**1. 임시 프로젝트 권한 승인 후 실제 적재·조회·재시도를 진행한다 — 승인 필요 · 로컬 Backend·개발 PostgreSQL**
+
+- 적재 자체의 승인은 완료됐다. 남은 승인은 `admin`에게 프로젝트 `9ed62f41` 범위의 임시
+  `inventory_run.callback`을 부여하고 검증 후 회수하는 것이다. 권한을 우회하거나 기본 Role을 변경하지 않는다.
+
+증적은 Platform `docs/backend/dsim/evidence/inventory-v100-repaired-load-preflight-20261021.json`을 따른다.
+아래의 DB 미접속은 이전 봉인·Offline 연결 단계의 이력이다.
+
+## 2026-10-21 V100 전체 파생 Projection 봉인·독립 검증 완료 — DB 미접속·미적재
+
+**현재 기준선 — 같은 Run의 전체 저장용 결과 봉인 완료 · InventoryEngine·Platform Backend**
+
+- 기존 Run `4f7c3cac-9264-4b34-bf77-0eda92f0b6b2` / Attempt 1, V100·202512·3,619품목·26주를 유지했다.
+  원 계산 설치본은 교체하지 않고 검증된 보정 Wheel만 별도 로컬 경로에 설치했다.
+  원 계산 Build `b0da22ce…a1d4`와 Projection Build `0b90759d…f983`를 구분한다. 공용 Runtime 변경은 없다.
+- 원본 SQLite는 `mode=ro`와 `query_only`로 읽었다. 원본 1,202개 Artifact와 Outbox·Config·Canonical·Dispatch·
+  Source 실행 포인터의 바이트를 보존했으며 원본 저장소 전체 SHA-256도 봉인 전후 동일하다.
+  Forecast·PSI 계산 진입점과 네트워크 연결은 호출되면 실패하도록 막았다.
+- 전체 행 대사에서 19,251개 권고의 자동 게시·발주 허용값과 해당 행 Hash만 바뀌었다.
+  수량·발주일·도착일·정책·PSI·나머지 테이블은 원본과 같다. 권고 94,094행의 두 자동 허용값은 모두 false다.
+  Baseline/Mathematical PSI는 각 94,094행을 그대로 재사용한다.
+- 전체 1,190개 분할 중 1,001개는 원본 참조를 재사용하고 189개만 새로 봉인했다.
+  새 Manifest와 보정 증적을 포함해 별도 저장소에 191개 Artifact·91,914,418바이트를 추가했다.
+  조회에는 원본과 파생 저장소가 모두 필요하다. 새 Publication Outbox는 만들지 않았다.
+- 새 Projection Manifest Hash는 `db59441b…7b85`, 논리 결과 Hash는 `1bb744fa…f3c6`,
+  보정 증적 Hash는 `1cf0990a…83e2`다. 원 Source·원 Manifest 참조를 덮어쓰지 않았다.
+  실제 Projection 행은 588,065행이며 미래 DB 적재 시 생성할 Receipt 1행과 구분한다.
+- 봉인 후 별도 프로세스에서 두 저장소를 읽기 전용으로 열어 독립 검증을 통과했다. 원본 지문과 전체 건수도 같다.
+  봉인은 491.542초, 독립 검증은 180.584초였으며 PSI 계산 속도 측정은 아니다. 설치 패키지 관련 Engine **20 passed**,
+  Platform·로컬 저장소 관련 **10 passed**와 Ruff·Format이 통과했다. 전체 저장소 회귀 수치는 아니다.
+  초기 로컬 조립의 Outbox 읽기 연결 누락은 보완했으며 실패한 첫 시도에는 파생 Artifact가 추가되지 않았다.
+- 이번 작업에서는 PostgreSQL에 접속하지 않았다. 마지막 DB 대사 때의 결과·Receipt 0행과 원장의
+  `running`/`pending`을 새로 확인하거나 변경한 것은 아니다. FSN·운영 Gate·ID·원 입력을 유지했다.
+  Forecast·PSI 재계산·DB 적재·Migration·공용 배포·실제 발주·Commit/Push는 없다.
+
+**후속 현재 기준선 — 로컬 dsai-platform Backend Writer 연결·Offline 검증 완료**
+
+- Backend `inventory_local_projection_repair.py`가 원본·파생 저장소를 읽기 전용으로 연결하고 원 Outbox만 읽는다.
+  참조 충돌·변조·누락과 파일/Hard Link 중복을 거부한다. Writer Receipt는 별도 저장소에만 추가할 수 있다.
+  새 Table이나 업무 ID를 만들지 않았으며 Engine 계산 코드·설치 패키지·봉인 결과도 바꾸지 않았다.
+- `write_gate_repair_verified`는 권한·Scope·전체 보정 증적을 검증한 뒤 정확한 새 Manifest만 기존 Writer로 넘긴다.
+  원 계산 Build를 새 보정 Build로 바꾸거나 잘못된 원 Projection으로 돌아가지 않는다.
+- 실제 V100의 새 봉인 참조가 기존 Writer까지 전달됐고 쓰기 스위치 false에서 정상 차단됐다.
+  PostgreSQL Pool 접근 0회, 원본·파생 저장소 전체 Hash 동일, 실제 Receipt 추가도 0건이다.
+  권한 Adapter는 Offline 대역이며 실제 개발 DB 권한·현재 상태를 조회한 것은 아니다.
+- 작은 합성 Fixture와 기록용 SQL Pool에서 저장·같은 Run 조회·멱등 재시도·실패 후 복구를 확인했다.
+  관련 Platform **183 passed / 0 skipped**, 기존 Starlette 경고 1건, Ruff·Format·Diff Check 통과다.
+  실제 PostgreSQL 제약·Trigger·Lock 검증이나 Engine 전체 회귀 합격 수치는 아니다.
+- 맥북 로컬 코드·Service 호출만 검증했다. M3/공용 Runtime 배포·실제 DB 접속/적재·Migration·
+  Forecast/기존 V100 PSI 재계산·FSN/운영 Gate 변경·Commit/Push는 하지 않았다.
+
+**1. 같은 Run의 실제 적재·조회·중복 재시도를 진행한다 — 승인 필요 · 로컬 Backend·개발 PostgreSQL**
+
+- 보정된 참조만 사용하고 기존 Migration을 재적용하지 않는다. Forecast·PSI 재계산·Gate 완화·공용 배포·실제 발주는 제외한다.
+  C# 목표 계산·정책 탐색·선정·발주 계획의 실제 검증은 후속이며 자원 관리 고도화도 계속 보류한다.
+
+실제 전체 지문과 건수는 Platform `docs/backend/dsim/evidence/inventory-v100-gate-repair-seal-20261021.json`을 따른다.
+후속 Backend 연결 결과는 Platform `docs/backend/dsim/evidence/inventory-v100-repair-writer-offline-20261021.json`을 따른다.
+아래의 수정 Wheel 미설치·전체 파생 미봉인은 이번 작업 전의 이력이다.
+
+## 2026-10-21 동일 Run 봉인 결과 적재 재개 — 092 보정 완료 / Run Gate 충돌 차단
+
+**현재 기준선 — Forecast·PSI 재계산 없이 기존 결과만 적재 시도 · Platform Backend·개발 PostgreSQL**
+
+- Revision 3 Run `4f7c3cac-9264-4b34-bf77-0eda92f0b6b2`, Attempt 1과 기존 Build·Source 실행 참조를 재사용했다.
+  Baseline/Mathematical PSI 각 94,094행·분할 Artifact 1,190개·원본 Bundle/Projection Hash는 그대로다.
+  봉인 Manifest의 적재 예정량은 Receipt 포함 21개 테이블 합계 588,066행이다. 실제 적재 완료 건수와 구분한다.
+- nullable `approval_level`을 거부하던 CHECK는 사용자 승인 후 후속 Migration 092로 한 개만 보정했다.
+  스키마 백업·Rollback 예행·PostgreSQL 9개 사례를 확인했다. 기존 091·원 Catalog와 다른 제약은 보존했다.
+- 그 뒤 실제 INSERT는 `IO_EVIDENCE_CANNOT_ESCALATE_CLAIM_GATE`로 중단됐다.
+  Run Claim의 자동 게시·발주 허용값은 false인데 봉인된 권고 94,094행 중 19,251행이 true였다.
+  Projection 생성기가 품목 Admission·Child Role은 적용하지만 상위 Run Gate를 빠뜨린 오류다.
+  DB Trigger는 정상적으로 차단했다. 봉인 행을 수정하거나 Trigger·FSN·운영 Gate를 완화하지 않았다.
+- 적재 Transaction은 전부 Rollback됐다. 같은 Run의 결과 21개 테이블·Receipt는 모두 0행이고 임시 callback Role은 0건이다.
+  입력 Binding 10건·Config 전체 값/Hash·활성 Revision·승인 분류는 유지됐다. Run/Site `running`, Evidence `pending`,
+  `effective_run_id=NULL`도 그대로다. 적재 프로세스는 종료됐으며 실제 DB 결과 조회·중복 재시도는 미완료다.
+- 이번 관련 Platform 검증은 **115 passed**, 기존 Starlette 경고 1건이다. Ruff·Format·Diff Check도 통과했다.
+  Engine 테스트 207/192는 앞선 계산 검증 이력이며 이번 적재 작업에서 재실행한 수치가 아니다.
+  Forecast·PSI 재계산·새 Run/Build/입력 Revision·공용 배포·실제 발주·Commit/Push는 하지 않았다.
+
+**후속 승인 — 파생 Projection 보완·Offline 검증 완료 · InventoryEngine·Platform Backend**
+
+- Gate는 `Run Claim AND 품목/Child 허용`으로 결합하고 자동 발주는 자동 게시도 허용돼야 true다.
+  계산 코드·PSI·FSN·원본 분류/입력·운영 Gate와 DB Trigger는 바꾸지 않았다.
+- `RepairDsimProjectionGatesUseCase`는 기존 Source 실행·원 Bundle·Outbox·Run/Attempt·입력 Binding을 검증하고
+  새 Projection·보정 증적만 Append한다. 계산 Build는 원 Run의 값, Projection Build는 현재 검증할 별도 값으로 고정한다.
+  원 Source 실행의 고정 참조·원본 Artifact는 덮어쓰지 않는다. 별도 UUID 없이 기존 Run/Attempt와 Artifact Hash를 사용한다.
+- 허용하는 변경은 권고 행의 두 자동 허용값 축소와 해당 행 Hash다. 수량·날짜·정책·다른 테이블의 차이는 거부한다.
+  일반 Writer/Reader는 Source 검증을 계속 수행한다. 원본 무결성 읽기만으로 적재 가능하다고 판정하지 않는다.
+- Platform의 `prepare_gate_repair`·`verify_gate_repair`는 권한·Scope를 먼저 검사하고 별도 Projection Build가 없으면 차단한다.
+  원천 조회·PSI 실행·DB Writer는 호출하지 않는다. 기존 Runtime Factory·HTTP Route를 자동 활성화하지 않았다.
+- 합성 Offline Fixture에서 동일 Run의 파생 봉인·독립 검증·SQLite 저장/조회/중복 재시도·원본 바이트 보존을 확인했다.
+  이미 Receipt나 부분 행이 있으면 기존 Writer가 교체를 거부한다. 실제 V100은 마지막 DB 대사에서 이 조건을 충족하는 0행이었다.
+  테스트는 Source·PSI 실행 진입점과 전이 함수를 호출 시 실패하도록 막는다.
+- 실제 V100 권고 94,094행의 읽기 전용 Gate 대사에서 19,251행만 축소되고 수량·날짜·정책 필드가 같음을 확인했다.
+  원 계산 Build와 전략·PSI 구현 Hash도 기존 Plan과 일치한다. 이는 전체 파생 봉인·실제 DB 적재 합격이 아니다.
+  수정 Wheel 설치·V100 전체 파생 봉인·DB 저장/조회·재시도는 아직 하지 않았다.
+- 최종 관련 회귀는 Engine **72 passed**, Platform **119 passed**이며 기존 Starlette 경고 1건이 남아 있다.
+  Ruff·Format·Diff Check도 통과했다. 전체 저장소 합격이나 실제 적재 성공 수치는 아니다.
+
+**1. 실제 V100 파생 결과와 설치 후보를 고정한다 — 다음 작업 · InventoryEngine·Platform Backend / DB Write 없음**
+
+- 원 계산 Build와 새 Projection Build를 구분해 설치 후보를 검증한다. 기존 PSI·Bundle에서 전체 파생 Projection·보정 증적을 봉인하고,
+  같은 Run과 새 저장 포인터의 연결을 확인한다. 기존 잘못된 원 Projection을 `load_verified`로 다시 적재하지 않는다.
+
+**2. 보정 포인터로 적재·조회·중복 재시도를 검증한다 — 승인 필요 · 개발 PostgreSQL**
+
+- 092·기존 Migration을 재적용하지 않는다. Forecast·PSI 재계산·Gate 완화·공용 배포·실제 발주는 하지 않는다.
+  C# 목표 계산·전체 후보·선정·발주 계획의 실제 검증은 그 뒤로 분리한다. 자원 관리 고도화는 계속 보류한다.
+
+상세 증적은 Platform `docs/backend/dsim/evidence/inventory-v100-sealed-load-20261021.json`을 따른다.
+아래 적재 보류와 이전 실패 기록은 보존한 과거 이력이며, 현재 상태는 이 절을 우선한다.
+
+## 2026-10-21 정식 Run 분할 계산·원본/파생 Snapshot 보정 — 검증 완료 / DB 적재 보류
+
+**현재 기준선 — 실패 원인 두 건 보완 · InventoryEngine·Platform Backend**
+
+- 최초 Run `efb8ed64-6d16-4092-bea0-06a7519f9c8c`의 관측 크기 제한은 전체 품목을 한 작업으로
+  검증한 것이 원인이다. 수학적 Runtime의 품목별 계산을 최대 128품목 단위로 나누고, 기존 관측
+  200,000·증적 500,000 상한을 각 작업에 그대로 적용한다. 단일 품목 초과나 다른 입력 오류는 계속 차단한다.
+  정책 공식·Guard·후보별 상태는 바꾸지 않는다. 작은 동일 입력의 PSI·주문·관측 Hash·Guard 결과가 같다.
+- 분할 경로의 RAW_ACTION Artifact 1.1.0은 반복되는 불변 관측 필드를 봉인된 공통 Source로 참조한다.
+  가변 재고·미도착 공급은 행마다 보존하며 복원한 원 관측 Hash와 Guard를 검증한다.
+  기존 1.0.0 읽기와 비분할 결과는 유지한다. 저장 표현이 바뀐 Artifact Hash까지 같다고 주장하지 않는다.
+- 입력 묶음 1.1.0·Cycle 요청 V2는 새 IO Revision과 원 Demand Planning Input Revision을 분리한다.
+  기존 Cycle Revision 구조를 재사용하므로 추가 DDL은 적용하지 않았다. 원 Forecast·공유 Master/Calendar와
+  실패 Run·승인 입력은 덮어쓰지 않는다.
+- Revision 2 Run `4b4e5b81-99bf-4eb9-9c31-654905ed4ca4`는 PSI 계산·Artifact 저장/검증까지 통과했지만
+  `PROJECTION_INPUT_BINDING_MISMATCH`로 실패했다. 행 조립기가 원본 Calendar/Master/Forecast Hash와
+  Canonical 변환 Hash를 동일하게 요구한 오류였다. 이 Run의 결과 21개 테이블은 0행이며 임시 권한은 회수했다.
+- Projection은 Claim의 원본 ID·Hash와 Canonical의 계산용 ID·Hash를 각각 검증·보존하도록 보완했다.
+  `snapshot_manifest.source_metadata.canonical_snapshot`에 계산용 ID·Hash·건수를 저장하고,
+  `source_row_count_basis=CANONICAL_SNAPSHOT`으로 건수의 기준을 명시한다. 원본 건수를 추정하거나 0으로 대체하지 않는다.
+- 최신 관련 회귀는 Engine **207 passed / 192 subtests passed**, 새 설치 Wheel을 사용한 Platform
+  **106 passed**다. 기존 Starlette 경고 1건은 남아 있다. 전체 저장소·C#·정책 탐색 합격 수치는 아니다.
+
+**완료 — Revision 3 계산·봉인·Artifact 검증 / DB 적재는 사용자 요청으로 보류**
+
+- 새 승인 입력 `68c8e529-67a7-44f3-998d-7731cf7d47ad`, Build
+  `b0da22cef6ac91b86dd17d686f40c8b7d0c3cdef4e2fcf6bbe163f5ba902a1d4`와 Plan 1.4를 고정했다.
+  실제 Run은 `4f7c3cac-9264-4b34-bf77-0eda92f0b6b2`, Attempt 1이다. 동일 Claim은 같은 Run을 반환했다.
+- 원문 3,622품목과 차단 3품목을 보존하고 3,619품목·26주를 계산한다. Config 2.1·FSN·운영 Gate는 같다.
+  Baseline PSI와 Mathematical PSI 각각 94,094행, 결과 분할 Artifact 1,190개와 Manifest를 봉인·검증했다.
+  Source 실행의 최종 검증도 통과해 정확한 저장 참조를 보존했다.
+  자동 게시·발주는 false다.
+  이번 실행은 기존 수학적 Python 경로이며 C# 목표 계산·정책 탐색·비용/PPO/Stress·Forecast 재실행·공용 배포·ERP 연계는 제외한다.
+- 사용자 요청으로 Writer의 반복 검증 중 실행을 중단했다. 결과 INSERT 전이며, 중단 후 읽기 전용 대사에서
+  이 Run의 결과 21개 테이블 모두 0행·Receipt 0건·임시 callback Role 0건을 확인했다.
+  실제 프로세스는 종료했고 자동 재개하지 않는다. Run/Site 원장의 `running`, Evidence `pending`은 수정하지 않았으며
+  `effective_run_id=NULL`이다. 화면의 running 표시는 실제 계산 프로세스가 남았다는 의미가 아니다.
+- 입력·계산 결과·정확한 포인터를 프로젝트의 비공개 임시 산출물 경로에 보존했다.
+  검증된 Wheel도 함께 복사하고 SHA-256 일치를 확인했다. 실제 DB 저장·같은 Run 결과 조회·Writer 재시도는 미검증이다.
+
+**1. 저장된 같은 Run의 적재·조회·재시도를 진행한다 — 다음 작업, 사용자 재개 요청 후 · Platform Backend·개발 PostgreSQL**
+
+- 보존된 동일 Build·Run·Source 실행 포인터를 기존 Writer에 전달한다. Forecast·PSI를 재계산하거나 새 Revision을 만들지 않는다.
+  저장 후 같은 Run의 행·Receipt를 조회하고 재시도가 중복 없이 같은 결과를 반환하는지 확인한다.
+  기존 실패 Run과 Artifact를 보존하고 079·091 재적용·Gate 완화·공용 배포·실제 발주는 하지 않는다.
+
+**2. 독립 IO의 다음 실제 검증 범위를 정한다 — 위 결과 확인 후 · InventoryEngine·Platform Backend**
+
+- 이번 수학적 PSI 적재와 아직 실제 검증하지 않은 C# 목표 계산·전체 후보·선정·발주 계획 적재를 구분한다.
+  독립 흐름을 확인한 뒤 Demand→IO 한 Plan의 최종 순차 연결로 진행한다. 자원 관리 고도화는 계속 보류한다.
+  Commit/Push·공용 배포·실제 발주는 이번 작업에 포함하지 않는다.
+
+실제 재실행의 단계·Hash·최종 건수는 Platform
+`docs/backend/dsim/evidence/inventory-v100-partitioned-rerun-20261021.json`에 기록한다.
+
+아래는 수정 전 실패를 포함한 이전 시점의 이력이다.
+
+## 2026-10-21 V100 정식 개발 입력·Claim — 완료 / 계산 분할 연결은 차단
+
+**현재 기준선 — 실제 입력 승인과 Run 생성까지 완료 · InventoryEngine·Platform Backend·개발 PostgreSQL**
+
+- 사용자 추가 승인으로 기존 079 SQL을 백업·Rollback 예행 후 적용했다. 091은 재적용하지 않았다.
+  Config 2.1 `2708e79a-82b5-4c82-8261-5a236077bb18`을 게시하고 활성 포인터를 전환했다.
+  이전 2.0 Revision과 이력은 보존했으며 `segmentation`·`policy_overlays` 전체 값이 같음을 확인했다.
+- Plan `202512`, 직전 마감 `202511`과 26주 마감 Hash에 맞춰 새 분류
+  `29aa1570-058a-589a-b330-bbf8be9d57a5`를 승인했다. 원문 3,622품목 중 3,619품목은 계산 가능하다.
+  `DS_A017518`·`DS_A082612`·`DS_A082843`은 `MISSING_REVENUE` 차단을 그대로 보존한다.
+- 사용자 선택대로 개발 Universe V2에서 계산 3,619품목과 차단 3품목을 명시했다.
+  원 Master 7,000품목, 원 Forecast ID·Hash, 전체 분류와 Effective Policy Hash는 유지했다.
+  계산용 Forecast만 94,094행으로 파생하고 8종 Source 매핑·5종 IO Snapshot·Plan 1.4 Manifest를 봉인했다.
+  재고·입고·정책 등의 개발 합성/Fixture를 운영 실제 Source로 승격하지 않았다.
+- 승인 입력 묶음 `22f872cf-54f6-48e5-92d5-6a9542c0771b`와 실제 Inventory Run
+  `efb8ed64-6d16-4092-bea0-06a7519f9c8c` / Attempt 1을 생성했다. 동일 Claim 재요청은 같은 Run을 반환했다.
+  기존 Canonical의 Site 논리 ID `V100-202512-PRECLAIM`도 재사용했으며 원장 ID를 위조하지 않았다.
+- 실제 연결 중 발견한 asyncpg JSONB 문자열 처리와 원 Forecast/계산용 Forecast 참조 불일치를 보완했다.
+  V1 기존 Canonical Hash는 이전 설치 Wheel과 동일하다. Source 2.1과 원 정책 Hash를 유지하는
+  계산 대상 필터를 추가했지만 PSI 공식·FSN 설정·업무 Gate는 바꾸지 않았다.
+
+**차단됨 — 3,619품목의 정식 Run 계산·DB 결과 저장**
+
+- 설치 Wheel의 입력·권위 조회·Cut-off·분류 검증 후 실제 수학적 PSI 경로를 실행했다.
+  `3,619 × 26 × 27 / 2 = 1,270,269` 관측 행이 기존 `200,000` 제한을 넘어
+  `RECOMMENDATION_OBSERVATION_LIMIT`로 중단됐다. 제한을 올리거나 추가 품목을 제외하지 않았다.
+- 계산 전용 `DevelopmentCalculationExecutor`에는 분할 실행이 있지만 정식
+  `RunPsiBundleUseCase → RunMathematicalReplenishmentUseCase`에는 연결되지 않았다.
+  기존 분할 저장 구현 완료를 정식 Run 대용량 처리 완료로 보아서는 안 된다.
+- 실제 Run·Site는 `failed`, `effective_run_id=NULL`이며 결과 21개 테이블은 이 Run 기준 모두 0행이다.
+  DB 결과 조회·저장 재시도 합격은 아직 아니다. Claim 재요청의 멱등성과 구분한다.
+- 사용자 승인으로 `admin`에게 프로젝트 `9ed62f41`의 임시 callback 권한만 부여해 실제 RBAC 경로를 통과했다.
+  시도 종료 시 전량 회수했으며 임시 Role 잔여 0건을 확인했다. 인증정보·상시 권한은 바꾸지 않았다.
+  자동 게시·자동 발주는 false다. Forecast 재실행·C# 목표 계산·정책 후보 탐색·공용 배포·ERP 연계는 하지 않았다.
+- 관련 Engine **93 passed / 112 subtests passed**, 설치 Wheel을 포함한 Platform **76 passed**다.
+  전체 저장소 합격 수치가 아니며 Platform의 기존 Starlette 경고 1건은 남아 있다.
+  실제 DB 실패를 Offline 테스트 통과로 대체하지 않는다. Commit/Push도 하지 않았다.
+
+**1. 기존 분할 계산을 정식 Run 경로에 연결한다 — 다음 작업 · InventoryEngine·Platform Backend**
+
+- 기존 Guard·정책·관측 제한을 유지하고 품목별 분할 계산을 Result Bundle·Projection·저장/복구까지 연결한다.
+  기존 계산 전용 구현을 재사용하되 운영 Run으로 위장하지 않는다. 작은 입력에서 단일 실행과 결과·Hash가 같아야 한다.
+- 새 설치 Build는 새 Plan/입력 Revision으로 봉인한다. 이번 실패 Run·승인 입력을 덮어쓰거나
+  다른 Build를 같은 실행 Binding으로 통과시키지 않는다. 실패 Run은 재계산하지 않는다.
+
+**2. 새 Run으로 계산·적재·같은 Run 조회·재시도를 확인한다 — 분할 연결 후 직렬 · 로컬 Runtime·개발 PostgreSQL**
+
+- 079·091 적용과 이번 Config/분류/입력 승인은 현재 기준선이다. 다시 Migration 대상으로 나열하지 않는다.
+  DB 적재를 확인한 뒤 Demand→IO 자동 순차 연결로 진행한다. FSN·운영 Gate·공용 배포·실제 발주 금지는 유지한다.
+
+상세 식별자·Checksum·실패/미적재 상태는 Platform의
+`docs/backend/dsim/evidence/inventory-v100-real-claim-20261021.json`을 따른다.
+아래는 이전 시점의 이력이다. 당시의 079 제외·Draft·입력 0건 표기는 현재 상태가 아니다.
+
+## 2026-10-21 개발 결과 테이블 적용 — 완료 / 단건 실행은 입력 연결 차단
+
+**현재 기준선 — 개발 PostgreSQL 결과 스키마 준비 완료 · Platform Backend·InventoryEngine**
+
+- Migration 091로 결과 21개 테이블·277개 컬럼과 필수 Domain/제약을 적용했다.
+  스키마 백업·목록 확인·Rollback 예행과 동일 Checksum 재호출을 확인했다.
+  신규/기존 물리 계약 테스트 **87 passed**(0.62초, Skip 0), Ruff·Format도 통과했다.
+- 기존 Config·분류·Run·입력 Binding 지문과 079 CHECK는 그대로다. 079·선택적 분석 확장·공용 배포·실제 발주는 제외했다.
+  Engine 계산 코드·업무 ID/Hash·FSN·운영 Gate는 변경하지 않았다. Commit/Push도 하지 않았다.
+- 기존 V100/202512 원문은 계산 전용이며 정식 Run이 없다. Config 2.1은 Draft, DB 승인 분류는 202601뿐이고
+  승인 입력 묶음은 0건이다. 현재 26주 마감은 봉인됐지만 원본 분류의 과거 마감 Hash와 다르다.
+  새 Plan-bound 원문은 현재 076 주차 CHECK에도 맞지 않으며 079는 이번 승인에서 제외됐다.
+- 따라서 실제 계산 → DB 저장 → 같은 Run 조회/재시도는 **미실행**이다. 결과 21개 테이블은 모두 0행이다.
+  소형 Fixture를 정식 Run으로 등록하거나 기존 원문/승인/Gate를 수정해 통과시키지 않았다.
+  상세 적용 증적은 Platform `docs/backend/dsim/inventory-result-evidence-development-application-v1.md`를 따른다.
+
+**1. 단건 실행 입력과 주차 제약의 처리 범위를 정한다 — 승인 필요 · Platform Backend·InventoryEngine·개발 PostgreSQL**
+
+- V100/202512를 사용한다면 079 제외와 새 분류 승인 불가의 충돌을 먼저 해소해야 한다.
+  다른 독립 테스트 입력으로 바꾸는 경우도 사용자 선택이 필요하다. 기존 ID/Hash 덮어쓰기는 하지 않는다.
+
+**2. 같은 Run으로 실제 적재·조회·재시도를 확인한다 — 입력 준비 후 · 로컬 Runtime·Platform Backend**
+
+- 적용된 091을 재사용한다. 이후 Demand→IO 최종 연결로 진행한다. 공용 배포·실제 발주는 포함하지 않는다.
+
+아래는 이전 이력이다. 결과 테이블 적용을 다시 미완료로 잡거나 Offline 수치를 실제 DB E2E 합격으로 사용하지 않는다.
+
+## 2026-10-21 독립 실행 → Writer → 같은 Run 조회 — Offline 완료
+
+**현재 기준선 — 계산 결과를 저장 호출까지 연결 · InventoryEngine·Platform Backend**
+
+- [실제 호출 연결 계약](IO_INITIAL_EXECUTION_PROJECTION_CALL.md)에 따라 Platform 최초 실행/목표 결과 Factory에
+  선택적 Pool과 쓰기 Switch를 연결했다. 계산/복구가 반환한 기존 Projection 참조·Hash를 Writer에 그대로 전달한다.
+  Pool이 없는 기존 Artifact-only 호출은 그대로다. 기본 쓰기 Switch는 false다.
+- 같은 Run 조회는 읽기 권한만 사용하고 원본 Artifact·Binding·Receipt·전체 행을 대조한다.
+  읽기 전용 Transaction에서는 SELECT만 실행하며, 누락 결과를 INSERT하거나 자동 복구하지 않는다.
+- 저장 중 실패는 기존 봉인 결과를 남기고 `recover`로 재시도한다.
+  commit 응답 유실·반복 호출은 같은 Receipt·행을 검증하고 재삽입하지 않는다.
+- 기존 Engine 계산 코드·업무 ID/Hash·FSN·운영 Gate·DDL은 유지한다.
+  DB 증적 저장은 업무 게시/발주 승격이 아니며 자동 게시·자동 발주는 계속 false다.
+  실제 DB 접속/적용/Write·공용 배포·Commit/Push는 하지 않았다.
+- Engine 관련 **150 passed**(139.15초), Platform 관련 **197 passed**(58.96초), 두 묶음 모두 Skip 0이다.
+  신규 최초 계산·저장·조회 테스트 10건과 설치 Wheel Factory 추가 4사례를 포함한다.
+  Ruff·Format·양쪽 Diff Check도 통과했다. 수량 Port/SQL은 ReferenceKernel·Recording Pool이며
+  실제 V100/PostgreSQL/C# 실행 합격이나 전체 저장소 테스트를 뜻하지 않는다.
+  기존 Engine Python 212파일은 설치 Wheel과 바이트가 같고 Catalog·DDL·079·086도 이번 작업 전후 동일하다.
+
+**1. 독립 IO 결과를 개발 DB에 저장하고 같은 Run으로 조회한다 — 승인 필요 · 개발 PostgreSQL·로컬 Runtime·Platform Backend**
+
+- 승인된 결과 테이블 적용 후 기존 개발 입력 한 건으로 계산 → 저장 → 조회·재시도를 확인한다.
+  079·선택적 분석 확장·실제 발주를 자동 포함하지 않는다. 별도 적재 후보 정리 단계를 다시 만들지 않는다.
+
+**2. Demand→IO 한 Plan의 최종 연결을 검증한다 — 독립 적재 후 · DemandEngine·InventoryEngine·Platform Backend**
+
+- 정확한 Forecast·Config·분류·입력 Binding을 사용한다. 실제 통합 DB Write는 별도 승인 대상이다.
+
+아래는 이전 검증 이력이다. 실제 호출 연결을 다시 다음 작업으로 잡지 않는다.
+자원 관리 고도화·공식 강건성 경로/본실험 보류는 유지한다.
+
+## 2026-10-21 선정 PSI SQL·Writer 정합화 — Offline 완료
+
+**현재 기준선 — 기존 결과를 유지하고 실제 저장 경로의 불일치 보완 · InventoryEngine·Platform Backend**
+
+- [선정 PSI·Writer 계약](IO_SELECTED_PSI_WRITER_ALIGNMENT.md)에 따라 양쪽 Catalog CHECK와
+  Platform SQL Trigger를 맞췄다. `POLICY_SELECTION / MATHEMATICAL / EVIDENCE_ONLY`의
+  `SELECTED_ORDER_PLAN` PSI만 허용하며 위장 Kind/전략/Marker·잘못된 NULL·실패 Child는 계속 차단한다.
+- Platform Writer Factory에 같은 목표 결과 Reader를 명시적으로 주입했다.
+  Reader 누락/다른 Build·잘못된 Hash·재봉인 Gate 변조·Scope/권한 실패는 저장하지 않는다.
+  기본 쓰기 Switch는 false이며 실제 DB 자동 연결/Runtime 활성화는 하지 않았다.
+- 기존 Run/Claim·원본 Bundle·선정/발주 계획·행 데이터/Hash·논리 Projection Hash는 보존했다.
+  Catalog 및 이를 봉인한 새 Manifest 지문만 변경되며, 과거 Artifact는 이전 Catalog로 읽고 덮어쓰지 않는다.
+  기존 Engine `src` Python 212파일, FSN·운영 Gate, 079·086은 수정하지 않았다.
+- Engine 관련 **106 passed**(150.24초), Platform **193 passed**(42.02초), 두 묶음 모두 Skip 0이다.
+  실제 설치 Wheel과 캐시 Parser를 사용했으며 SQL/PLpgSQL·생성 SQL·Ruff/Format 검증도 통과했다.
+  수량 Port/DB는 ReferenceKernel·Recording Pool이다. 실제 C#/PostgreSQL 실행 합격 수치가 아니다.
+  이 단계에서 개발 DB 접속/Canary/적용/Write·공용 배포·Commit/Push는 하지 않았다.
+
+**1. 실제 개발 적재 입력·적용 후보를 고정한다 — 다음 작업 · InventoryEngine·Platform Backend**
+
+- 정확한 승인 Config/분류·입력 Binding·정식 Run·Build·저장 참조·허용 계정과 단건 적재/복구 절차를 정한다.
+  기존 분석/비용 테이블은 재사용하고, 신규 결과 21개 테이블·별도 079·선택적 분석 조회 확장을 구분한다.
+
+**2. 독립 적재·조회·복구를 검증한다 — 승인 필요 · 개발 PostgreSQL·로컬 Runtime**
+
+- 승인된 범위만 Backup/Canary 후 적용하고 Hash·건수·누락·원자 Rollback·멱등 복구를 확인한다.
+  독립 검증 이후 Demand→IO 최종 연결로 진행한다. FSN·운영 Gate 변경·공용 배포·실제 발주는 포함하지 않는다.
+
+아래는 이전 검증 이력이다. SQL·Reader 불일치 보완을 다시 다음 작업으로 잡지 않는다.
+자원 관리 고도화·공식 강건성 경로/본실험 보류는 유지한다.
+
+## 2026-10-21 독립 결과의 실제 적재 범위 — 읽기 전용 대사 완료
+
+**현재 기준선 — Artifact 저장과 개발 DB 적재를 구분 · InventoryEngine·Platform Backend**
+
+- [실제 적재 범위 대사](IO_INDEPENDENT_PROJECTION_DB_RECONCILIATION.md)를 완료했다.
+  결과 Projection 21개 테이블·277개 컬럼과 Domain 4개는 개발 DB에 없다.
+  기존 분석 테이블 2개·7축 View 2개와 비용 결과 테이블 2개는 재사용하며, 네 테이블의 현재 적재 건수는 모두 0이다.
+- 기존 Run/입력/Config/분류의 FK 대상 Key는 존재한다. 074~078·086은 재실행하지 않는다.
+  079·방식별 분석/Run 조회 확장은 여전히 미적용이다. 승인 Site 입력 묶음도 0건이다.
+- 선정 PSI의 `POLICY_SELECTION / SELECTED_ORDER_PLAN`을 기존 CHECK/Trigger 초안이 거부하고,
+  Platform Writer Factory에는 목표 결과 Reader가 빠져 있음을 확인했다.
+  실제 같은 봉인 Projection은 기본 Factory 방식에서 `PROJECTION_SOURCE_ROWS_MISMATCH`로 거부된다.
+  테이블 적용만으로 독립 실행의 DB 적재가 완성되지 않는다. 이번에는 계산 코드/SQL 초안을 수정하지 않았다.
+- 관련 Engine 테스트 **39 passed**(36.66초), Platform **133 passed / 4 skipped**(6.03초)다.
+  선택적 Parser 2건·설치 Wheel 2건은 Skip됐다. DB는 명시적 READ ONLY로 조회 후 Rollback/연결 종료했다.
+  실제 DDL/INSERT/Canary·FSN·운영 Gate·공용 배포·Commit/Push는 수행/변경하지 않았다.
+
+**1. 선정 PSI의 SQL 규칙과 Writer Reader 조립을 보완한다 — 다음 작업 · InventoryEngine·Platform Backend**
+
+- 기존 Kind/Grain/ID/Hash를 재사용하고, 같은 목표 Artifact가 SQL 규칙과 Platform Writer 검증을 통과하게 한다.
+  위장 Kind/Simulation·Gate 상승을 계속 차단하는 Offline 회귀가 완료 조건이다. DB는 변경하지 않는다.
+
+**2. 실제 적재에 사용할 입력·변경 묶음을 확정한다 — 후속 작업 · Platform Backend·개발 PostgreSQL 읽기 영역**
+
+- 정확한 승인 Config/분류/입력·정식 Run·설치 Build·원 Artifact와 허용 계정을 고정한다.
+  결과 21개 테이블, 필요 시 079, 선택적 분석 조회 확장은 별도 범위로 정리한다.
+
+**3. 독립 적재·조회·복구를 검증한다 — 승인 필요 · 개발 PostgreSQL·로컬 Inventory Runtime**
+
+- 승인된 DDL만 Backup/Canary 후 적용하고 단건 Hash·건수·누락·전체 Rollback·멱등 복구를 검증한다.
+  완료 후 Demand→IO 최종 연결로 진행한다. 공용 배포·실제 발주·ERP 연계는 포함하지 않는다.
+
+아래는 이전 검증 이력이다. 자원 관리 고도화·공식 경로/본실험 보류와 FSN·운영 Gate 유지 조건은 그대로다.
+
+## 2026-10-21 독립 IO 최초 실행 연결 — Offline 완료
+
+**현재 기준선 — 봉인 입력부터 계산·저장·조회까지 한 호출 · InventoryEngine·Platform Backend**
+
+- [독립 최초 실행 계약](IO_INDEPENDENT_INITIAL_EXECUTION_CONTRACT.md)의 Engine/Backend 조립을 구현했다.
+  결과가 없는 상태에서 시작해 기존 Python Bundle·Outbox, C# 목표 후보·선정·발주 계획,
+  연결 Artifact·Projection을 생성·검증해 반환한다. 기존 Runtime Registry/공용 Route는 자동 변경하지 않는다.
+- 계산 전 원본 Manifest와 실행 Binding을 복구용 Artifact에 저장한다.
+  기존 Snapshot/Run/정책/결과 ID·Hash를 재사용하며 문서/바이트 체크섬만 추가한다.
+  같은 Run에 다른 Attempt·Claim·입력을 넣거나 Checkpoint를 재봉인해도 차단한다.
+- 기존 운영 Gate를 자동 분석보다 먼저 검사한다. BLOCK은 계산으로 넘기지 않고 REVIEW는 계산/증적 저장만 허용한다.
+  원본 Python 계산과 Native 수량 전이는 수정하지 않았다. 기본 Child·FSN·운영 Gate·DB 스키마도 유지한다.
+- 중단 후 Provider가 없어도 저장 Manifest로 원본 계산과 목표 계산을 이어서 조립한다.
+  미완료 목표 후보는 동일 입력·DLL로 전체 재계산하고, 이미 봉인된 Bundle/Outbox는 재사용한다.
+  계산 루프 중간 상태를 이어받거나 최신 Source로 대체하는 방식은 아니다.
+- 실제 C# DLL로 32·32·88개 후보의 최초 실행과 5개 저장 지점 SIGKILL을 포함한 8사례를 검증했다.
+  Checkpoint/Bundle/목표 조각/연결/Projection 저장 후 새 프로세스에서 원천 조회 없이 복구했다.
+  격리 설치 Wheel을 포함한 Backend 관련 테스트는 **82 passed**(17.06초), 기존 경고 4건이다.
+  신규 Engine/Platform 연동 테스트 26건을 포함한 관련 회귀는 **1,028 passed / 210 subtests passed**(312.69초)다.
+  이 테스트 묶음에는 Skip이 없다. Python 425파일 Ruff·Format, 기존 Schema JSON 42개와 Diff Check도 통과했다.
+  저장소 전체 테스트·Coverage·성능 합격을 뜻하지 않는다.
+  Backend 테스트의 참조 계산 Port와 별도 실제 DLL 검증을 실제 Source 통합 E2E로 합쳐 주장하지 않는다.
+- 상세 회귀·파일 지문은 [검증 증적](evidence/independent-initial-execution-verification-20261021.json)을 따른다.
+  개발 PostgreSQL 접속/변경·Migration·실제 V100·공용 배포·실제 발주·Commit/Push는 수행하지 않았다.
+  SQLite는 임시 Artifact 저장기다. 자원 관리 고도화·공식 강건성 경로/본실험은 계속 보류한다.
+
+**1. 독립 결과의 실제 적재 범위 대사 — 다음 작업 · InventoryEngine·Platform Backend·개발 PostgreSQL 읽기 영역**
+
+- 기존 테이블·권한·미적용 DDL과 결과 Projection의 컬럼/Grain을 대조한다.
+  재사용 대상과 필요한 변경·승인 범위를 구분한다. 이 단계는 읽기 전용이며 DB를 변경하지 않는다.
+  실제 결과 계약과 DB 구조에 의존하므로 현재 세션에서 직렬 진행한다.
+
+**2. 독립 IO 실제 적재·조회·복구 — 승인 필요 · 개발 PostgreSQL·로컬 Runtime**
+
+- 승인받은 범위에서 Hash·건수·누락·Rollback·멱등 복구를 확인한다.
+  FSN·운영 Gate를 유지하며 공용 배포나 실제 발주를 포함하지 않는다.
+
+**3. Demand→IO 최종 연결 — 독립 검증 후 · DemandEngine·InventoryEngine·Platform Backend**
+
+- 한 Plan의 정확한 Forecast·Config·분류·8종 입력·Build로 검증한다.
+  Forecast 재실행/최신 Source 탐색으로 연결 차단을 우회하지 않는다. 실제 E2E Write는 별도 승인 대상이다.
+
+Commit/Push는 별도 요청 후 InventoryEngine `inventory_engine_dev`, Platform `codex/inventory-psi-strategy-v2`에서
+관련 변경만 진행한다. 개인 보고서·환경·임시 산출물은 제외한다. 아래는 과거 이력이며 최초 실행을 다시 다음 작업으로 잡지 않는다.
+
+## 2026-10-21 로컬 Runtime·Platform 목표 결과 조회 조립 — Offline 완료
+
+**현재 기준선 — 정확한 저장 참조와 원본 Bundle을 함께 조회 · InventoryEngine·dsai-platform Backend**
+
+- [로컬 Runtime 계약](IO_LOCAL_TARGET_RESULT_RUNTIME_CONTRACT.md)의 명시적 실행/조회/복구 Service를 구현했다.
+  원본 Bundle Reference·Hash, INPUT/COMPLETE 참조, 연결 Artifact와 Projection 포인터를 검증한다.
+  반환 포인터는 기존 참조를 묶을 뿐 새 업무 ID·부모 Hash·Wrapper를 만들지 않는다.
+- 설치 Build와 Claim 구현 Hash를 대조하고 다른 Scope·Run·Attempt·Build·Hash·누락 결과를 차단한다.
+  Backend는 Tenant/Project·Run 권한을 먼저 검사한다. 조회 권한과 저장/복구 권한은 구분한다.
+- 조회는 저장 원본에서 전체 목표 PSI를 재계산하며 commit/원천 조회를 호출하지 않는다.
+  완료 결과의 연결/Projection 저장 응답 유실을 멱등 복구한다. 미완료 목표 계산을 자동 탐색·재계산하지 않는다.
+- 신규 Engine Runtime 20건과 Platform 연동 10건, 격리 설치 Wheel을 포함한 Backend 관련 81건을 통과했다.
+  Engine 관련 회귀는 **1,002 passed / 210 subtests passed**(260.99초), Backend는 **81 passed**(16.25초)다.
+  선택적 Platform 연동을 활성화했으며 이 묶음에는 Skip이 없다. 저장소 전체 테스트 결과를 뜻하지 않는다.
+  Backend의 기존 HTTP 422 Alias 경고 4건은 유지했다. 실제 C# DLL의 32·32·88개 후보와
+  두 저장 지점 SIGKILL 복구를 포함한 5사례도 새 프로세스에서 확인했다.
+  실제 DLL 검증과 Backend 참조 대역 검증을 실제 Source E2E로 합쳐 주장하지 않는다.
+- 기존 Python 계산·분류 결과·FSN·운영 Gate·Schema/DDL·DLL·원본 Bundle/Outbox는 유지한다.
+  HTTP 서버 기동·공용 Route/Runtime 등록·개발 DB 접속/적재·Migration·실제 발주·Commit/Push는 하지 않았다.
+  테스트의 SQLite는 임시 Artifact 저장기다. 상세 회귀·파일 지문은
+  [검증 증적](evidence/local-target-runtime-verification-20261021.json)에 기록한다.
+
+**1. 독립 IO 최초 계산·저장·조회 연결 — 다음 작업 · InventoryEngine·Platform Backend**
+
+- 이번 조립은 완료된 목표 결과를 Reader에 전달한다. 최초 봉인 입력에서 목표 계산 Pipeline·저장기를
+  호출하고 정확한 포인터를 이 서비스에 넘기는 경로는 후속으로 연결한다.
+  작은 독립 입력에서 계산·조회·차단·복구를 먼저 검증한다. 같은 저장 계약에 의존하므로 현재 세션에서 직렬 진행한다.
+
+**2. 독립 결과의 실제 DB 적재 검증 — 범위 대사 후 승인 필요 · 개발 PostgreSQL·로컬 Runtime**
+
+- 기존 테이블·권한·미적용 DDL을 읽기 전용으로 대사해 재사용/추가/승인 대상을 구분한다.
+  실제 Write는 별도 승인 후 Hash·건수·누락·Rollback·멱등 복구를 확인한다. 공용 배포는 포함하지 않는다.
+
+**3. Demand→IO 최종 연결 — 독립 검증 이후 · DemandEngine·InventoryEngine·Platform Backend**
+
+- 한 Plan의 정확한 Forecast·Config·분류·8종 입력·Build를 연결한다.
+  기존 Forecast를 재실행하거나 운영 Gate를 완화하는 것으로 연결 차단을 해결하지 않는다.
+  실제 E2E Write·공용 배포·발주 확정·ERP 연계는 별도 승인/후속이다.
+
+검증된 변경의 Commit·Push는 별도 요청 후 InventoryEngine `inventory_engine_dev`,
+dsai-platform `codex/inventory-psi-strategy-v2`에서 수행한다. 개인 보고서·환경·임시 산출물은 제외한다.
+아래는 기존 이력이며, 로컬 Reader 조립을 다시 다음 작업으로 잡지 않는다.
+
+## 2026-10-21 저장 참조의 Result Bundle·Projection 연결 — 독립 Offline 검증 완료
+
+**현재 기준선 — 원본 결과를 유지한 후보·선정·발주 계획 근거 연결 · InventoryEngine**
+
+- [결과 연결 계약](IO_TARGET_RESULT_LINK_CONTRACT.md)의 개발용 연결 Artifact와 Reader를 구현했다.
+  정확한 Run·Attempt·Scope·Config·분류 Header·수학 입력·INPUT/Manifest 참조와 동일 DLL 재계산을 확인한다.
+  원본 Bundle/Outbox는 재봉인하지 않으며 기존 ID·결과 Hash·유효 Child·Gate를 유지한다.
+- 기존 `POLICY_SEARCH/POLICY_SELECTION` Registry와 테이블 Grain을 재사용한다.
+  선정 계획은 동일 선정 Child의 `SELECTED_ORDER_PLAN` Simulation이며 자동 게시/발주가 차단된 Evidence다.
+  Catalog 결과를 기존 PSR 검증기로 우회시키거나 새로운 ORDER_PLAN 종류/테이블을 추가하지 않았다.
+- 기존 분석은 동일 Hash이면 중복을 막고, 다른 Catalog이면 별도 근거를 보존한다.
+  선택 의존성을 생략한 기존 Projector는 내용/Hash가 같으며, 새 경로는 기존 Writer/Verifier로 저장·대사한다.
+- 실제 C#에서 32·32·88개 후보와 2건씩의 계산용 주문을 연결하고 새 프로세스에서 재검증했다.
+  연결/Projection 저장 후 `SIGKILL`한 2개도 복구했다. 5개 실제 DLL 확인은 Unit 대역과 구분한다.
+- 신규 Unit·Offline Integration **39 passed**(38.78초)다. 임시 SQLite는 Artifact/트랜잭션 모형이고 개발 DB가 아니다.
+  기존 계산·계약·저장·Bundle·Projection을 포함한 관련 회귀는 **965 passed / 7 skipped / 210 subtests passed**(203.03초)다.
+  선택적 Platform Source 연동 7개는 `DSAI_PLATFORM_ROOT` 미지정으로 제외했다. Python 415파일 Ruff·Format,
+  `git diff --check`와 기존 Schema JSON 42개 파싱을 확인했다.
+  Runtime Registry·Backend API/화면·실제 V100·PostgreSQL/공용 배포 검증은 아직 아니다.
+  상세 검증 결과와 파일 지문은 [검증 증적](evidence/target-result-link-verification-20261021.json)을 따른다.
+- 기존 Python 계산·DLL·계약/Schema·ABC/XYZ·FSN·운영 Gate·개발 DB·Platform은 미변경이다.
+  BLOCK이 기존 운영 Bundle 생성을 차단하는 경우는 그대로 차단하며 가짜 Bundle을 만들지 않는다.
+  DB 접속·Migration·실제 적재/발주·배포·Commit/Push는 하지 않았다.
+
+**1. 로컬 Runtime·Platform 조회 조립 — 다음 작업 · InventoryEngine·dsai-platform Backend**
+
+- 새 Reader와 정확한 저장 참조·Bundle 포인터를 명시적으로 주입하고 Offline 호출·조회·차단·복구를 확인한다.
+  운영 Mathematical Child 교체나 최신 Source 탐색 없이 연결한다. 공통 Run/결과 계약에 의존하므로 직렬로 진행한다.
+
+**2. 실제 개발 입력·DB 연결 검증 — 이후 / 실제 Write·배포 승인 필요**
+
+- 실제 입력 차단/승인 상태를 대사한 뒤 정확한 Demand Snapshot·Run·입력·결과의 연결을 확인한다.
+  실제 DB Write·Migration·공용 Runtime 배포·실제 E2E Write는 별도 승인 대상이다.
+  발주 확정·ERP 연계·자원 관리 추가 고도화·공식 강건성 본실험은 계속 후속/보류 범위다.
+
+아래는 과거 이력이다. 독립 결과 계약 대사를 다시 다음 작업으로 잡지 않으며 최신 순서는 이 최상단 절을 따른다.
+
+## 2026-10-21 계산 Binding·전체 후보·선정·발주 계획의 저장·조회·중단 복구 — Offline 완료
+
+**현재 기준선 — 동일 입력·Profile·DLL의 재계산 검증과 로컬 영속 보존 · InventoryEngine**
+
+- [저장·복구 계약](IO_TARGET_PIPELINE_STORAGE.md)의 개발용 진입점을 기존 목표 Pipeline에 연결했다.
+  기존 POSIX 저장기의 배타 게시·`fsync`·파일 크기 제한·경로 검증을 재사용하며 기존 저장 형식/Reader는 수정하지 않았다.
+- 원본 입력/Config/분류/Catalog와 계산 Binding을 먼저 고정한 뒤 전체 후보·선정·발주 계획 조각→Manifest→완료 포인터 순으로 보존한다.
+  신규 업무 ID나 부모 결과 Hash는 없으며 기존 결과의 원문·Hash를 유지한다. 레코드 체크섬은 저장 무결성용이다.
+- `INTEGRITY_VERIFIED` 조회는 수량 전이를 호출하지 않는다. `RECOMPUTED_VERIFIED`와 중단 복구는 저장 입력과 동일 DLL로
+  후보·선정·발주 계획 전체를 재계산한다. 후보 중간의 수량 상태를 이어서 계산하는 기능은 아니다.
+- 실제 C# DLL에서 ABC·XYZ 32개·LEGACY_STYLE 32개·참조 88개 후보의 저장·새 프로세스 재검증을 확인했다.
+  입력/결과 조각/Manifest/완료 포인터 직후 `SIGKILL`한 4개도 새 프로세스에서 복구했고 게시된 원문은 그대로였다.
+  이 7항목은 Unit 대역 검증과 구분한다. 신규 Unit·Offline Integration **39 passed**(21.73초)다.
+- 기존 계산·계약·저장·복구를 포함한 관련 회귀 **838 passed / 158 subtests passed**(152.77초),
+  Python 409파일 Ruff·Format·`git diff --check`와 기존 Schema JSON 42개 파싱을 확인했다.
+- 기존 Python 계산·수량 DLL·계약/Schema·ABC/XYZ·FSN·운영 Gate·DB·Platform·공용 Runtime은 미변경이다.
+  DB 접근·DB Write·Migration·발주·배포·Commit/Push는 없으며 전체 저장소 회귀/성능/실제 V100 검증을 뜻하지 않는다.
+  파일 지문과 관련 회귀 결과는 [검증 증적](evidence/target-pipeline-storage-verification-20261021.json)을 따른다.
+
+**1. 독립 IO 저장 결과를 기존 업무 결과 계약과 대사 — 다음 작업 · InventoryEngine**
+
+- 계산 Binding·후보·선정·발주 계획의 저장 참조를 기존 Result Bundle/Projection 계약과 연결할 필드를 확인하고 Offline 검증한다.
+  계산·저장을 다시 구현하지 않는다. 공통 결과 계약에 의존하므로 현재 세션에서 직렬로 이어갈 작업이다.
+
+**2. Platform·Demand 실행 연결 — 독립 IO 대사 이후 · InventoryEngine·dsai-platform Backend**
+
+- 정확한 Forecast Snapshot·승인 입력과 기존 Run/결과 포인터를 연결한다.
+  실제 DB Write·Migration·공용 Runtime 배포·실제 E2E Write는 승인 필요다.
+  발주요청 확정·ERP 전송, 자원 관리 추가 고도화와 공식 강건성 본실험은 계속 후속/보류 상태다.
+
+아래는 과거 이력이다. 저장·조회·중단 복구를 다시 다음 작업으로 잡지 않으며 최신 순서는 이 최상단 절을 따른다.
+
+## 2026-10-21 목표 전략·Guard·C# 전이 연결 — Offline 완료 / 저장·Runtime 미연결
+
+**현재 기준선 — 후보 평가·선정·발주 계획의 같은 입력·Profile·수치 Build 실행 · InventoryEngine**
+
+- [실행 연결 보고서](IO_TARGET_GUARDED_EXECUTION.md)에 전략 제안→기존 Guard→허용 공급 등록→C# 목표 전이를 정리했다.
+  기존 계산을 복제하지 않고 공통 실행부 8파일에 선택적 수치 전이 주입 지점만 추가했다.
+  기본값은 기존 Python이며 계산식·정책식·Guard·FSN·분류·기존 ID/Hash 규칙은 유지했다.
+- 기존 실제 Mathematical 전략, ABC 기본 후보, ABC·XYZ 32개·LEGACY_STYLE 32개·참조 88개 후보를 연결했다.
+  후보 평가·선정 검증·선정 정책 발주 계획 재실행이 같은 C# DLL을 사용하며 기존 Python의 전체 결과/Hash와 일치했다.
+- 실제 C# 확인은 26항목·18 Pipeline·전이 13,986회다. 재계산 검증 호출을 포함하며 고유 PSI Row나 성능 수치가 아니다.
+  기존 발주 계획 Golden 8개, FSN REVIEW/BLOCK V1/V2, SDE 물리 LT와 보호기간, Guard 조정과 다음 관측을 확인했다.
+- 신규 Unit **28 passed**, 이를 포함한 관련 회귀 **736 passed / 158 subtests passed**(31.14초), Python 404파일 Ruff·Format을 확인했다.
+  전체 저장소 회귀·새 성능 측정·모델 평가·실제 V100 실행 결과는 아니다.
+- 새 반환 객체는 기존 계산 Binding과 중첩된 검색/선정/발주 계획을 가진 로컬 View다. 새로운 Run/Snapshot ID나 묶음 Hash는 만들지 않았다.
+  Runtime Registry·기존 Run Plan·Result Bundle·DB·공용 서버는 연결하지 않았다. [검증 증적](evidence/target-guarded-execution-verification-20261021.json)에 보존 범위를 남긴다.
+
+**1. 계산 결과 저장·조회·중단 복구 — 다음 작업 · InventoryEngine**
+
+- 기존 Writer/Reader/Verifier와 ID·Hash를 재사용하며 바깥 계산 Binding과 전체 후보·선정·발주 계획을 함께 보존한다.
+  누락·멱등·복구·동일 Profile/Build를 Offline으로 검증한다. 공통 저장 계약에 의존하는 직렬 작업이다.
+
+**2. 독립 IO 검증 후 Platform·Demand 연결 — 저장 검증 이후**
+
+- 독립 IO 검증을 마친 뒤 정확한 Demand Snapshot과 Platform Run을 연결한다.
+  실제 DB Write·Migration·공용 배포·E2E Write는 별도 승인 대상이며 실제 발주 확정·ERP 전송은 후속이다.
+  자원 관리 추가 고도화 보류도 유지한다. 이번에 DB 접근·DB Write·배포·Commit/Push는 하지 않았다.
+
+아래는 과거 이력이다. 전략·Guard 실행 연결을 다시 다음 작업으로 잡지 않으며 최신 순서는 이 최상단 절을 따른다.
+
+## 2026-10-21 정식 계산 DLL·Canonical Adapter — Offline 구현 완료 / Runtime 미연결
+
+**현재 기준선 — 범용 Legacy 입출력과 별도 목표 Baseline · InventoryEngine**
+
+- [구현 보고서](IO_CANONICAL_DLL_ADAPTER.md)에 새 `Inventory.Calculation.dll`과 Canonical Adapter의 지원 범위·제한을 정리했다.
+  원본 지문을 확인한 계산문·Lot·LT·기간 처리는 유지하고 16품목·32후보·52주·고정 연도 실험 가정을 제거했다.
+- 실제 C# 캡처 27사례·81행이 일치했다. Canonical Legacy 투영 1,638행, 목표 Baseline 72행,
+  별도 목표 전이 125입력, 1/53주 가변 기간과 15개 오류/취소 거부를 실제 DLL로 검증했다.
+  V1/V2/V2.1·Reserved/BO·분수 수요·복수 입고/미확인 공급 제외를 확인했고 목표 Baseline의 기존 결과 Hash도 같다.
+- 원문 Lot/MOS/정책 기간·원문 LT는 기존 Reference/Hash로 봉인한 별도 인자를 요구한다.
+  누락·기간 공백·정밀도 초과는 실패한다. 목표는 소수 6자리·정수부 34자리 이하의 정확 전이를 지원하며 중간 합계 초과도 실패한다.
+- 신규 단위 검증 **50 passed**, 이를 포함한 관련 회귀 **708 passed / 158 subtests passed**(27.38초)다.
+  실제 C# 실행은 격리된 로컬 이미지에서 별도 수행했다. 전체 저장소 회귀·새 성능 측정·운영 실적 검증 수치는 아니다.
+- 기존 개선형/재현 Python·실험 DLL/Adapter·Canonical/Run 계약·분류·FSN·운영 Gate·과거 Golden/Hash·DB·Platform·공용 Runtime은 미변경이다.
+  실제 목표 Recommended·후보 선정/발주 계획 연결·저장/복구·운영 Source Producer는 아직 연결하지 않았다.
+  Migration·DB Write·발주·배포·Commit/Push도 없다. [검증 증적](evidence/canonical-dll-adapter-verification-20261021.json)에 기록한다.
+
+**1. 목표 보충 전략·공통 Guard 실행 연결 — 다음 작업 · InventoryEngine**
+
+- 기존 전략의 제안→공통 Guard→허용 행동→공급 Ledger→C# 목표 전이를 연결한다.
+  후보 목록·선정 정책·발주 계획을 동일 입력·Profile·Build로 검증하고 다음 관측도 허용 행동을 사용하게 한다.
+  이 실행 연결은 공통 상태·계약에 의존하므로 현재 세션에서 직렬로 진행한다.
+
+**2. 저장·조회·복구와 독립 IO 검증 — 1번 이후 · InventoryEngine**
+
+- 기존 Writer/Reader/Verifier와 ID·Hash를 재사용한다. 독립 검증 후 Platform/Demand 연결 테스트로 넘어간다.
+  실제 DB Write·Migration·공용 배포는 별도 승인 대상이며 자원 관리 추가 고도화 보류도 유지한다.
+
+아래는 과거 이력이다. 정식 DLL·Canonical 변환 준비를 다시 실행 대상으로 삼지 않으며 최신 다음 작업은 이 최상단 순서를 따른다.
+
+## 2026-10-21 Python.NET 계산 역할·입출력·Guard 경계 — 계약 완료 / 변환·실행 연결 없음
+
+**현재 기준선 — Python.NET 채택 확정·선언 전용 계약과 Source 대응 · InventoryEngine**
+
+- [계산 경계 계약](IO_CALCULATION_BOUNDARY_CONTRACT.md)에 Python/C#의 책임, Canonical 입력 대응,
+  `LEGACY_REPLAY/TARGET_GUARDED`, 발주·공통 Guard·PSI 순서를 고정했다. 호출 방식 재선정은 다음 작업이 아니다.
+- 신규 [CalculationBoundaryBinding](../../src/dsio_inventory_engine/inventory_contracts/calculation_boundary.py)과
+  [Schema](../../schemas/inventory_calculation_boundary_binding.schema.json)는 `CALCULATION_ONLY` 선언만 받는다.
+  기존 Canonical/Prepared/Build·8종 Snapshot·전략 입력·Replenishment Config 참조를 재사용하며 실행별 ID/Hash를 추가하지 않는다.
+- Canonical은 1.0/2.0/2.1을 대사했다. 원문 단일 Demand/Forecast BO, BaseMonth 기간, LT 단위,
+  Lot 기준점·물리 상한, 원문 ExpMOS·목표 서비스 지표를 동일한 것으로 취급하지 않는다.
+  Legacy 인자 근거가 없으면 0이나 임의 정책으로 대체하지 않는다.
+- 현 C# 전체 기간 커널은 Guard 개입점이 없다. Legacy 결과의 주문표만 사후 수정해 Target PSI로 만드는 것은 금지한다.
+  Target은 검증된 행동만 공급/재고 상태에 반영한 뒤 다음 판단을 진행해야 한다. Baseline은 신규 발주가 없는 별도 규칙이다.
+- **신규 계약 검증 81 passed**, 관련 Unit·Contract·Offline Integration **610 passed / 102 subtests passed**(27.10초),
+  Python 394파일 Ruff·Format·`git diff --check`를 확인했다. 전체 저장소 회귀·새 C# 실행/성능 재측정 수치는 아니다.
+  추가 Baseline·Canonical V2·CLI·Context 검증은 별도 **48 passed / 56 subtests passed**(1.00초)다.
+- 새 계약의 구조 통과는 Source 승인·Prepared 투영 확인·DLL 지원 능력·Runtime 입장을 증명하지 않는다.
+  기존 `validate_prepared_projection`, FSN·공통 Guard·Run/모델/게시 Gate는 유지한다.
+- 기존 개선형/재현 Python 계산·기존 계약/Schema·원문 C#·실험 DLL/Adapter·기존 Golden/Artifact Hash·DB·Platform·Runtime은 미변경이다.
+  Source Producer·실제 변환기·Target C# 전이·Run 등록·저장 연결은 아직 없고 Migration·DB Write·발주·배포·Commit/Push도 없다.
+  [검증·보존 기록](evidence/calculation-boundary-contract-verification-20261021.json)에 확인 범위를 남긴다.
+
+**1. 정식 DLL·Canonical Adapter 확장 — 다음 작업 · InventoryEngine**
+
+- 실제 Source·원문 인자 Coverage를 대사하고, 원문 재현과 목표 전이/외부 행동 인터페이스를 구분해 입력·출력을 구현한다.
+  16품목·32후보·52주 고정 실험 형식을 실제 후보 목록과 Calendar에 맞게 확장한다. 누락/비지원 값은 명시적으로 실패한다.
+- 계약 이후 C# 라이브러리와 Python Adapter 준비는 병렬 가능하며 실제 동등성 검증은 직렬로 합친다.
+
+**2. 기존 Guard·후보 평가·선정 정책의 발주 계획 연결 — 1번 이후 · InventoryEngine**
+
+- 기존 Python 전략·Guard를 재사용하고 허용 수량·납기가 후속 PSI·다음 제안에 반영되는지 확인한다.
+  후보 Simulation과 선정/발주 계획의 Profile·Build를 일치시킨다. 기존 구현을 다시 만드는 작업은 하지 않는다.
+
+**3. 독립 IO 저장·조회·복구 — 2번 이후 · InventoryEngine**
+
+- 기존 Writer/Reader/Verifier에 연결해 중단·Hash·건수·재계산을 검증한 후 Platform/Demand 연결로 넘어간다.
+  실제 DB Write·Migration·공용 Runtime 배포는 별도 승인 대상이다. 자원 관리 추가 고도화 보류도 유지한다.
+
+아래는 과거 이력이다. Python.NET 채택 여부와 계산 경계는 이제 확정됐으며 실제 구현은 이 최상단 순서를 따른다.
+
+## 2026-10-21 C# 계산 DLL·Python.NET 소규모 검증 — 완료 / 운영 연결 없음
+
+**현재 기준선 — 별도 진단 경로의 결과·속도·메모리·중단 확인 · InventoryEngine Offline**
+
+- [실험 보고서](IO_LEGACY_PYTHONNET_EXPERIMENT.md)에 구현·동결 조건·실측·지원하지 않는 범위를 정리했다.
+  원본 C# 계산문을 바꾸지 않은 DB 없는 DLL과 명시적 Python.NET Adapter를 추가했다.
+  기존 개선형 Python·별도 재현 Python·ABC/XYZ 결과·FSN·운영 Gate·DB·공용 Runtime은 유지했다.
+- 동일 입력의 1/16품목·32후보·52주를 비교했다. 조건별 새 프로세스 3회 × 본측정 7회다.
+  최초·Warm-up 포함 **198파일·2,800,512행**의 Header·Hash·전체 바이트 불일치 0건이며 이전 출력 Hash도 그대로다.
+- 16품목 입력 준비·변환·결과 Hash 포함 호출 중앙값은 C# 직접 **7.858ms**, Python.NET **9.918ms**, Python **167.237ms**다.
+  Python.NET은 이 반복 호출에서 Python보다 **16.86배** 빨랐고 직접 C#보다 **1.26배** 오래 걸렸다.
+  이전 준비 제외 측정 수치와 혼합하지 않는다. 순수 경계 호출 비용이나 모든 입력의 성능으로 일반화하지 않는다.
+- 프로세스 최대 RSS 중앙값은 각각 **75.89 / 119.97 / 36.83MiB**다. Python.NET Adapter 생성 약 **144ms**는 별도다.
+  짧은 호출마다 CLR을 새로 시작하면 이득이 줄 수 있어 Worker 재사용을 후속 검토한다.
+- 이미 취소된 Token·100ms Timer 취소·SIGTERM·150ms 강제 시간 초과·SIGKILL을 확인했다.
+  호출 간 상태·취소 후 계산·세 중단 후 새 Worker 결과 Hash는 같았다. Checkpoint 재개나 실제 게시 복구는 미검증이다.
+- 신규 **25 passed**, 관련 대상 회귀 **489 passed / 51 subtests passed**(27.11초), Python 392파일 Ruff·Format을 확인했다.
+  전체 회귀·장기 부하·독립 검토·Coverage 수치는 아니다. Release 빌드의 원본 DTO nullable 경고 1건은 보존했다.
+- Python.NET은 고정 의존성과 함께 격리 Docker 이미지에만 설치했다. 운영 Canonical 입력·Run·Writer에 등록하지 않았으며
+  Migration·DB Write·실제 발주·공용 배포·Commit/Push는 하지 않았다.
+
+**1. 계산 Backend 채택 범위 확정 — 다음 작업 · InventoryEngine**
+
+- C# 재현 모드·기존 개선형 모드의 의미와 실제 Canonical 입력 지원 범위를 먼저 정한다.
+  이번 수치만으로 기존 계산 경로를 자동 교체하지 않는다. 완료 조건은 지원 범위와 실패·결과 계약이 명확한 것이다.
+
+**2. 독립 실행·저장 연결 — 후속 직렬 작업 · InventoryEngine**
+
+- 채택 범위가 정해지면 기존 ID/Hash·Writer/Verifier에 연결해 중단·조회·복구를 검증한다.
+  실제 DB Write·공용 Runtime 배포는 별도 승인 대상이다. 자원 관리 고도화 보류도 유지한다.
+
+아래는 과거 이력이다. 현재 다음 작업은 이 최상단 절을 우선하며 과거 측정 결과는 그대로 보존한다.
+
+## 2026-10-21 동일 조건 C# Release·Python 성능 기준선 — 측정 완료 / 최적화 없음
+
+**완료 — 입력 고정·직렬 계산/저장 측정·전체 결과 대조 · InventoryEngine Offline**
+
+- [성능 기준선 보고서](IO_LEGACY_PSI_PERFORMANCE_BASELINE.md)에 입력·실행 환경·전체 표본·해석 경계를 정리했다.
+  Apple M5 Max의 동일 Linux Arm64 이미지에서 양쪽을 CPU quota 1·1GiB로 제한했다.
+  C#은 Release, Python은 기존 별도 재현 기준 그대로다. 기존 개선형·재현 계산 코드·FSN·운영 Gate·DB는 미변경이다.
+- 52주·후보 32개를 고정하고 품목 1/16개, 결과 1,664/26,624행을 비교했다.
+  조건별 새 프로세스 3회 × 본측정 7회로 21개 표본을 수집했다. 최초 호출·Warm-up은 별도 기록이다.
+- 16품목 계산 중앙값은 C# **1.390ms**, Python **141.220ms**,
+  직렬화·Hash·비교용 파일 저장 포함 전체는 **9.237ms / 161.743ms**다.
+  현재 Python이 계산 **101.59배**, 전체 **17.51배** 오래 걸렸다. 개선 성과로 표현하지 않는다.
+- 사전 검증·최초·Warm-up·본측정의 결과 파일 **136개**, 총 **1,923,584행**을 길이·Hash·전체 바이트로 대조했고 불일치 0건이다.
+  [입력](data/legacy-psi-benchmark-input-20261021.json)과 [원시 표본](evidence/legacy-psi-benchmark-results-20261021.json),
+  [Source/Build 준비 기록](evidence/legacy-psi-benchmark-preparation-20261021.json)을 보존한다.
+- 신규 측정 도구 **17 passed**, 기존 재현·보충·분류·정책·발주 계획 포함 대상 회귀
+  **442 passed / 124 subtests passed**(22.08초), Python 388파일 Ruff·Format을 확인했다.
+  전체 회귀 수치가 아니며, Release C#의 기존 Golden·수치 경계 출력도 이전 캡처와 같았다.
+- 실제 운영 DB/JSON/Parquet 게시·최종 정책 선정·운영 병렬 실행은 측정하지 않았다.
+  Source 원문·기존 Hash·Runtime은 유지했으며 최적화·Migration·DB Write·발주·배포·Commit/Push는 수행하지 않았다.
+
+**1. Python 계산 비용 분해 — 다음 작업 · InventoryEngine**
+
+- 같은 입력에서 어느 작업이 비용을 차지하는지 프로파일로 확인한다. 현재 구현 간 차이를 언어 자체의 속도 차이로 일반화하지 않는다.
+
+**2. 병목 근거를 보고 실행 방식 선택 — 후속 직렬 작업 · InventoryEngine**
+
+- 확인 후 인덱스·배열·JIT 또는 C# Adapter의 적용 범위를 정한다. 실제 최적화는 이번에 수행하지 않았다.
+  결과 동등성과 FSN·운영 Gate·DB 유지 경계를 보존한다.
+
+아래는 과거 검증 이력이다. 성능 미측정 문구는 당시 상태이며 현재는 이 최상단 절을 우선한다.
+
+## 2026-10-21 별도 Python C# 재현 기준 구현 — 제한 범위 완료 / 성능 미측정
+
+**완료 — 실제 C# 출력과 별도 Python 계산 대조 · InventoryEngine**
+
+- `inventory_engine_dev`, HEAD `99f2f12`와 기존 미커밋을 유지한다.
+  [새 재현 계약](IO_LEGACY_PYTHON_REFERENCE_CONTRACT.md)의 `run_legacy_reference`는 명시적으로 호출하는 진단용 함수다.
+  기존 개선형 Python·전략 Registry·Runtime Binding·FSN·운영 Gate·DB는 변경하지 않는다.
+- 발주 처리 순서·Lot Min/Max 기준점·BaseMonth·LT/도착 Bucket·LT 0·Forecast BO 이월을 재현했다.
+  double/decimal 중간 변환과 .NET 반올림, 입력 순서의 첫 일치도 보존한다.
+- 기존 C# 캡처의 계산 27회와 추가 실제 출력 65회, 합계 **92회**를 허용 오차 없이 대조했다.
+  추가 65회는 PSI 27·반올림 16·decimal 올림 14·Lot 8이다. 수치·날짜·순서의 불일치 0건이다.
+  기존 Golden·C# 캡처는 그대로이며 반복 C# 출력도 같았다.
+- 신규 **54 passed**와 기존 보충·분류/정책·선정·발주 계획을 포함한 대상 회귀
+  **425 passed / 124 subtests passed**(21.48초)다. 전체 회귀 재실행 수치는 아니다.
+  Ruff·Format은 Python 385개 파일 기준 통과했다. Coverage 도구가 없어 Coverage 비율은 측정하지 않았다.
+- 원본 Main·DB 전후처리·운영 배포본은 실행하지 않았다. 전체 서비스 집계·최종 정책 선정·시각 있는 입력은 미검증이다.
+  테스트 시간은 성능 비교 수치가 아니다. JIT·병렬화·성능 측정·의존성 설치는 하지 않았다.
+- [추출 근거](evidence/legacy-python-reference-extraction-20261021.json)와
+  [검증 기록](evidence/legacy-python-reference-verification-20261021.json)에 확인 범위를 남긴다.
+  실제 Migration·DB Write·발주·배포·Commit/Push는 수행하지 않았다.
+
+**1. 성능 비교 입력과 실행 조건 고정 — 다음 작업 · InventoryEngine Offline**
+
+- 동등성 검사를 통과한 입력으로 품목/후보/주차·Release·동등 CPU 조건과 계산/전체 시간 범위를 고정한다.
+  현재 기준 구현을 다시 미구현으로 나열하지 않는다. [비교 계획](IO_LEGACY_COMPATIBLE_PERFORMANCE_PLAN.md)을 따른다.
+
+**2. 기준 측정 후 병목 최적화 — 후속 직렬 작업 · InventoryEngine**
+
+- 측정 후 필요한 부분만 최적화하고 매번 실제 C# 동등성을 재검증한다. 전체 서비스·선정 Source 조사는 병렬 가능하다.
+  기존 FSN·운영 Gate·DB는 유지하고 운영 연결·공용 배포는 별도 승인 대상으로 둔다.
+
+아래는 과거 검증 이력이다. 기존 개선형 Python의 변경 없음과 새 진단용 재현 경로 추가를 구분한다.
+
+## 2026-10-21 DB 없는 C# 실제 참조 실행·Python 비교 — 완료 / 제품 계산은 미변경
+
+**완료 — 원문 계산 구간의 실제 결과와 Golden 검증 · InventoryEngine 테스트**
+
+- `inventory_engine_dev`, HEAD `99f2f12`와 기존 미커밋을 유지한다.
+  [참조기](../../tests/reference/legacy_csharp/README.md)는 지문이 일치하는 원본 7파일에서 계산문/DTO 21곳을 추출한다.
+  원본 계산문은 줄바꿈 정규화 외에 바꾸지 않았고 테스트 입출력/메서드 Wrapper만 붙였다.
+- 공식 SDK 8.0.426 / .NET 8.0.32 / Linux Arm64 컨테이너에서 실제 컴파일·실행했다.
+  네트워크 차단·읽기 전용 소스·임시 메모리 빌드를 사용했다. DB·Secret·Socket은 Mount하지 않았다.
+  원본 Main·라이선스·DB 전후처리·공용 Runtime은 실행/변경하지 않았고 Mac 전역 SDK도 설치하지 않았다.
+- C# 대응 **20개 사례·29회 계산**, Python **21개 사례**, 기존 수작업 Golden 불일치 **0건**이다.
+  새 격리 컨테이너에서 반복한 실제 JSON도 바이트가 같았다. 비용 미확인 1건은 대응 Legacy 계약이 없어 비교 불가로 보존했다.
+- 공통 비교 필드 일치 6·문서화한 의미 차이 12·선정 적격 구성요소 비교 2건이다.
+  실제 첫 발주 C# 23/Python 13, Lot 25/20, 주중 도착 Bucket과 BaseMonth 차이를 확인했다.
+  적격 표시와 최종 Winner를 구분하며 전체 Optimizer·SVC_LV 집계·그룹→품목 전개·배포본은 미검증이다.
+- [C# 실제 출력](../../tests/fixtures/native_legacy_reference_output.json),
+  [비교 결과](evidence/legacy-native-python-comparison-20261021.json),
+  [실행/검증 기록](evidence/legacy-native-execution-verification-20261021.json)을 보존한다.
+  수작업 Golden은 덮어쓰지 않고 실제 실행 증적으로 검증했다.
+- 신규 비교/변조 차단 9건을 포함한 대상 회귀 **371 passed / 124 subtests passed**(최종 재검증 22.79초),
+  Golden 관련 묶음 **48 passed**(0.14초)다. 전체 회귀 재실행 수치는 아니다. Ruff·Format은 Python 379개 파일 기준 통과했다.
+- 계산 코드·기존 Golden/Hash·ABC/XYZ 결과·FSN·운영 Gate·DB·Platform·공용 Runtime은 미변경이다.
+  실제 발주·Migration·배포·Commit/Push는 하지 않았다. 공식 SDK 이미지 캐시와 로컬 임시 준비 파일만 추가했다.
+
+**1. 확인된 차이의 목표 적용 범위를 정한다 — 다음 작업 · InventoryEngine 계약**
+
+- 실제 결과를 근거로 기초/기말 판단·공통 `(s,S)`/현재 두 정책·Lot·시간 처리의 유지/변경을 정한다.
+  완료 조건은 변경할 규칙과 Version/Binding 범위가 명확한 것이며 이번 실행으로 운영 규칙을 자동 변경하지 않는다.
+
+**2. 남은 서비스·품목 정책 전개 Source를 확인한다 — 병렬 가능 다음 작업 · Legacy Source·InventoryEngine 문서**
+
+- SVC_LV 집계·최종 그룹/품목 선택·RMOS/EMOS와 실제 LT 변환을 확인한다. 확인되지 않은 식을 가정으로 채우지 않는다.
+- 목표 적용 판단과 독립적으로 조사할 수 있다. 작은 Golden 실행과 참조기 준비는 완료했으므로 다시 다음 작업으로 나열하지 않는다.
+
+**3. 필요한 목표 보정·회귀 후 저장을 재개한다 — 후속 직렬 작업 · InventoryEngine → dsai-platform**
+
+- 합의한 변경만 구현한 뒤 기존 Writer·Reference/Receipt로 발주 계획 저장·조회·복구와 독립 IO 검증을 재개한다.
+  Platform·Demand 최종 연결은 그 뒤다. 실제 Migration·DB Write·공용 Runtime 배포는 **승인 필요**다.
+
+아래는 보존한 과거 이력이다. ‘C# 참조 실행 미완료’는 각 기록 당시 상태이며 현재는 이 최상단 절을 우선한다.
+
+## 2026-10-21 재현 규칙·수작업 Golden 고정 — 완료 / C# 참조 실행은 다음 작업
+
+**완료 — 원본 재현과 Python 개선 유지의 경계·작은 기대값 확정 · InventoryEngine**
+
+- `inventory_engine_dev`, HEAD `99f2f12`와 기존 미커밋을 유지한다.
+  [재현·Golden 계약](IO_LEGACY_REPLAY_GOLDEN_CONTRACT.md)에 원본 재현 기준과 현재 Python에서 유지할 개선을 구분했다.
+  C# 기말 판단·ROP/OUTL·Lot/Calendar·BO 이월과 Python의 주차 시작·두 정책·수요 구분을 섞지 않는다.
+- [새 Golden 21건](../../tests/fixtures/golden_legacy_python_semantics.json)에 재고 전이 4·발주 3·Trigger 1·Lot 4·납기 4·월별 정책 2·선정 경계 3건을 고정했다.
+  C#은 동결한 원문에서 손으로 계산한 기대값이며 실제 C# 실행 결과가 아니다. Python으로 Legacy 값을 자동 생성하지 않는다.
+  SVC_LV 집계·그룹→품목 전개·전체 C# Winner는 미확인으로 남긴다.
+- 신규 단위·계약·Offline 통합 **39 passed**(0.12초), 보충/수학·후보/선정·분류 호환·LEGACY_STYLE·
+  선정 정책 실행까지 포함한 대상 회귀 **362 passed / 124 subtests passed**(22.00초)다. 전체 회귀 재실행 수치가 아니다.
+  실제 CandidateStrategy→Guard→PSI에서 발주량·일자·EOH·거부 사유·입력 불변·게시 차단을 확인했다.
+- 새 테스트 3개의 Ruff·Format, 기존 근거 19개 지문·원문 45곳을 확인했다.
+  전체 Python 376개 파일의 Ruff·Format·문서 링크 115건·Diff Check도 통과했다.
+  시작 시 기존 568개 파일 중 승인된 두 문서 외 566개는 동일하다. 새 파일은 Golden·테스트 3개·계약/검증 기록, 총 6개다.
+  [검증 기록](evidence/legacy-replay-golden-verification-20261021.json)에 결과·검증 범위를 남긴다.
+  캐시 쓰기 권한 오류는 캐시 없는 검사로 재실행했다. 패키지 설치나 기존 계산 코드 보정은 하지 않았다.
+- 계산 코드·기존 Golden/Hash·ABC/XYZ 결과·FSN 설정·REVIEW/BLOCK·DB·Platform·Runtime은 변경하지 않았다.
+  .NET 설치·C# 실행·Migration·실제 발주·배포·Commit/Push·전체 자원 실험은 하지 않았다.
+
+**다음 작업 — DB 없는 원본 참조 실행 → 차이 판정 → 필요한 목표 보정 · InventoryEngine**
+
+- 첫 작업은 동결한 C# 계산 메서드의 최소 참조 실행을 준비해 수작업 기대값을 실제로 대조하는 것이다.
+  원본 DB 전후처리나 라이선스 진입점을 실행/우회하지 않는다. 도구 준비 범위도 별도로 확인한다.
+- SVC_LV·그룹→품목 전개·RMOS/EMOS·LT 변환 Source 조사는 독립적으로 병렬 진행할 수 있다.
+  Golden 원본 비교와 목표 규칙 변경·회귀는 직렬로 진행한다. 예상 차이와 실제 구현 오류를 구분하는 것이 완료 조건이다.
+- 발주 계획 저장·조회·복구는 그 결과 이후 재개한다. 독립 IO 검증 뒤 Platform·Demand 연결로 진행하며
+  실제 Migration·DB Write·공용 Runtime 배포는 **승인 필요**다. FSN·운영 Gate는 유지한다.
+
+아래는 보존한 이전 이력이다. 재현 규칙·작은 Golden 고정을 다시 다음 작업으로 나열하지 않는다.
+
+## 2026-10-20 C# 원본 확보·Python 정적 대사 — 문서 정리 완료 / 실행 동등성 미검증
+
+**완료 — 원본 계산 경로와 현재 Python의 차이 정리 · InventoryEngine 문서**
+
+- `inventory_engine_dev`, HEAD `99f2f12`와 기존 미커밋을 유지한다.
+  `NSPM 2/SupplyEngine/DSIO_postgresql_20250908/RootIO`에서 PSI·Lot·Calendar·Optimizer·PostgreSQL 출력 원문을 확인했다.
+  [상세 대사](IO_LEGACY_CSHARP_PYTHON_RECONCILIATION.md)와
+  [근거 기록](evidence/legacy-csharp-reconciliation-20261020.json)에 출처·지문·확인 경계를 남긴다.
+- 핵심 4개 원본 파일은 제공 ZIP과 바이트가 같다. 이는 운영 배포본과의 일치를 증명하지 않는다.
+  기본 프로젝트의 `PSI;PROD`와 별도 OPTIMIZER 진입점, 활성 단일 Buffer 테스트 필터도 구분했다.
+  원본 프로그램 실행·.NET 설치·DB 전후처리는 수행하지 않았다.
+- C#은 당주 입고·수요·BO 처리 **후** `EOH+누적 PO−누적 BO<ROP`이면 OUTL까지 보충한다.
+  `OUTL/ROPQ/MINQ/SFST`의 switch는 주문 알고리즘이 아니라 **예상 MOS 계산**이다.
+  현재 Python의 주차 시작 판단·고정 Q/주기적 S 정책과 일대일 대응하지 않는다.
+- Forecast 부족 이월, BaseMonth 정책, Lot 기준점, LT 환산·도착 Bucket, 기간 밖 주문, 서비스 지표의 차이도 확인했다.
+  기존 Cut-off·고객주문/Forecast 분리·미확약 공급 제외·물리 제약·FSN/운영 Gate는 유지할 개선으로 구분한다.
+- C# Optimizer는 Segment×Scenario 집계·수요금액 가중 FILL_RATE/MOS를 소비한다.
+  현재 Python의 품목별 비용·재고·발주횟수 순위와 다르다. `SVC_LV` 생성식과 그룹→품목 전개는 추가 원문 확인이 필요하다.
+- LEGACY_STYLE은 후보 생성 Adapter이지 C# PSI 재현 모드가 아니다.
+  [선정 정책 연결 계약](IO_SELECTED_POLICY_ORDER_PLAN_CONTRACT.md)의 ‘C# 본문 미확보’를 정정하되 기존 Python 계약·검증 이력은 보존한다.
+- 이번 작업은 문서 대사다. 직전 **404 passed / 186 subtests passed**는 기존 Python 실행 연결의 검증 이력이며
+  이번에 재실행한 결과나 Legacy 수치 동등성 수치가 아니다. 계산 코드·Schema·Golden·기존 Hash는 변경하지 않는다.
+- 원본 ZIP 포함 19개 지문·원문 근거 45곳·로컬 문서 링크 109건·계획 7개 의존관계·Diff Check를 확인했다.
+  시작 시 기존 565개 파일 중 승인된 두 문서 외 563개는 동일하다. 새 파일은 대사 문서·근거/계획 JSON 3개다.
+- FSN·운영 Gate·DB·Platform·Runtime·설치·Migration·실제 발주·Commit/Push는 변경하지 않는다.
+  자원 관리 추가 고도화와 공식 대규모 실험도 계속 보류한다.
+
+**다음 작업 — 계산 의미·원본 비교를 먼저 닫고 저장을 재개 · InventoryEngine → dsai-platform**
+
+1. **다음 작업 · InventoryEngine 계약:** 원본 재현과 목표 개선을 구분하고 발주 시점·정책식·Calendar·서비스/선정의 작은 Golden을 확정한다.
+2. **다음 작업 · C# 원본·InventoryEngine Offline:** DB 없는 최소 참조 실행을 준비하고 같은 입력의 PSI·주문·선정 차이를 검증한다.
+   서비스 집계·그룹→품목 Source 조사는 독립 진행 가능하지만 계산 계약과 비교 실행은 직렬이다.
+3. **다음 작업 · InventoryEngine:** 비교 후 승인한 목표 수정만 기존 Version/Binding 범위에 구현하고 회귀 검증한다.
+4. **현재 보류 · InventoryEngine 저장 → dsai-platform Run/API/화면:** 위 결과 뒤 기존 Writer·Reference/Receipt로 저장·조회·복구와 독립 IO 검증을 재개한다.
+   완료된 선정 정책 실행 Adapter를 다시 구현하지 않는다. 실제 DB 적용/E2E Write·공용 배포는 **승인 필요**다.
+
+목적·완료 조건·의존관계는 [재정렬 작업 순서](IO_LEGACY_CSHARP_PYTHON_RECONCILIATION.md#7-재정렬한-작업-순서)와
+[계획 JSON](data/legacy-csharp-reconciliation-plan-v1.json)을 따른다.
+아래는 보존한 이전 이력이다. 현재 ‘다음 작업’은 이 최상단 절을 우선하며, 과거의 저장 우선 계획은 보류한다.
+
+## 2026-10-20 선정 정책 실제 실행 연결 — 로컬 구현·Offline 검증 완료 / 저장·Platform 연결은 후속
+
+**완료 — 선정 정책을 기존 보충 전략·공통 Guard·PSI로 실행 · InventoryEngine**
+
+- `inventory_engine_dev`, HEAD `99f2f12`와 기존 미커밋을 유지한다.
+  [RunSelectedPolicyOrderPlanUseCase](../../src/dsio_inventory_engine/recommend_replenishment/application/selected_order_plan.py)를 추가하고
+  [연결 계약](IO_SELECTED_POLICY_ORDER_PLAN_CONTRACT.md)에 실제 완료 범위를 반영했다.
+- 기존 7필드 Binding을 소비한다. 원 선정·Source·Config·전체 분류·수학 입력을 검증한 뒤 선정 품목만
+  기존 `CandidateStrategy`·공통 Guard/PSI로 다시 계산한다. 과거 주문 배열을 새 계획으로 복사하지 않는다.
+- 동일 Candidate Execution Hash·입력 Binding을 재사용해 기존 행동/주문 ID·Source 정책 ID와 원 후보 Row/Hash를 유지한다.
+  새 Plan ID·Binding ID·Root Hash를 만들지 않는다. 원 봉인 Prepared 입력과 정책 적용용 계산 Projection도 분리한다.
+- ABC V1·ABC/XYZ 공유예산·LEGACY_STYLE·참조 후보의 실제 선정 결과를 연결했다.
+  미선정은 사유·Baseline만 유지하며 대체 정책을 넣지 않는다. 전 품목 미선정은 `NO_POLICY_SELECTED`다.
+  REVIEW는 계산·증적만 허용하고 BLOCK은 신규 보충을 만들지 않는다. 모든 결과는 계산 전용이며 자동 게시/발주를 허용하지 않는다.
+- [수작업 Golden 8종](../../tests/fixtures/golden_selected_order_plan.json)으로 수량·발주일·물리 납기·입고 반영일과 조정/거절 사유를 대조했다.
+  고정 수량/목표재고·MOQ/배수·용량·MOQ 미충족·주중 도착·2주 점검·LT=0을 포함한다.
+  별도 사례에서 확정 입고 20EA·미확인 100EA·Backorder 5EA·확정 고객주문 8EA를 적용해
+  EOH 15→5→3EA, 두 번째 주 주문 8EA를 확인했다. SDE P90=21일이어도 물리 납기 7일은 유지했다.
+- 신규 단위·Offline 통합 51건을 포함한 관련 회귀 **404 passed / 186 subtests passed**(25.78초)다.
+  공통 PSI·수학 정책·기존 후보/선정·Catalog·계약·Runtime Gate·CLI를 포함하며 전체 회귀 재실행 수치는 아니다.
+  재봉인한 원 주문/비용/제외·정책 치환·REVIEW 하향과 새 계산의 Row/행동 불일치를 차단했다.
+- Ruff·Format 373개 Python 파일·JSON/Schema 41개·Golden 8종·현재 문서 링크 8건·Diff Check를 확인했다.
+  시작 시 기존 파일 560개 중 승인된 두 문서를 제외한 558개는 동일하며 새 구현/테스트/Golden 파일은 5개다.
+- 이 결과는 메모리 내 계산 View다. 발주 계획 영속 저장·조회/복구·Platform Run/API/화면·실제 DB Run은 아직 없다.
+  발주요청 확정·ERP도 후속 범위다. Coverage·Bandit은 환경에 없어 실행하지 않았으며 독립 에이전트 검토도 하지 않았다.
+- 기존 소스·분류 규칙·ID/Hash·FSN 설정·운영 Gate·DB·Platform·공용 Runtime을 변경하지 않았다.
+  설치·Migration·DB Write·Forecast 재실행·실제 발주·Commit/Push는 수행하지 않았다.
+
+**다음 작업 — 발주 계획의 로컬 저장·조회·복구 · InventoryEngine**
+
+- 기존 Artifact Writer·Reference/Hash/Receipt를 우선 재사용해 결과·선정 근거를 저장한다.
+  동일 입력/결과 멱등 처리·다른 Hash 충돌·누락·중단 후 복구를 Offline으로 검증한다.
+- 독립 IO 검증 후 Platform Run/API/화면을 연결한다. 저장 계약 확정 후 Backend/Frontend는 분리할 수 있지만
+  결과 봉인·복구·독립 통합은 직렬 작업이다. 실제 DB 적용·E2E Write는 별도 승인 대상이다.
+- 발주요청 확정·ERP 전송·Demand 연결은 그 뒤로 분리한다. 자원 관리 추가 고도화·대규모 강건성 실험은 계속 보류한다.
+
+아래는 보존한 이전 이력이다. 현재 실행 연결 완료 범위와 다음 작업은 이 최상단 절을 우선한다.
+
+## 2026-10-20 선정 정책 → 발주 계획 연결 계약 — 로컬 구현·계약 검증 완료 / 실행 Adapter 미구현
+
+**완료 — 기존 ID·Hash를 재사용하는 계산 전용 연결 계약 · InventoryEngine**
+
+- `inventory_engine_dev`, HEAD `99f2f12`와 기존 미커밋을 유지한다. 새 [선정 정책·발주 계획 계약](IO_SELECTED_POLICY_ORDER_PLAN_CONTRACT.md),
+  [Python 검증기](../../src/dsio_inventory_engine/inventory_contracts/order_planning.py),
+  [JSON Schema](../../schemas/selected_policy_order_plan_binding.schema.json)를 추가했다.
+- 기존 `PSEL`/`OCPSEL` 선정 결과 Reference·Hash, Canonical Hash와 수학 입력 Snapshot Binding을 그대로 사용한다.
+  연결 문서는 7개 필드이며 새 `order_plan_id`, `binding_id`, 연결 자체의 Hash·품목별 중복 Hash·정책 목록을 만들지 않는다.
+- V1은 동일 Plan·Site·Run·W0·Config·Cut-off와 같은 봉인 입력에 한정한다. 다른 입력의 재계획은 허용하지 않는다.
+  기존 Context·Canonical/수학 Hash·활성 재고관리 품목 Coverage를 대조하고 추가 필드·미봉인 입력·권한 상승을 거부한다.
+- 문서/기존 Hash의 연결 검증과 실제 선정 Source 재생 검증·입력 Admission은 구분한다. 연결 검증은 PSI를 실행하지 않는다.
+  후속 실행 Adapter가 기존 선정 Verifier·보충 전략·공통 Guard·PSI를 재사용해야 한다.
+- 신규 단위·계약 테스트 **51건**, 관련 후보 탐색/선정·고정 Hash·Runtime Gate·Offline 통합을 포함해
+  **249 passed / 62 subtests passed**(19.21초)다. 전체 회귀를 다시 실행한 수치가 아니다.
+  Ruff·Format 신규 Python 4개·JSON 문서/Schema 41개·새 계약 로컬 링크 3개·Diff Check를 확인했다.
+- 실제 ABC V1·ABC/XYZ 공유예산·LEGACY_STYLE·참조 후보의 선정 결과로 계약을 검증했다.
+  원 Source/선정·입력·기존 Hash는 변경하지 않고 FSN BLOCK/REVIEW와 미선정·검토 사유를 보존했다.
+- 실제 선정 정책 실행 Adapter·신규 발주 계획 계산/Artifact 봉인·Platform Run/화면 연결·DB 적재는 아직 없다.
+  발주요청 확정·ERP 연계는 후속 범위다. FSN·운영 Gate·DB·공용 Runtime·설치·Commit/Push는 변경하지 않았다.
+
+**보류 — 자원 관리 추가 고도화와 대규모 강건성 실험**
+
+- 기존 20GB 예산·호출당 3,600초·중단/재개·압축/공유 입력 보호는 유지한다. 추가 사전 추정·전체 Split 측정은 진행하지 않는다.
+- 아래의 부분 자원 추정과 미측정 항목은 대규모 실험의 보류 근거다. IO 핵심 개발·소규모 독립 검증의 선행 차단으로 사용하지 않는다.
+- 과거 자원/실험 기록을 보존한다. 실제 실행 병목이 확인될 때 추가 최적화를 재검토한다.
+
+**다음 작업 — 선정 정책을 기존 보충 전략·공통 PSI에 연결 · InventoryEngine**
+
+- 원 선정 결과를 검증하고 선택한 품목 정책 모수만 기존 전략으로 실행한다. 과거 Simulation 주문 배열을 복사하지 않는다.
+- 실제 PSI Row·주문·발주/납기/반영일·제약 조정·미선정 사유를 수작업 Golden으로 대조한다.
+  계약과 실행이 연결되기 전 완료된 발주 계획·업무 승인으로 표시하지 않는다.
+- 후속은 로컬 저장/조회/복구와 Platform Run·화면 연결이다. API 계약 확정 뒤 Backend/Frontend는 분리할 수 있으나
+  실행 Adapter·Golden·전체 흐름은 직렬로 검증한다. 실제 DB 적용·E2E Write는 별도 승인 후 수행하고 Demand 연결은 IO 독립 검증 이후다.
+
+아래는 보존한 이전 이력이다. 과거의 자원 사전 검증·공식 실험 다음 작업보다 이 최상단 절을 우선한다.
+
+## 2026-10-20 전체 Split 자원 사전 검증 — 구현·실측·Offline 검증 완료 / 전체 자원 합격 보류
+
+**완료 — 전체 작업 목록과 미측정 항목의 합격 차단 · InventoryEngine**
+
+- `inventory_engine_dev`, HEAD `99f2f12`와 기존 미커밋을 유지한다. 기존 코드·규칙·Hash·FSN·운영 Gate·DB·공용 Runtime은 변경하지 않는다.
+- [Split 사전 검증 계약](IO_ROBUSTNESS_SPLIT_PREFLIGHT_CONTRACT.md)과 별도 계획/응답을 추가했다.
+  고정 Protocol에서 기본 198개·Stress 16개·시간 비교 27개·종료 재생 상한 180개, 총 421개의 메타데이터를 대조한다.
+  기본 Bank를 범위/비용 Profile마다 다시 곱하지 않으며 공식 경로·정책을 생성하거나 선정하지 않는다.
+- 같은 자원 관리 루트에서 기존 제어기→실제 전체 후보→무결성 조회→전체 재계산을 측정하는 진입점을 추가했다.
+  수작업 W0 `2055-01-04`, Path `HAND-CATALOG-PATH`, Seed 71로 제한하고 기존 32/32/88 후보와 결과 Hash·PSI Row를 확인한다.
+- 알려진 Catalog 부분 추정과 개발 여유 25%를 구분한다. 아직 측정하지 않은 종료 재생·전체 집계·누적 루트 대사·
+  실제 경로 크기·중단 여유·Source 생성/전체 분류는 0으로 채우지 않고 전체 크기/시간/파일 수를 `null`로 남긴다.
+  상태는 `BLOCKED_INCOMPLETE_MEASUREMENTS`이며 부분 추정이 한도 안에 있어도 공식 실험을 허용하지 않는다.
+- 새 대상 회귀 **59 passed**(115.60초), Ruff·Format 365개 파일·JSON Schema 40개·Diff Check를 확인했다.
+  별도 수작업 2회 순환, 총 6회 실측은 모든 기존 결과 Hash·PSI Row를 유지했다.
+  ABC/XYZ·LEGACY_STYLE·WIDE의 원문 증가는 각각 22.996/22.993/60.763MB, 계산·조회·재계산과 대사를 합친 호출은
+  각각 23.64~27.99/24.69~26.54/65.75~66.38초였다. 이는 정책 성과나 일정 속도 개선을 판정한 실험이 아니다.
+- 알려진 Catalog 부분 추정은 원문 13.964GB·물리 1.377GB·36,497개 파일·약 4.25시간이다.
+  개발 여유 25% 포함 시 원문 17.455GB·물리 1.721GB·45,622개 파일·약 5.31시간이다.
+  실제 전체 합계/상한이 아니며 미측정 6개 항목을 포함할 여유가 검증된 것은 아니다. 호출당 3,600초를 전체 실험 제한시간으로 해석하지 않는다.
+  실측은 원문 213.5MB/물리 21.4MB를 보존한 한 관리 루트에서 수행했고 Job 18개를 격리했다.
+  [검증 기록](evidence/robustness-split-preflight-20261020.json)에 표본·추정값·지문·보류 사유를 남겼다.
+- 최종 전체 회귀는 **1,796 passed / 9 skipped / 669 subtests passed**(1,196.83초), 기존 Starlette 경고 3건이다.
+  회귀 실행 중 소스는 고정했다. Ruff·Format 365개 파일·JSON Schema 40개·선택한 여섯 문서의 로컬 참조 149건·Diff Check를 확인했다.
+  승인된 기존 문서 3개 외에 기존 보호 파일 541개·모든 기존 코드/규칙/Schema/Golden/측정 기록·개인 보고서 Hash는 동일하다.
+  새 파일은 구현/테스트/Schema 8개와 계약/검증 기록 2개다. Coverage·Bandit·Mypy·독립 에이전트 검토·호스트 전체 자원 보장은 확인하지 않았다.
+
+**다음 작업 — 미측정 계산·집계 경로를 측정 가능한 단위로 완성 · InventoryEngine**
+
+- 잠긴 단일 정책의 52주 재생을 추가하고, 기존 순수 평가기·Warm-up Source를 전체 Split에 연결해 저장/재시작·집계 비용을 검증한다.
+  대표 수작업 Source와 누적 루트/중단 여유도 확인한다. 기존 평가기를 새로 구현하는 작업은 아니다.
+- 계약 확정 뒤 순수 테스트는 분리할 수 있지만 같은 Pool의 성능 측정은 직렬로 진행한다. 전체 합계 확인 전 공식 경로·본실험은 진행하지 않는다.
+- DB 적용·공용 배포·Demand P12 연결은 별도 승인 범위다. 이번에는 Commit/Push도 수행하지 않는다.
+
+아래는 보존한 이전 이력이다. 현재 완료 범위와 다음 작업은 이 최상단 절을 우선한다.
+
+## 2026-10-20 전역 자원 통제 — 로컬 구현·Offline 검증 완료
+
+**완료 — 관리 루트 전체의 원문 예산·중단·재개·임시 파일 정책 · InventoryEngine**
+
+- `inventory_engine_dev`, 기준 HEAD `99f2f12`와 기존 미커밋을 유지한다. 설치·배포·Commit/Push는 수행하지 않았다.
+- [자원 통제 계약](IO_ROBUSTNESS_RESOURCE_CONTROL_CONTRACT.md)과
+  [ControlledCatalogExecutor](../../src/dsio_inventory_engine/evaluate_replenishment/robustness/resource_execution.py)를 추가했다.
+  같은 관리 루트의 모든 저장 폴더/프로세스가 최대 20GB 원문 예산을 공유한다. 원문 크기·예약/관리 메타데이터·격리 파일을 합산하며,
+  V3 공유 파일과 같은 Inode의 Hard Link는 한 번 계산한다. 압축 크기로 할인하지 않고 기존 128MB 문서 상한을 유지한다.
+- 같은 OS Lock 아래 예산 확인·예약 fsync·원래 V1/V2/V3 게시를 수행한다. 재시작은 실제 파일을 대사하며 새 인스턴스가 예산을 초기화하지 못한다.
+  계산·분류·원문·Leaf·결과·기존 Receipt에 자원 메타데이터를 넣지 않는다. 기존 직접 호출과 공용 업무 Runtime은 변경하지 않았다.
+- 호출별 최대 3,600초 Deadline에 대기·기동·계산을 포함하고 계산 Worker는 관리 루트당 하나로 제한한다.
+  별도 Process Group과 Watchdog으로 응답하지 않는 계산·취소·감독 프로세스 소멸을 처리한다.
+  시간 초과를 성공/실패 후보로 위장하지 않으며 중단 후 정확한 입력 Hash로 기존 실제 재생·미완료 Leaf 계산을 이어간다.
+  큰 입력은 같은 예산의 Job 파일로 전달하며 독립 Worker에는 작은 참조만 보낸다. 시작 파이프 교착과 Python 시작 지연도
+  시간 제한을 우회하지 못하도록 보정했다. Job Hash를 다시 검증하고 호출 후에는 같은 임시 파일 정책을 적용한다.
+- 미완성 임시 파일은 격리·원문 예약 크기/물리 Hash 기록 후 최소 24시간 보존한다. 명시적 정리 호출은 만료된 격리 파일만 대상으로 한다.
+  게시된 Artifact·Checkpoint·미참조 공유 파일은 자동 삭제하지 않는다. 메타데이터 없는 미확인 파일은 128MB로 보수적으로 계산한다.
+- 새 단위 25건·계약 20건·Offline 통합 18건을 추가했다. 기동 Job의 파일 수 여유 검사까지 포함한
+  최종 대상 회귀는 **63 passed**(139.98초)다. 기동 Job도 파일을 쓰기 전에 원문 예산과 파일 수 여유를 확인한다.
+  실제 32/32/88개 후보의 기존 결과 Hash·2,080/2,080/5,720 Row,
+  두 프로세스 예산 경합·Worker/하위 프로세스 취소·감독 프로세스 소멸·실제 첫 Leaf 후 재개·임시 파일 격리를 확인했다.
+  20GB 파일 생성/3,600초 대기 시험 대신 작은 예산·짧은 Deadline과 원래 최대값 계약을 사용한다.
+  수치·파일 지문·검증 범위는 [자원 통제 검증 기록](evidence/robustness-resource-control-20261020.json)에 기록했다.
+- 전체 Unit·Contract·Offline Integration 회귀는 **1,736 passed / 9 skipped / 669 subtests passed**(1,042.46초), 기존 Starlette 경고 3건이다.
+  전체 회귀에서 수집한 테스트는 마지막 Job 파일 수 검사 1건 추가 전 기준이며, 그 보완을 포함한 최종 대상 63건은 별도로 통과했다.
+  Ruff·Format 358개 Python 파일·JSON Schema 39개·Diff Check·다섯 문서의 로컬 참조 136건을 확인했다.
+  독립 에이전트 검토·Coverage/Bandit/Mypy·호스트 전체 디스크/RSS 제한·정해진 속도 개선율을 검증한 것은 아니다.
+- FSN 설정·운영 Gate·DB·Platform·공용 Runtime과 원문/결과 Hash는 유지한다. 공식 경로 생성·본실험·실제 발주도 수행하지 않는다.
+  이 통제는 새 로컬 제어 경로와 같은 관리 루트를 사용하는 저장 Adapter의 범위다. 기존 임의 직접 호출까지 자동 통제한 것은 아니다.
+  승인된 기존 문서 4개 외에 기존 보호 파일 527개·개인 보고서와 모든 기존 코드·Schema·Golden·측정 기록은 동일하다.
+  새 파일은 13개다. 구현/테스트/Schema 11개 파일 지문을 검증 기록과 대조했다.
+
+**다음 작업 — 전체 Split 조립의 자원 사전 검증 · InventoryEngine**
+
+- 새 제어기와 관리 루트를 사용하는 진입점을 고정하고 수작업 입력의 시간·용량으로 모든 후보/경로의 예상 자원을 확인한다.
+  공통 실행·저장 계약에 의존하므로 직렬로 진행한다. 완료 조건은 전체 Bank·동일 Hash·완전성을 유지하면서 예산 안에서 조립할 수 있는 것이다.
+- 공식 경로 생성·본실험은 이번 작업과 분리한다. 실제 DB 적재·Migration·공용 배포·Demand P12 연결은 별도 승인 범위다.
+
+아래는 보존한 이전 이력이다. 현재 완료 범위와 다음 작업은 이 최상단 절을 우선한다.
+
+## 2026-10-20 무결성 조회·전체 재계산 검증 분리 — 로컬 구현·Offline 검증 완료
+
+**완료 — 조회 범위와 실제 재계산 상태 구분 · InventoryEngine**
+
+- 작업 브랜치 `inventory_engine_dev`, 기준 HEAD `99f2f12`와 기존 미커밋을 유지한다. Commit/Push·설치·배포는 수행하지 않았다.
+- [조회·재계산 계약](IO_ROBUSTNESS_VERIFICATION_READ_CONTRACT.md)에 별도 응답 `inventory-robustness-verification-view` `1.0.0`을 추가했다.
+  `inspect`는 전체 파일·후보·Hash·건수·연결을 확인하고 재계산 상태를 `NOT_RUN`으로 반환한다.
+  `verify_recalculation`만 기존 `read`의 실제 Source·전략·Guard·PSI·평가 재생을 거쳐 `VERIFIED`로 반환한다.
+  검증 전후 입력/Manifest/결과 Binding이 달라지면 거부한다.
+- Header만 읽는 조회가 아니다. V1/V2/V3 원문과 공유 파일·전체 Leaf·32/32/88개 후보·성공/실패 분모·65주 Row를 확인한다.
+  Leaf를 하나씩 최종 Hash에 반영해 큰 부모 결과를 한 문서로 펼치지 않는다. 실제 계산값의 옳고 그름은 빠른 조회가 확인하지 않는다.
+- 새 응답은 원 결과와 별개이며 원문·Leaf·결과 Hash와 기존 Receipt를 바꾸지 않는다. 기존 `read`·`recover`의 실제 재생은 유지했다.
+  이전 검증 응답을 캐시 승인으로 재사용하지 않고 매번 다시 읽는다. 전체 검증 후 빠른 조회를 해도 재계산은 `NOT_RUN`이다.
+  응답은 운영 승인 증명서가 아니며 자동 게시·자동 발주·정책 승인·DB Write 값은 모두 `false`다.
+- 새 단위 26건·계약 23건·Offline 통합 16건으로 **65건**을 확인했다.
+  실제 32/32/88개 결과 Hash·2,080/2,080/5,720 PSI Row와 전체 재계산의 전략 실행 횟수(후보 수 × 65)를 확인했다.
+  비용·관련 Hash를 일관되게 고친 사례는 무결성만 통과하고 실제 재생에서 거부된다.
+  공유/압축 파일 손상·누락·건수·순서·Binding·Version 변조·구현 변경·재계산 중 Manifest 변경도 검증했다.
+- 최종 전체 Unit·Contract·Offline Integration 회귀는 **1,674 passed / 9 skipped / 669 subtests passed**(925.76초), 기존 Starlette 경고 3건이다.
+  Ruff·Format 348개 Python 파일·JSON Schema 38개·Diff Check를 통과했다.
+  검증 범위와 보호 파일 대사는 [조회·재계산 검증 기록](evidence/robustness-verification-read-20261020.json)에 남긴다.
+  별도 속도/RSS 개선율·운영 합격·보안 스캔·커버리지 수치·독립 에이전트 검토를 주장하지 않는다.
+- 기존 ABC/XYZ 결과/Hash·분류/규칙 Golden·FSN 설정·운영 Gate·DB·Platform·공용 Runtime은 변경하지 않았다.
+  공식 경로 생성·본실험·실제 발주도 수행하지 않았다. 이전 측정·검증 이력은 그대로 보존한다.
+  연결 코드 1개와 승인된 기존 문서 3개 외에 기존 보호 파일 518개와 개인 보고서 Hash는 동일하다. 새 파일은 9개다.
+  네 문서의 로컬 참조 117개에 누락이 없으며 구현·Schema·테스트 8개 파일 지문을 검증 기록과 대조했다.
+
+**다음 작업 — 전역 자원 통제 · InventoryEngine**
+
+- 원문 20GB 예약/집계·호출당 3,600초 취소·중단 재개·임시 파일 정책을 서비스 수준에서 연결한다.
+  조회/검증도 같은 원문 예산을 적용하며 압축으로 상한을 우회하지 않는다.
+- 공통 저장·복구 경로에 의존하므로 현재 세션에서 직렬로 진행한다. 완료 조건은 중단·실패·재개에도 자원 한도와 기존 Hash를 유지하는 것이다.
+
+**후속 작업 — 전체 Split 조립의 자원 사전 검증 · InventoryEngine**
+
+- 수작업 입력의 시간·용량을 기준으로 전체 예상 용량과 모든 후보/경로의 완전성을 확인한다.
+  공식 경로 생성·본실험은 이번 범위가 아니다. 실제 DB 적재·Migration·공용 배포·Demand P12 연결은 별도 승인 범위다.
+
+아래는 보존한 이전 이력이다. 현재 완료 범위와 다음 작업은 이 최상단 절을 우선한다.
+
+## 2026-10-20 불변 입력 준비·직렬화 재사용 — 로컬 구현·Offline 검증 완료
+
+**완료 — 동일 입력 준비의 실행별 재사용과 후보 상태 분리 · InventoryEngine**
+
+- 브랜치 `inventory_engine_dev`, 기준 HEAD `99f2f12`와 기존 미커밋을 유지한다. 설치·배포·Commit/Push는 수행하지 않았다.
+- [재사용 계약](IO_ROBUSTNESS_IMMUTABLE_PREPARATION_CONTRACT.md)과
+  [준비 슬롯](../../src/dsio_inventory_engine/evaluate_replenishment/robustness/immutable_preparation.py)을 로컬 Catalog/영속 조립기에 연결했다.
+  배포 Scope·전체 요청 JSON·Source/생성 요청의 실제 정규 JSON·기대 Hash가 같은 경우에만 검증된 준비와 직렬화를 재사용한다.
+  새 실행·Build·읽기/복구 Context는 새 슬롯을 사용하며 전역 캐시는 없다.
+- 원 Source 정책·시작재고는 불변 입력으로만 보존한다. 후보별 정책 계산·FSN Admission·재고·BO·미도착 주문·관측·Guard·PSI는
+  분리된 Dict/List에서 실행한다. 새 실현 경로를 준비된 계획 입력으로 위장하거나 미래 실현 수요를 전략에 노출하지 않는다.
+  128MB 한 슬롯의 보존 한도를 넘는 유효 입력은 재사용하지 않고 계산한다. 프로세스 전체 메모리 제한의 구현은 아니다.
+- 새 단위 10건·계약 1건·Offline 통합 7건을 추가했다. 32/32/88개 후보의 재사용 ON/OFF Leaf 원문 바이트·결과 Hash가 같았고,
+  Leaf 역순 실행·반환 결과 변조·입력/Source/Scope/정책 제약 변경·FSN BLOCK/REVIEW·실패 후보 보존을 검증했다.
+  후보 16개가 든 Leaf 한 개의 재생에서도 실제 전략 1,040회·Guard·PSI 계산을 수행했다. 저장/복구의 기존 실제 재생 검증은 유지한다.
+- [동일 수작업 입력의 18회 비교](../../scripts/benchmark_robustness_preparation.py)는 두 방식·세 반복을 새 프로세스로 실행했다.
+  공통 준비는 후보 32/88회에서 각각 1회가 됐다. 전체 계산시간 중앙값은 ABC/XYZ **4.145→3.728초**,
+  LEGACY_STYLE **4.257→3.824초**, 참조 88개 **11.352→10.130초**로 약 **10.1/10.2/10.8% 감소**했다.
+  대조군에도 입력 Hash 지역 변수 재사용은 적용했으므로 과거 Commit 전체와의 속도 비교가 아니다.
+- 최대 RSS 중앙값은 각각 **380.7→341.4 / 376.9→490.7 / 971.4→783.0 MB**로 일관되게 줄지 않았다.
+  저장·조회 속도나 공식 전체 경로의 자원 합격도 주장하지 않는다. 기존 V1/V2/V3 저장 형식과 이전 측정 기록은 보존했다.
+  Source 지문·측정 사양·결과와 검증 범위는 [준비 재사용 기록](evidence/robustness-immutable-preparation-20261020.json)에 남긴다.
+- 기존 ABC/XYZ 결과/Hash·분류/규칙 Golden·FSN 설정·운영 Gate·DB·Platform·공용 Runtime은 변경하지 않았다.
+  공식 경로 생성·본실험·실제 발주도 수행하지 않았다.
+- 최종 전체 회귀는 **1,609 passed / 9 skipped / 669 subtests passed**(735.40초), 기존 Starlette 경고 3건이다.
+  Ruff·Format 342개 Python 파일·기존 JSON Schema 37개·Diff Check·변경 부분의 로컬 문서 참조 6개를 확인했다.
+  Coverage·Bandit·Mypy는 설치되지 않았으며 별도 보안 스캔·독립 에이전트 검토나 커버리지 수치를 보고한 것은 아니다.
+  이번 연결 코드 4개와 승인된 기존 문서 2개 외에 기존 보호 파일 509개와 개인 보고서 Hash는 동일하다. 새 파일은 7개다.
+
+**다음 작업 — 빠른 조회와 실제 재생 검증 분리 · InventoryEngine**
+
+- 파일/원문 무결성 조회와 전체 후보의 계산 재생을 호출·결과 상태에서 구분한다. 조회만 끝났는데 재생 검증도 끝난 것으로 표시하지 않는다.
+- 이번 재사용 계약에 의존하므로 직렬로 진행한다. 완료 조건은 기존 실제 검증 강도를 유지하면서 두 범위를 구별하는 것이다.
+
+**후속 작업 — 전역 자원 통제와 전체 Split 조립 사전 검증 · InventoryEngine**
+
+- 원문 20GB·호출당 3,600초 예약/취소·중단 재개·임시 파일 정책을 서비스 수준에서 연결하고 전체 예상 용량을 확인한다.
+- 공식 경로 생성·본실험은 아직 진행하지 않는다. 실제 DB 적재·Migration·공용 배포·Demand P12 연결은 별도 승인 범위다.
+
+아래는 보존한 이전 이력이다. 현재 완료 범위와 다음 작업은 이 최상단 절을 우선한다.
+
+## 2026-10-20 공통 입력 V3 참조화 — 로컬 구현·Offline 검증 완료
+
+**완료 — 분류·Calendar·Forecast 중복 저장과 원문 복원 · InventoryEngine**
+
+- 작업 브랜치는 `inventory_engine_dev`, 기준 HEAD는 `99f2f12`와 보존된 미커밋이다. 설치·배포·Commit/Push는 수행하지 않았다.
+- [공유 입력 계약](IO_ROBUSTNESS_SHARED_INPUT_CONTRACT.md)과
+  [V3 저장기](../../src/dsio_inventory_engine/infrastructure/robustness_shared_artifacts.py)를 추가했다.
+  분류·Calendar·Forecast의 512 Byte 이상 Dict/List를 내용 Hash의 불변 공유 파일로 저장하고,
+  원 문서의 정확한 경로·원문 크기/Hash·물리 참조를 고정한다. 실제 영속 조립기의 동일 Repository 인터페이스에 연결했다.
+  기존 계산 코드·V1/V2 Writer·기본 Runtime은 변경하지 않는다.
+- 원 관측·행동·정책·Guard·전체 PSI와 부모 분류 모집단을 생략하지 않는다. 공유 값을 복원한 뒤
+  원 정규 JSON UTF-8+LF 바이트·논리 Hash와 기존 최종 Result Hash를 검증한다. 모든 Leaf의 실제 Catalog·전략·Guard·PSI 재생 검증도 유지한다.
+  저장 Manifest/Receipt는 물리 참조가 달라 Hash가 바뀔 수 있으며 이를 계산 Hash 변경과 구분한다.
+- 원문 복원 크기를 공유 파일 로딩 전에 계산하고 문서당 128MB 상한을 유지한다. 참조 경로·4,096개/깊이 64 제한·중복/겹침·
+  물리 파일/프레임/CRC·Wrapper·값 Hash를 검사한다. 누락·변조를 다른 형식이나 최신 Source로 대체하지 않는다.
+- V1/V2 완료 결과의 파일과 Receipt는 그대로 읽고, 부분 V1/V2 실행은 기존 조각을 유지한 채 V3로 재개한다.
+  공유 파일만 게시된 중단의 동일 입력 재요청과, Leaf Checkpoint 직후 실제 프로세스 종료 후 새 프로세스 복구를 검증했다.
+  같은 Hash는 파일 inode·mtime·크기를 유지하며 다른 참조는 충돌이다. 임시/고아 파일 청소·전역 자원 취소는 아직 구현하지 않았다.
+- 2055년 한 수작업 경로의 32/32/88 후보에서 Input/Header/Leaf 원문·Hash·크기와 기존 결과 Hash·
+  2,080/2,080/5,720 PSI Row가 일치했다. V2→V3 비압축 저장량은 **50.807→22.781 / 50.803→22.777 / 139.085→60.455 MB**,
+  실제 파일은 **3.884→2.137 / 3.884→2.150 / 10.584→5.675 MB**다. 공유 파일은 폴더마다 129개다.
+  원 문서를 펼친 논리 크기는 그대로이며, 비압축 저장량 약 55~57%·실제 점유량 약 45~46%가 줄었다.
+- V2/V3 검증 원문·측정 Metadata는 346,861,341 Byte, 실제 462파일·28,466,267 Byte다.
+  이는 실제 비압축 중복 제거이지 압축률로 20GB 예산을 할인한 것이 아니다. 파일 수가 늘었고 복원·실제 재생도 필요하므로
+  속도·메모리 개선이나 공식 전체 경로의 자원 합격을 주장하지 않는다. 기존 18회 벤치마크/이력은 그대로 보존했다.
+- 새 단위 48건·계약 3건·Offline 통합 13건으로 **64건**을 추가했다. 최종 전체 회귀는
+  **1,591 passed / 9 skipped / 669 subtests passed**(761.16초), 기존 Starlette 경고 3건이다.
+  Ruff·Format 337개 파일·기존 JSON Schema 37개·Diff Check를 통과했다. Coverage·Bandit·Mypy는 현재 환경에 없으며,
+  커버리지 수치·별도 보안 스캔·독립 에이전트 검토를 완료한 것으로 표현하지 않는다.
+  Source 지문·정확한 참조·저장량·회귀·보존 결과는 [공유 입력 검증 기록](evidence/robustness-shared-inputs-20261020.json)에 보존한다.
+- 승인된 이 문서와 [강건성 계약](IO_CATALOG_ROBUSTNESS_CONTRACT.md) 외에 기존 보호 파일 481개와 개인 보고서는 동일하다.
+  ABC/XYZ 결과/Hash·규칙/Golden·FSN 설정·운영 Gate·DB·Platform·공용 Runtime은 변경하지 않았다.
+  FSN `BLOCK`/`REVIEW`·자동 게시/발주 금지·실패 후보 전체 분모를 유지했고 공식 경로 생성·본실험·실제 발주도 수행하지 않았다.
+
+**다음 작업 — 검증된 불변 입력의 준비·직렬화 재사용 · InventoryEngine**
+
+- 공통 입력의 물리 중복은 줄였지만 준비·복원·직렬화는 반복된다. 정확한 입력/Build/Config Hash에 묶인 불변 정보만 재사용하고,
+  판단 시점의 재고·미도착 공급·후보별 정책·운영 Gate는 다른 계산과 섞지 않는다.
+- 완료 조건은 같은 결과/Hash·재생 검증 강도를 유지하면서 다른 입력의 잘못된 재사용을 차단하고 시간·메모리 효과를 확인하는 것이다.
+
+**후속 작업 — 빠른 조회와 실제 재생 검증 분리 · InventoryEngine**
+
+- 빠른 조회 완료와 원 입력부터의 실제 검증 완료를 별도로 표시한다. 일부 증적만 읽고 전체 재생 검증도 완료된 것처럼 표시하지 않는다.
+  공유 저장/재사용 계약에 의존하므로 앞 단계 이후 직렬로 진행한다.
+
+**후속 작업 — 전역 자원 통제와 Split 전체 조립 사전 검증 · InventoryEngine**
+
+- 원문 20GB·호출당 3,600초 예약/취소·중단 재개·임시 파일 보존을 서비스 수준에서 연결한 뒤 전체 Bank와 예상 용량을 검증한다.
+  후보·기간·경로를 줄여 통과시키지 않는다. 공식 경로 생성·본실험은 이번에 실행하지 않는다.
+- 실제 DB 적재·Migration·공용 배포·Demand P12 연결은 별도 승인 범위다.
+
+아래는 보존한 이전 이력이다. 현재 완료 범위와 다음 작업은 이 최상단 절을 우선한다.
+
+## 2026-10-20 성능 비교 기준·V2 무손실 압축 — 로컬 구현·검증 완료
+
+**완료 — 원문을 보존하는 압축 저장·V1 호환·18회 성능 비교 · InventoryEngine**
+
+- 작업 브랜치는 `inventory_engine_dev`, 기준 HEAD는 `99f2f12`와 보존된 미커밋이다. 설치·배포·Commit/Push는 수행하지 않았다.
+- [저장·측정 계약](IO_ROBUSTNESS_STORAGE_COMPRESSION_CONTRACT.md)과
+  [고정 비교 사양](data/robustness-storage-benchmark-v1.json)에 동일 수작업 입력·32/32/88개 전체 후보·V1/V2·각 3회 기준을 고정했다.
+  준비·계산·게시 전 재생 검증·저장·무결성 조회·재생 검증 시간과 원문/물리 크기·프로세스 최대 RSS를 구분한다.
+  OS 캐시를 비운 실험이나 순간 최대 임시 디스크 측정은 아니다.
+- [선택 가능한 V2 저장기](../../src/dsio_inventory_engine/infrastructure/robustness_compression.py)를 기존 영속 조립기에 연결했다.
+  Gzip level 1·코덱/버전·원문 크기/Hash·압축 파일 크기/Hash를 봉인 참조에 포함하며, 기존 V1 Writer와 기본 Runtime은 바꾸지 않는다.
+  V1 완성 결과는 수정 없이 읽고, 부분 V1 실행은 기존 조각을 보존한 채 V2로 재개한다.
+- 복원 크기를 JSON 해석 전에 제한한다. 잘린 프레임·CRC·추가 Member/Trailing Byte·Hash/건수/누락·비정규 참조를 차단한다.
+  같은 참조는 멱등 처리하고, 유효한 기존 압축 파일은 재압축하지 않는다. 다른 참조는 충돌로 차단한다.
+  모든 후보·원 PSI·행동·Guard·평가를 남기며, 저장된 Leaf의 실제 재생 검증도 유지한다.
+- 2055년 수작업 한 경로의 18회 비교가 모두 완료됐다. 입력·부모 분류·Catalog·결과·Leaf Hash와
+  2,080/2,080/5,720 PSI Row가 두 저장 방식·세 반복에서 같았다. 파일 점유량은
+  ABC·XYZ 50.805→3.884 MB / LEGACY_STYLE 50.801→3.884 MB / 참조 88개 139.081→10.584 MB로 약 **92.4% 감소**했다.
+- 저장 중앙값은 약 3.1~9.1% 늘었다. 속도·메모리 개선은 일관되지 않았고, ABC·XYZ/V2 첫 반복의 높은 RSS도 제외하지 않았다.
+  따라서 압축을 수학적 전략의 계산 속도 개선으로 표현하지 않는다. 원문 20GB·파일당 128MB 상한은 압축으로 할인하지 않는다.
+  측정 Metadata까지 원문 예산 1,444,270,123 Byte, 실제 230파일·777,238,696 Byte다.
+  공식 전체 경로의 자원 합격을 뜻하지 않으며 전역 자원 예약/시간 취소·청소 정책은 미구현이다.
+- 새 단위 48건·계약 4건·Offline 통합 10건으로 **62건**을 추가했다. 최종 전체 회귀는
+  **1,527 passed / 9 skipped / 669 subtests passed**(529.72초), 기존 Starlette 경고 3건이다.
+  Ruff·Format 330개 파일·기존 JSON Schema 37개·Diff Check를 통과했다. Coverage·Bandit·Mypy·독립 에이전트 검토를 수행한 수치는 아니다.
+  세부 측정값·파일 지문·보존 검증은 [압축 저장·성능 비교 기록](evidence/robustness-storage-compression-20261020.json)에 보존한다.
+- 승인된 이 문서와 [강건성 계약](IO_CATALOG_ROBUSTNESS_CONTRACT.md) 외에 기존 보호 파일 471개와 개인 보고서는 동일하다.
+  기존 계산 코드·ABC/XYZ 결과/Hash·규칙/Golden·FSN 설정·운영 Gate·DB·Platform·공용 Runtime은 변경하지 않았다.
+  공식 경로 생성·본실험·실제 발주도 수행하지 않았다. 무손실/V1 호환과 음성 조건 검증 기준을 구현·회귀에 반영했다.
+
+**다음 작업 — 공통 입력의 중복을 줄이는 참조 계약 · InventoryEngine**
+
+- 부모 분류·Calendar·Master·고정 Forecast를 매 후보에 반복 저장하지 않는 구조를 정한다.
+  원 관측·행동·전체 PSI를 누락 없이 다시 구성하고 기존 논리 Hash·구버전 읽기 기준을 어떻게 보존할지 먼저 확정한다.
+- 완료 조건은 압축을 풀어도 반복되는 원문 중복을 줄이면서 같은 결과를 재검증할 수 있는 것이다.
+
+**후속 작업 — 반복 처리 재사용과 조회·재생 검증 분리 · InventoryEngine**
+
+- 검증된 동일 입력의 준비·직렬화를 재사용한다. 입력/Build/Hash가 바뀌면 재사용하지 않으며,
+  빠른 결과 조회와 원 입력부터의 실제 재생 검증을 별도 상태로 표시한다.
+- 앞 단계와 공통 계약을 공유하므로 직렬로 진행한다. 완료 조건은 검증을 약화하지 않고 시간·메모리 개선을 같은 기준으로 확인하는 것이다.
+
+**후속 작업 — 전역 자원 통제와 Split 전체 조립 사전 검증 · InventoryEngine**
+
+- 전체 20GB 원문 예산·호출당 3,600초·중단/재개·임시 파일 보존을 서비스 수준에서 연결한다.
+  전체 경로의 완전한 Bank와 예상 용량을 확인한 뒤 공식 입력 봉인·선정·검증·Holdout/Stress로 이어간다.
+- 이번에는 공식 경로 생성과 본실험을 실행하지 않는다. 실제 DB 적재·Migration·공용 배포·Demand P12 연결은 별도 승인 범위다.
+
+아래는 보존한 이전 이력이다. 현재 완료 범위와 다음 작업은 이 최상단 절을 우선한다.
+
+## 2026-10-19 분할 결과의 영속 저장·복구 — 로컬 구현·검증 완료
+
+**완료 — 입력·전체 후보·분할 결과를 같은 Hash로 저장·복구 · InventoryEngine**
+
+- 작업 브랜치는 `inventory_engine_dev`, 기준 HEAD는 `99f2f12`와 보존된 미커밋이다. Commit/Push·설치·배포는 수행하지 않았다.
+- [로컬 저장기](../../src/dsio_inventory_engine/infrastructure/robustness_artifacts.py)와
+  [영속 실행 조립기](../../src/dsio_inventory_engine/evaluate_replenishment/robustness/durable.py)를 추가했다.
+  봉인 입력 → 최대 16후보 Leaf·Checkpoint → 결과 Header → 전체 후보 Manifest → 완료 표시 순서로 저장한다.
+  한 파일의 128MB 제한과 기존 작업 상한을 유지하며, 기존 Flat Reader를 변경하지 않는다.
+- 같은 참조·같은 Hash는 기존 파일을 덮지 않는다. 다른 Hash의 재사용은 충돌로 차단한다.
+  Manifest는 전체 후보 ID·각 실행/Leaf Hash·성공/실패 수·PSI Row 수와 부모 분류·Catalog·입력 Binding을 보존한다.
+  누락·중복·순서 변경·재봉인한 가짜 건수/Hash도 실제 재생 검증과 다르면 거부한다.
+- 완료 표시 전 중단은 봉인 입력의 정확한 Hash로 재개한다. 이미 저장된 Leaf도 실제 Catalog·전략·Guard·PSI로 재검증하며,
+  아직 저장되지 않은 Leaf를 계산한다. 계산 없는 복구나 전체 메모리 Streaming을 구현했다는 의미는 아니다.
+  완료 후 파일 손상·누락은 조회/자동 복구를 차단하고, 명시적 검증 Write로 누락된 동일 원문을 복원할 수 있다.
+  손상된 기존 파일을 조용히 덮어쓰지는 않는다.
+- 원 계산 결과의 Hash와 순수 계산 플래그는 보존한다. 별도 Receipt의 `durable_local_artifact=true`가 로컬 저장 완료를 나타낸다.
+  운영 승인·자동 게시·자동 발주·DB Write 권한으로 전환하지 않는다. FSN BLOCK·REVIEW는 그대로 적용한다.
+- 새 저장기 단위 28건·Offline 통합 35건으로 **63건**을 추가했다. 실제 32/88후보 저장·조회와
+  ABC/XYZ 전체 목록 보존, 전체/일부 후보 실패, FSN BLOCK·REVIEW, Hash·건수·누락·멱등·실제 프로세스 중단 복구를 검증했다.
+  88후보는 6개 Leaf·5,720 PSI Row이며 Manifest 21,899 Byte와 각 128MB 이하 파일로 보존된다.
+- 최종 전체 회귀는 **1,465 passed / 9 skipped / 669 subtests passed**(430.34초), 기존 Starlette 경고 3건이다.
+  Ruff·Format 323개 파일·기존 JSON Schema 37개·Diff Check·두 문서의 로컬 링크 81개를 확인했다.
+  두 승인 문서와 공통 실행 단계로 분리한 `item_execution.py` 외에 기존 보호 파일 464개와 개인 보고서는 동일하다.
+  Coverage·Bandit·Mypy 수치나 독립 에이전트 검토를 완료했다고 주장하지 않는다. 세부 결과와 파일 지문은
+  [분할 저장·복구 검증 기록](evidence/catalog-robustness-durable-recovery-20261019.json)에 기록한다.
+
+**다음 작업 — 자원 사전 검증과 Split 전체 조립 준비 · InventoryEngine**
+
+- 한 품목·제공된 한 경로의 저장/복구 이후, 별도 수작업 Smoke로 시간·파일 크기·전체 20GB 예산을 확인한다.
+  호출당 3,600초·전역 저장 예산 통제와 여러 경로의 완전한 Bank 조립은 아직 미구현이다. 두 작업은 자원 기준 확정 후 직렬 연결한다.
+- 공식 경로 생성·본실험은 이번에 실행하지 않는다. 독립 IO 검증 이후의 실제 DB 적재·Migration·공용 Runtime 배포·Demand P12 연결은 별도 범위다.
+  이번에는 FSN 설정·운영 Gate·DB·Platform·Runtime·기존 규칙/Golden/개인 보고서를 변경하지 않는다.
+
+아래는 보존한 이전 이력이다. 현재 완료 범위와 다음 작업은 이 최상단 절을 우선한다.
+
+## 2026-10-19 부모 분류를 보존한 품목별 Catalog 실행 조립 — 로컬 구현 완료
+
+**완료 — 전체 후보를 실제 Guard·PSI·평가기까지 연결 · InventoryEngine**
+
+- 작업 브랜치는 `inventory_engine_dev`, 기준 HEAD는 `99f2f12`와 보존된 미커밋이다. 설치·배포·Commit/Push 완료를 뜻하지 않는다.
+- 새 품목 조립기는 부모 분류 원문·ID·Hash·전체 모집단과 전체 Catalog를 보존한다. 한 품목의 Canonical 입력과
+  원 Effective Policy V2를 따로 대사하며, 잘라낸 분류에 부모 Hash를 붙이거나 품목별 ABC 순위를 재산출하지 않는다.
+- ABC·XYZ 32개 / LEGACY_STYLE 32개 / 참조 88개를 실제 `CandidateStrategy`·공통 Guard·관측 분리 PSI로 계산한다.
+  수작업 경로당 65주를 연속 실행하며 16후보 이하의 메모리 Leaf와 전체 후보·Leaf Hash 목록을 만든다.
+  88개 작업량은 188,760으로 기존 200,000 상한을 유지한다. Leaf는 128MB 이하이며 Durable 저장·재시작은 아직 없다.
+- 실제 Row·수락 주문·입고에서 52주/추가 13주·중간 시점·서비스·고객 BO·5종 비용을 재계산한다.
+  경로별 평가까지만 연결했으며, Split 전체 집계·정책 선정·공식 비교를 수행한 것으로 표시하지 않는다.
+- 실패 후보도 전체 목록에 남긴다. 공통 실행기가 감싼 `STRATEGY_EXECUTION_FAILED`와 판단 ID·전략 증거를 보존한다.
+  Source/Scope/Hash/계약 불일치는 후보 실패로 낮추지 않고 실행 전체를 중단한다.
+- Verifier는 원 입력에서 실제 Catalog·전략·Guard·PSI·비용을 재실행한다. 후보/Leaf 누락, Guard 수량·비용·충족률 위조와
+  산술상 유효한 HOLD 전용 가짜 전략도 재봉인 Hash만으로 통과하지 못한다. FSN BLOCK·REVIEW·자동 게시/발주 금지는 유지한다.
+- 수작업 입력은 2055-01-04의 합성 개발 사례다. 운영 Source 승인이나 V100/P12 차단 해소가 아니다.
+  공식 기간/Seed·규칙·기존 Golden과 ABC·XYZ 결과/Hash, FSN·운영 Gate·DB·Platform·Runtime은 변경하지 않았다.
+  검증 수치와 파일 지문은 [품목별 실행 검증 기록](evidence/catalog-robustness-item-execution-20261019.json)에 기록한다.
+- 새 단위 28건·Offline 통합 23건으로 **51 passed**다. 128MB보다 큰 88후보 부모 결과도 Leaf별 검증·전체 재실행을 통과했다.
+  최종 전체 회귀는 **1,402 passed / 9 skipped / 669 subtests passed**(304.79초), 기존 Starlette 경고 3건이다.
+  Ruff·Format 318개 파일·기존 JSON Schema 37개·Diff Check·두 문서의 로컬 링크 72개를 확인했다.
+  승인된 두 문서를 제외한 기존 보호 파일 459개와 개인 보고서의 Hash는 모두 동일하다.
+
+**다음 작업 — 분할 결과의 영속 저장·재시작 복구 · InventoryEngine**
+
+- 현재 메모리 Leaf와 원 입력 Binding을 Append-only Writer/Reader에 연결한다. 전체 32/32/88개 기대 후보·Leaf Hash·건수를
+  검증하고 저장 실패·누락·동일 Hash 재요청·다른 Hash 충돌·중단 후 재개를 Offline으로 확인한다.
+- 완료 조건은 일부 후보를 버리거나 다시 분류하지 않고 같은 봉인 입력으로 전체 결과를 복구하는 것이다. 현재 조립 이후 직렬로 진행한다.
+
+**후속 작업 — 자원 사전 검증 후 공식 입력 봉인 · InventoryEngine**
+
+- 별도 수작업 Smoke로 파일 크기·계산시간·전체 20GB 예산을 검증한 뒤 공식 경로 Producer와 Split 전체 조립을 연결한다.
+  공식 생성·선정·선택 Hash 고정·검증·Holdout/Stress는 이후 순서다. 이번에는 공식 경로 생성과 본실험을 실행하지 않았다.
+- 실제 DB 적재·Migration·공용 Runtime 배포는 별도 승인 대상이다. 독립 IO 저장 검증 후 Demand P12 연결을 진행한다.
+
+아래는 보존한 이전 이력이며, 현재 상태와 다음 작업은 이 최상단 절을 우선한다.
+
+## 2026-10-19 순수 강건성 평가기·독립 Source·관측 분리 — 로컬 구현 완료
+
+- [순수 평가기 검증 기록](evidence/catalog-robustness-pure-evaluator-20261019.json)의 결과를 반영했다.
+  52주 본평가·13주 추가 관찰·동일 경로의 13/26/52주 지표, 5종 비용 재계산,
+  무수요/고객 BO/기술 실패 구분, 단일 Forecast·8경로 위험 선정과 재선정 차단을 구현했다.
+- 순수 평가기 구현 당시 전체 회귀는 **1,300 passed / 9 skipped / 669 subtests passed**, 기존 Starlette 경고 3건이다.
+  새 평가기 수작업 테스트 84건과 기존 사양·Hash 호환성의 집중 검증은 113건 통과했다.
+  Ruff·Format 307개 파일·기존 JSON Schema 37개·Diff Check를 통과했고 보호 파일 384개는 동일하다.
+- 평가기는 실제 Row·주문으로 재고 산술과 비용을 재계산한다. Source/Gate의 권위를 승인하는 연결부는 아니다.
+  작은 수작업 후보 집합의 검증을 공식 32/32/88개 Catalog 전체 검증으로 표현하지 않는다.
+- 고정 사양 Hash와 이전 검증 기록은 보존한다. 공식 경로 생성·본실험·FSN/운영 Gate·DB·공용 Runtime은 변경하지 않았다.
+
+**완료 — 독립 Warm-up Source와 미래 정보 분리 · InventoryEngine**
+
+- 주어진 104주 이력에서 52주 Warm-up을 독립 계산하고 W0 재고·고객 BO·미도착 공급을 연결했다.
+  생산 전략/PSI에 의존하지 않는 Generator이며 공식 난수 이력/경로를 만든 것은 아니다.
+- 새 개발 전용 V2 `LOCAL_SHADOW` 수학 실행기는 전략·공통 Guard에 고정 Forecast만 전달하고,
+  행동 검증 후 당주 실현 수요를 PSI에 반영한다. 기존 `run.py`·FSN·운영 Gate는 변경하지 않았다.
+- 수작업 재고 이월·W0 도착 중복 방지·실제 수학적 전략의 미래 Suffix 변경 전 행동 불변을 검증했다.
+  새 Warm-up 23건·Source/관측 Offline 통합 28건과 기존 평가기/호환성 집중 검증은 **164 passed**다.
+  이번 최종 전체 회귀는 **1,351 passed / 9 skipped / 669 subtests passed**(195.51초), 기존 경고 3건이다.
+  Ruff·Format 313개 파일·기존 JSON Schema 37개·Diff Check·두 문서의 로컬 참조를 확인했다.
+  기존 보호 파일 392개는 모두 동일하며 세부 사항은
+  [Source·관측 검증 기록](evidence/catalog-robustness-source-causal-20261019.json)에 기록했다.
+- 주 단위 개발 LT 0~49일(7일 배수)과 DSE/C100/V101 합성 사례만 대상으로 했다. 작은 수작업 데이터로
+  실제 Source 승인·공식 실험·PPO/ML 검증·운영 성능 우월성을 주장하지 않는다.
+
+**다음 작업 — 원 분류 Projection·분할 증적·자원 사전 검증 · InventoryEngine**
+
+- 원 분류와 전체 후보 목록을 보존하고 실제 Catalog/Guard 결과를 평가기로 전달하도록 조립한다.
+  Manifest/Verifier·재시작·자원 사전 검증은 해당 입력 계약에 의존하므로 이후 직렬로 진행한다.
+  공식 경로 생성과 본실험은 아직 실행하지 않는다. DB Write·공용 Runtime 배포는 별도 승인 대상이다.
+
+아래는 보존한 이전 이력이다. 현재 작업은 이 최상단 절을 우선한다.
+
+## 2026-10-19 강건성 비교 조건 고정 — 완료 / 구현·공식 실행 미수행
+
+- [강건성 계약](IO_CATALOG_ROBUSTNESS_CONTRACT.md)과
+  [기계 판독 사양](data/catalog-robustness-protocol-v1.json)에 새 가정·기간·Seed·판정 기준을 고정했다.
+  사양 Hash는 `a3e35fcf23915e87823883ea8c1f09448b245ae7ea1fffa8c77482bab0433280`이다.
+  새 공식 이력·경로·BOH를 생성하거나 52주 실험을 실행한 것은 아니다.
+- 가상 W0는 2037-01-05 / 2044-01-04, 평가 52주+추가 관찰 13주다. 전 104주 합성 이력 중
+  52주 Warm-up의 EOH·고객 BO·미도착 주문을 W0 Source로 잇는다. 안정 LT49·간헐 LT7/49일 세 품목이다.
+  이전 Holdout과 2040 기술 Smoke의 이력까지 피했고, 간헐 두 품목은 같은 수요로 LT 효과를 분리한다.
+- 후보 32/32/88개는 유지하며 단일 Forecast 선정과 8경로 위험 선정을 별도 실험 결과로 비교한다.
+  검증 8경로·최종 16경로에서는 재선정하지 않는다. 경험 성공비율≥90%와 나쁜 10% 경로의 평균 부족률≤10%를
+  적용하고 경로별 충족률≥95%·종료 고객 BO=0·기존 Gate를 검사한다. 운영 신뢰도 보장을 의미하지 않는다.
+- 가격 연동 PRICE_BASE를 주 비용 가정으로 하고 고정비 호환·높은 보관비/발주비·Forecast 부족 무과금의
+  5개 Profile을 분리했다. 부족 비용은 개발 가정이며 기존 고객 BO/PSI/Source 총비용을 덮거나 이중 합산하지 않는다.
+- 기존 13주 Runner의 상한은 바꾸지 않는다. 새 전용 조립에서 품목별 65주 작업량은 188,760으로 기존 200,000 이하다.
+  원 분류 모집단·부모 Hash 보존, 미래 Truth 관측 분리, Window/위험/비용 Scorecard,
+  16후보 이하 Leaf·전체 후보 Manifest·자원 Preflight·동일 입력 재개는 **아직 구현 필요**하다.
+- 조건 확정·수작업 산술 검증과 기존 Hash 호환성만 확인한다. 직전 전체 회귀 1,191건은 아래 완료 이력이며,
+  이번에 새 강건성 PSI를 실행한 수치로 표현하지 않는다. 기존 Engine 코드·규칙·Golden/이전 실험은 수정하지 않는다.
+- 이번 검증은 새 정적 조건/산술 25건·기존 Hash 호환성 4건·이전 비교 Offline 회귀 16건으로 **45 passed**다.
+  Ruff·Format 300개 파일·JSON Schema 37개·새 문서 링크·Diff Check를 확인했다.
+  기존 코드/스크립트/테스트/Schema/기존 사양·근거와 개인 보고서를 포함한 보호 파일 **381개**의 SHA-256이 동일하다.
+  전체 회귀·새 52주 PSI·HTTP/DB E2E를 다시 실행한 수치가 아니며 세부 범위는
+  [조건 검증 기록](evidence/catalog-robustness-contract-20261019.json)에 보존한다.
+- FSN 설정·운영 Gate·DB 접속/Write·승인 설정·Platform·Runtime·실제 발주·Commit/Push는 변경/수행하지 않았다.
+  개인 보고서·환경·기존 미커밋은 보존한다. 스킬의 일부 공통 참조는 미설치여서 저장소 계약·QA 절차로 보완했다.
+
+**다음 작업 — 평가기·Generator/관측 계약 구현 · InventoryEngine**
+
+- 52주 Window·5성분 비용·경로 위험·두 선정기를 수작업 사례로 검증한다. 독립 Warm-up/경로 Producer와
+  미래 Truth 관측 차단은 계약 고정 후 별도 파일에서 병렬 검증 가능하다. 현재 세션의 조립은 직렬로 이어간다.
+- 완료 조건: 누락·무수요·고객 BO·심한 단일 경로 실패·기술 실패를 구분하고 기존 결과/Hash·FSN/Gate를 보존한다.
+
+**그다음 — 품목별 분할·봉인 증적·기술 Preflight 후 공식 비교 · InventoryEngine**
+
+- 원 분류→품목 Projection·Chunk Manifest/Verifier·멱등 재시작을 구현한다. 별도 2055 Smoke로 크기/상한을
+  검증한 뒤에만 공식 입력을 봉인한다. 기존 상한을 늘리거나 기간·Seed·후보를 줄여 통과시키지 않는다.
+- 선정→선택 Hash 봉인→검증→Holdout/Stress→근거 작성은 직렬이다. 이번 조건 확정만으로 공식 실행 완료를 선언하지 않는다.
+
+**승인 필요 — 독립 DB 저장·복구 후 Demand P12 연결 · InventoryEngine·Platform·개발 PostgreSQL**
+
+- 승인 원본과 실제 소량 Write 범위를 별도로 확인한 뒤 진행한다. Migration·업무 DB Write·공용 Runtime 배포는
+  이번 작업의 범위가 아니며, Forecast 추가 실행으로 IO 독립 검증을 대체하지 않는다.
+
+아래는 이전 완료 이력이며, 현재 다음 작업은 이 최상단 절을 우선한다.
+
+## 2026-10-19 새 Holdout의 32·32·88개 후보 독립 비교 — 완료
+
+- [비교 조건·결과](IO_CATALOG_HOLDOUT_COMPARISON.md)와
+  [기계 판독 프로토콜](data/catalog-holdout-comparison-v1.json)을 결과 생성 전에 고정했다.
+  기존 실험과 겹치지 않는 2033/2034년 가상 Calendar·새 Seed의 합성 2창, 각 4품목·13주다.
+  실제 V100/P12 Source나 미래 예측이 아니며 ML/PPO를 새로 학습한 실험도 아니다.
+- 동일 입력·비용·제약·종료 조건에서 ABC·XYZ 32 / LEGACY_STYLE 32 / 참조 88개를 실제 공통
+  수학 전략·Guard·PSI로 실행했다. 원 PSI 전체 재실행 검증·선정을 포함해 순서를 회전하며 3회 측정했고
+  반복 Hash·공유 정책 Row/지표가 일치했다. 계획 정책을 모두 고정한 후 새 수요에서만 평가했다.
+- 세 방법 모두 실제 서비스 자격은 **6/8**이다. 전체 수량 충족률은 **93.11% / 87.61% / 87.61%**,
+  공통 적격 6건 비용은 **3,898 / 4,713 / 4,013 USD**, 평균 EOH 합계는 **221.77 / 270.23 / 229.85 EA**다.
+  두 기간의 계산/재검증/선정 중앙값 합은 **5.481 / 5.603 / 15.186초**다. 저장/복구 시간은 별도다.
+- 계획 좋은 후보 누락은 **4/8 / 3/8 / 0/8**, 새 수요의 참조 좋은 후보 범위 누락은 **1/8 / 5/8 / 0/8**이다.
+  세 방법 모두 간헐·고가의 2창에서 서비스 미달이며 참조에도 사후 적격 후보는 있었다.
+  후보 범위만 넓히는 것으로 해결되지 않았고 계획 최저 비용 후보와 미래 성과를 구분해야 한다.
+- 이번 조건에서는 ABC가 더 나았지만 합성 8건으로 일반적 우월성·기본 전략 채택을 확정하지 않는다.
+  비용은 단가 비례가 아니고, 기간은 13주·종료 잔존가치가 없어 장기 LT·고가품 해석에 한계가 있다.
+  Legacy 원 엔진과의 동등성·운영 성능 합격·FSN/미분류 차단 해소로 표현하지 않는다.
+- 원 입력을 실행 전에 고정하고 원 PSI 8개·선정 6개의 Append-only 저장·멱등 재요청·재시작
+  원 입력 재검증을 완료했다. **14개 / 291,700,986 bytes**의 원본은 로컬 임시 폴더이며 중앙 보관은 아니다.
+  24개 품목·방법·기간 지표·원인·포인터와 파일 지문은
+  [검증 기록](evidence/catalog-holdout-comparison-20261019.json)에 보존했다.
+- 결과 의미 Hash는 `bb2b9a5876949f864980dc4669ab3099cd90bfb11e96a292dff958e4e8634208`이다.
+  기존 Engine 코드/테스트/Schema/규칙 파일은 수정하지 않고 새 비교 경로를 추가했다.
+  최종 전체 회귀 **1,191 passed / 9 skipped / 669 subtests passed**(182.57초), 새 비교 경로 16건과
+  기존 호환성 4건, Ruff·Format **299개 파일**·JSON Schema **37개**·Diff Check를 통과했다.
+  보호 파일 **350개 모두**와 개인 보고서는 작업 전후 SHA-256이 동일하다. 기존 Platform 경로의
+  Starlette 경고 3건은 유지되며, 커버리지 비율이나 별도 에이전트 검토를 수행한 수치로 표현하지 않는다.
+- 개발 PostgreSQL 접속/Write·FSN 설정·운영 Gate·Platform·Runtime·실제 발주·Commit/Push는 없다.
+  개인 보고서·환경·기존 미커밋을 보존했다. 실행 기준은 `inventory_engine_dev`의 `99f2f12`와
+  검증 기록의 미커밋 구현 Manifest이며 설치/배포 완료 Commit으로 표현하지 않는다.
+
+**다음 작업 — 간헐수요·장기 LT의 별도 강건성 비교 조건 확정 · InventoryEngine**
+
+- 이번 결과는 고정한다. 다음 실험의 장기 평가기간·새 수요 경로·가격/비용 가정을 먼저 정하고,
+  단일 평균 Forecast의 최소 비용 선정과 여러 수요 경로에서의 서비스 위험 평가를 비교한다.
+- 후보 범위 부족과 선정 기준의 과적합을 분리하는 것이 완료 조건이다. ABC/Legacy 채택이나 운영 Gate는
+  이번 소표본만으로 바꾸지 않는다. 조건→구현/검증→평가는 직렬이며 원 Legacy 자료 확보는 병행 가능하다.
+
+**후속 작업 / 승인 필요 — IO 독립 저장 검증 후 Demand 연결 · InventoryEngine·Platform·개발 PostgreSQL**
+
+- 승인된 정확한 원본·소량 저장/재조회/복구 범위를 먼저 준비한다. 이후 승인받아 실제 DB 검증을 진행한다.
+  IO 독립 검증 후 P12 한 건의 정식 Demand 연결로 진행하며 Forecast 추가 실행으로 대체하지 않는다.
+  Migration·실제 DB Write·공용 Runtime 배포는 별도 승인 대상이다.
+
+아래는 보존된 이전 이력이며, 현재 상태와 다음 작업은 이 최상단 절을 우선한다.
+
+## 2026-10-19 Catalog 후보의 품목별 선정·평가 연결 — 로컬 구현 완료
+
+- [Catalog 선정·평가 계약](IO_CATALOG_POLICY_SELECTION.md)에 별도 결과
+  `inventory-offline-catalog-policy-selection-result / 1.0.0`을 정의했다. 원 Config/분류/Canonical/
+  Mathematical 입력과 Catalog로 실제 수학 전략·Guard·PSI·지표를 재실행해 원 PSI 전체를 검증한다.
+- 성공 후보는 공통 Guard·재고 이월·서비스·비용도 추가 대사하고 기존 서비스 자격→총비용→평균재고→
+  주문 횟수→Candidate ID 기준으로 품목별 선정한다. 후보 누락·성공→실패 위조·비용/Gate 변조는
+  Hash를 재생성해도 거부한다. 미선정/실패/제외·REVIEW 사유와 Baseline 대비 변화를 보존한다.
+- 별도 로컬 Source/Selection Writer는 부모 우선 Append-only 저장·멱등 재요청·재시작 복구를 지원한다.
+  정확한 입력을 다시 제공해야 하며 최신 Source 조회·DB 연결·실제 운영 승인으로 대체하지 않는다.
+- 기존 ABC 순위 함수는 기본 `PC-`를 유지하고 신규 경로에서만 `OCCP-`를 명시한다.
+  ABC 분류·Config·기존 탐색/선정 및 Catalog PSI의 기존 Hash, 규칙/Golden·FSN·운영 Gate는 유지했다.
+- 수작업 사례는 BOH 10·주수요 10·LT 7일·ROP 10·Q 11·S 21이다. 서비스 미달인 28 USD 후보를 제외하고
+  30/30 충족·EOH 0/1/1·주문 11+10인 54 USD 후보를 선정한다. Legacy EOQ 동등성 검증이 아니다.
+- 개발 PostgreSQL 접속/업무 Write·Migration·입력 승인·공용 Runtime 배포·실제 발주·Commit/Push는 수행하지 않았다.
+  개인 보고서·환경·기존 미커밋을 보존하며 설치된 Platform 테스트 환경을 사용한다.
+- 신규 검증 **61개**, 전체 Unit·Contract·Offline Integration **1,175 passed / 9 skipped / 669 subtests passed**다.
+  변경하지 않은 Platform 경로의 Starlette 경고 3건은 남아 있다. 전체 Ruff·Format **293개 파일**,
+  Schema 필드/사유 일치·양성/음성 사례·Diff Check와 Hash Seed 2개를 확인했다.
+- 보호 파일 343개 중 기존 공통 순위 함수 1개만 변경했고 나머지 342개·규칙/Golden·개인 보고서는 동일하다.
+  커버리지 비율은 도구 미설치로 측정하지 않았다. 개발 PostgreSQL 대신 테스트 임시 저장소만 사용했으며,
+  [검증 기록](evidence/catalog-policy-selection-verification-20261019.json)에 범위와 고정 Hash를 보존했다.
+
+**다음 작업 — 같은 조건의 3개 후보 모드 독립 비교 · InventoryEngine**
+
+- ABC·XYZ 32개/LEGACY_STYLE 32개/넓은 참조 88개의 입력·기간·비용·제약·종료 조건을 먼저 고정한다.
+  이어 새 미사용 기간에서 서비스·비용·재고·실행/재검증 시간·좋은 후보 누락을 비교한다.
+- 조건 고정→실험 실행→선정/평가는 직렬이다. 현재 기능 테스트를 성과 Holdout으로 재사용하지 않는다.
+  Legacy 원본 확보는 개발 비교와 독립적으로 진행할 수 있다.
+
+**후속 작업 / 승인 필요 — IO 독립 저장 검증 후 Demand 연결 · InventoryEngine·Platform·개발 PostgreSQL**
+
+- 독립 계산/조회·로컬 복구의 기준선을 고정한 뒤 실제 DB 입력·소량 적재/재조회/복구 범위를 승인받아 검증한다.
+  그 다음 P12 한 건의 Demand→IO 연결로 진행한다. 공용 배포·Forecast 재실행으로 대체하지 않는다.
+
+아래 용어 대사와 Source/Schema 절은 완료 이력이다. 각 절의 과거 다음 작업보다 이 절의 순서를 우선한다.
+
+## 2026-10-19 MOS·ROP·Q·서비스 지표 대사 — 완료 / Legacy 생성식 동등성 미확인
+
+- [용어 대사](IO_POLICY_TERMINOLOGY_RECONCILIATION.md)에 Legacy 파일/제공 SQL·보존 DDL·업무 설명과
+  현재 Python 구현·개발 가정을 분리했다. 원본 Rop은 10,000회 일 수요 분포의 분위수,
+  Python 탐색은 주 수요 정규분포식과 월 커버리지 개발 프로필이다. 같은 계산으로 표현하지 않는다.
+- Legacy MOS는 `RMOS+EMOS` 적재까지만 확인했다. 현재 요청 EMOS는 기본 Q 커버리지,
+  유효 EMOS는 `(S−ROP)/Dm`이며 Q/2·실제 주문량과 다르다. 정책 중간점 MOS와 PSI 관측 MOS도 구분했다.
+- CSL 설정값·현재 수요의 수량 충족률·주차 무결품 비율·서비스 적격 조건을 대조했다.
+  Result Bundle의 `projected_service_level`도 수량 충족률이며 확률적 CSL이나 일별 납기 실적이 아니다.
+  Legacy F_RATE 생성식과 RMOS/EMOS 상위 생성 프로시저는 미확인으로 유지했다.
+- 기존 탐색 문서의 주기적 목표량 수식을 실제 코드의 안전재고→목표량 순차 올림으로 정정했다.
+  계산 코드·Schema·Golden·후보·설정·기존 Hash·FSN/운영 Gate는 변경하지 않았다.
+  DB 접속/적용/Write·Runtime 실행/배포·실제 발주·Commit/Push는 수행하지 않았다.
+- 원문 Hash·코드 위치와 이번 로컬 검증은
+  [근거 Register](evidence/policy-terminology-reconciliation-20261019.json)에 기록한다.
+- 관련 17개 테스트 파일 **311 passed / 204 subtests passed**, 단위·서비스 메모리 확인 8건,
+  원문/코드 Hash 14개·근거 위치 33곳·로컬 링크 72개를 검증했다. 코드/테스트/Schema 337개와
+  개인 보고서는 작업 전후 동일하다. 전체 회귀·실제 DB E2E를 다시 수행한 수치로 합산하지 않는다.
+
+**다음 작업 — Catalog 후보의 품목별 선정·평가 연결 · InventoryEngine**
+
+- Catalog PSI 실행은 현재 기준선으로 유지한다. 실제 후보 Row·제약·서비스·비용을 재검증하고
+  별도 결과 계약으로 선정/미선정 사유를 보존한다. 기존 PSR 계약으로 위장하지 않는다.
+- 다음은 같은 조건의 ABC·XYZ/LEGACY_STYLE/넓은 후보를 미사용 기간에서 독립 비교하는 것이다.
+  선정 구현→관련 테스트→독립 Offline 검증은 직렬이다. Legacy 원본 자료 확보는 별도로 진행할 수 있다.
+
+**후속 작업 / 승인 필요 — IO 독립 적재 검증 후 Demand 연결 · InventoryEngine·Platform·개발 PostgreSQL**
+
+- 먼저 IO 독립 계산·조회·저장/복구의 완성 범위를 확인한다. 아래 원본 복구·저장 준비 이력은
+  이 목표의 선행 자료이지 이번에 다시 DB를 변경하라는 뜻이 아니다.
+- 실제 DB 적용·데이터 Write의 범위를 승인받아 검증한 뒤 P12 한 건의 Demand→IO 연결로 진행한다.
+  Forecast 추가 실행으로 IO 계산·정책 원본의 미완료 범위를 대신하지 않는다.
+
+## 2026-10-19 분석 저장 원본 대사 — 완료 / 실제 저장용 승인 Source 미준비
+
+- [원본 식별 계약](IO_SEGMENTATION_SOURCE_RECONCILIATION.md)에 V100/Plan 202512/W0 2025-03-17,
+  Draft 2.1 Revision·Hash, 원 분류/Canonical/봉인 Artifact 포인터를 고정했다. 목표를 202602로 바꾸지 않았다.
+- Engine의 원문/Byte/Bundle/명령/정책 Projection/Canonical 검증기를 재사용했다.
+  로컬 `bbdc...` 원문은 계산 전용 Artifact와 일치하지만 DB 승인 Snapshot은 아니다.
+  실제 승인 V2 `e54e...`는 Config 2.0/마감 202601/W0 202602여서 목표와 맞지 않는다.
+- 현재 DB의 과거 26주 마감은 충분하고 Hash는 `70d3cb63...4bf622e`다.
+  기존 봉인 원문의 마감 Hash는 `240eeeca...511b3d`로 달라, FSN UNVERIFIED/BLOCK 3,622개를 그대로 유지했다.
+  문서에 있던 새 후보 `29aa...`의 임시 원문 경로는 현재 없다. 문서의 ID만 승인 원문으로 사용하지 않는다.
+- `selected_storage_source=null`, `database_write_allowed=false`다. Config Draft/분류 미승인·옛 마감 증적·
+  Legacy Source/Projection Artifact 미준비를 구분했다. 신규 분석 Header/Item·승인 입력 묶음은 0건이다.
+- Platform 읽기 전용 도구/Receipt를 추가했다. DB·기존 SQLite·원문 파일을 읽기만 했으며,
+  새 분류 계산·FSN/Gate 변경·DB 적재/승인·079·Runtime/Forecast/실제 발주·Commit/Push는 없다.
+- Source 대사 Helper **22 passed**, 관련 Backend 묶음 **197 passed**, Ruff·Format·Diff Check 통과.
+  테스트 임시 SQLite와 실제 원본 저장소를 구분했다. 기존 Engine 계산/분류 코드는 변경하지 않았다.
+
+**다음 작업 — 올바른 26주 원문의 로컬 복구·재생성 · InventoryEngine·Platform Backend**
+
+- 정확한 Plan/Site/W0와 현재 마감 Source로 별도 분류 원문을 검증한다. 이후 Legacy Feature와 Source/Projection을
+  봉인한다. 기존 원문을 덮어쓰거나 사라진 후보 ID를 강제로 재사용하지 않는다.
+
+**승인 필요 — DB 입력 계약·승인과 실제 소량 Writer 저장**
+
+- 대상: Platform·개발 PostgreSQL. 079·Config/분류 게시·승인과 실제 저장/재조회/복구는 별도 범위를 확인한다.
+  순수 후보 선정·조회 준비는 Source 작업과 병행 가능하지만 DB 게시/E2E는 선행 원본 고정 후 직렬이다.
+
+아래 Schema 적용은 완료한 기준선이며 원본 대사도 위에서 완료했다.
+
+## 2026-10-19 분석 저장 구조 개발 PostgreSQL 적용 — 완료
+
+- 승인된 개발 PostgreSQL `192.168.0.46:5432/dsai`에 086만 적용했다.
+  `dsim.tb_io_segmentation_analysis`(31컬럼)·`tb_io_segmentation_analysis_item`(27컬럼)은 각각 **0행**이다.
+  `v_io_item_analytics` **7,000행**, `v_io_item_analytics_axis` **49,000행**은 기존 분류를 읽은 결과다.
+  신규 LEGACY_STYLE 분석·Plan 202512 입력이 생성된 것은 아니다.
+- 실제 Rollback 제약 Canary **16개 통과** 후 dsai/dsim Schema-only Backup·Restore Catalog를 확인하고,
+  DDL/원장을 원자 Commit했다. 적용 시각은 **2026-10-19 09:41:27 KST**, 원장은 `success/module=dsdm`이다.
+  적용 SQL SHA-256: `0442ff7d91f981c6b637be0974fec0ffed1fa45381ae08815cfd38cf3e6717de`.
+- 외부 접속 주소와 컨테이너 내부 주소 차이는 확인된 Cluster System ID로 검증하도록 보정했다.
+  다른 DB를 허용하거나 서버·포트·Secret을 바꾸지 않았다. 적용 SQL의 Table/View 정의는 검토 초안과 동일하다.
+- 분류 7개·설정 2개 Table의 행수/전체 행 진단 지문과 Gate 분포를 적용 전후 대사했다.
+  `ALLOW=2,296/REVIEW=4/BLOCK=4,700`이며 기존 FSN 설정·Gate·ABC/Legacy 코드는 유지했다.
+  새 읽기 전용 연결에서도 실제 건수·Checksum·PUBLIC 권한 차단·079 미적용을 확인했다.
+- Platform `docs/backend/dsim/evidence/inventory-segmentation-086-development-20261019.json`에
+  적용/독립 재조회/백업 증적을 남겼다. 백업은 로컬 `.codex-build/inventory-schema-backups/`에 보존하고 Commit에서 제외한다.
+- 관련 Backend **175 passed**, 별도 Migration 목록 정적/Python **17 passed**, Ruff·Format·Diff Check 통과.
+  직전 Mac 기본 Bash 셸 실행기 9건 실패는 이번 작업에서 변경하지 않았다. Engine 계산 코드는 변경하지 않았다.
+- 079·다른 Evidence 초안·업무 데이터 적재·실제 Claim·Runtime 배포·발주·Commit/Push는 수행하지 않았다.
+  086 개발 대상 전용 SQL은 자동 Migration 목록에 등록하지 않았다. 일반 배포·최소권한 Runtime E2E는 미완료다.
+
+**다음 작업 — 실제 저장할 분석 원본·입력 Binding 확정 · InventoryEngine·Platform Backend**
+
+- 정확한 분류/Config/Plan·Site·W0와 봉인 Feature/Legacy Artifact를 고정한다. 기존 View 행이 신규 Plan 결과가
+  아님을 구분한다. FSN/Gate는 유지하며 Source 대사와 Catalog 선정·조회 준비는 독립 파일에서 병행 가능하다.
+
+**승인 필요 — 소규모 분석 데이터 저장·재조회·복구 · 개발 PostgreSQL·InventoryEngine·Platform**
+
+- 원본이 고정되면 Writer로 실제 소량 저장/멱등 재요청/프로세스 복구를 검증한다.
+  이번 Schema Canary와 달리 업무 분석 행을 남기는 통합 Write이므로 범위를 별도로 확인한다.
+
+**후속 작업 — Catalog 선정·Run/Studio 연결 및 변경 고정**
+
+- 대상: InventoryEngine·Platform Backend/Frontend. 실제 후보 PSI의 선정/평가와 분석 포인터를 연결한다.
+  검증 후 `inventory_engine_dev`와 `codex/inventory-psi-strategy-v2`의 관련 변경만 Commit 후보로 정리한다.
+  Commit·Push는 요청 시 진행하며 개인 보고서·환경·임시 산출물은 제외한다.
+
+아래 접속 차단과 로컬 구현 절은 앞선 이력이며 다음 실행 대상으로 다시 잡지 않는다.
+
+## 2026-10-19 분석 저장 구조 Notion 정리·개발 DB 적용 시도 — 당시 접속 차단 이력
+
+- Modified Table Notion에 공통 분석 View 2개와 LEGACY_STYLE Header/Item Table 2개의
+  원본 매핑·컬럼·Grain·PK/FK·Hash·저장/복구·권한 경계를 추가하고 재조회했다.
+- 사용자가 해당 개발 Schema 적용을 승인했다. 개발 PostgreSQL `192.168.0.46:5432/dsai`에
+  연결을 시도했지만 연결 거부가 반복됐다. 로컬 경로는 확인했으나 DB 인증·원장 조회까지 도달하지 못했다.
+  원인이 DB 프로세스/컨테이너/바인딩/접근 정책 중 무엇인지는 미확정이다.
+- Platform에 개발 DB/PG15 Guard가 있는 `drafts/086_dsim_inventory_segmentation_analytics_v1.sql`과
+  전용 적용 도구를 준비했다. 기본 읽기 전용 Preflight, Rollback Canary, Schema-only Backup,
+  DDL/원장 원자 적용 모드를 구분했다. 번호 충돌과 실제 제약/권한은 접속 복구 후 확인한다.
+- 실제 DB 적용·Canary·업무 데이터 적재·Runtime 배포·발주·Commit/Push는 수행하지 않았다.
+  기존 FSN/운영 Gate·ABC/Legacy Class·규칙/Hash와 개인 보고서·기존 미커밋은 유지했다.
+- Platform 추가 적용 후보 11개를 포함한 관련 회귀 **169 passed**, 목록 정적/Python 검사 **17 passed**다.
+  전체 목록 검사의 Mac 기본 Bash `declare -A` 미지원 실패 9개는 별도 환경 문제로 기록했다.
+  신규 Ruff·Format·양쪽 Diff Check 및 보호 파일 6개 지문을 확인했다. 실제 PG 검증 결과는 아니다.
+
+**차단됨 — 개발 PostgreSQL 연결 복구 후 Schema 적용 · Platform·개발 PostgreSQL**
+
+- 다음에 바로 할 작업은 승인된 동일 DB의 접속 확인이다. 접속 후 구조·권한·086 원장 충돌을
+  대사하고 실제 Rollback 제약 검증 → 백업 → Table 2개/View 2개 적용 → 생성/원장 검증을 직렬 수행한다.
+  서버 재시작·포트 변경·다른 DB로 우회 적용하지 않는다. 079/21개 Evidence 초안도 적용하지 않는다.
+
+**다음 작업 — 분석 데이터 저장과 Run/Studio 연결 · InventoryEngine·Platform**
+
+- Schema 생성과 별개로 원본 승인 분류·봉인 Artifact를 연결한 소규모 실제 Write/재조회/복구를 검증해야 한다.
+  업무 데이터 적재와 실제 통합 Write는 별도 범위를 확인한다. 신규 Catalog 선정·평가/Run 포인터 연결 후
+  공통 분석과 선택한 후보 생성 방식을 화면에서 분리해 조회한다. 순수 계산/조회 준비는 DB 복구와 병행 가능하다.
+
+아래 저장기 구현·테스트 수치는 이 접속 시도 이전의 완료 이력이다.
+
+## 2026-10-19 중간 분석 Artifact·2-Table 저장/검증 — 로컬 구현 완료
+
+- [저장·복구 계약](IO_SEGMENTATION_ANALYSIS_STORAGE.md)에 원 분류 V2와 Legacy Feature/결과를
+  봉인하는 별도 Source/Projection Artifact, Header/Item 컬럼·Hash·멱등 트랜잭션을 정리했다.
+- `dsim.tb_io_segmentation_analysis`와 `dsim.tb_io_segmentation_analysis_item`은 Header 1건과
+  명시적 Universe 전체를 저장한다. 공통 7축은 기존 dsai 분류를 재사용하고 새 Table에 복제하지 않는다.
+- 원 분류의 기존 검증·UUID/Hash·7축/정책을 재사용한다. Feature/Legacy를 원 입력에서 다시 검증하고
+  Projection을 재생성한다. 새 Hash만 붙인 원문/행/건수/계약/포인터 변조는 거부한다.
+- 기존 Artifact 저장기의 `commit_artifacts()`로 Source/Projection을 원자 저장한다. 기존 PSI Outbox나
+  새 Run Claim·정책 승인·Effective Run CAS를 생성하지 않는다. 자동 게시/발주는 항상 false다.
+- 별도 Writer는 승인 원 Header/품목 존재·Scope/Config/Hash를 대사하고 Header/Item을 한 트랜잭션에 저장한다.
+  같은 결과는 전체 재조회 후 멱등 반환하며, 누락/추가/다른 값은 덮어쓰지 않는다. 최대 500행 다중 VALUES다.
+- 신규 Engine Offline **31 passed**: FSN BLOCK/REVIEW 불변, Source/Projection/Byte Hash 변조,
+  건수·누락·추가, Artifact 원자성, DB Rollback·Commit 응답 유실·재시작·동시 Offline 멱등 복구를 확인했다.
+- Engine 전체 Unit·Contract·Offline Integration **1,096 passed / 34 skipped / 655 subtests passed**,
+  기존 Starlette 경고 1건이다. Platform 관련 묶음은 임시 `pglast 8.7` 환경에서 **158 passed**다.
+  PostgreSQL/PLpgSQL Parser 검사는 실제 PG의 FK/Trigger/Role/Lock/실행계획 검증이 아니다.
+- 후속 포인터 방어/서식 정리 뒤 관련 Engine 회귀 **104 passed**, 전체 Ruff·Format **287파일**,
+  보호 코드/개인 보고서 6개 지문과 양쪽 Diff Check를 재확인했다.
+- Platform SQL은 미배정·자동 실행 목록 미등록·명시적 검토 Guard·항상 Rollback인 초안이다.
+  Backend 조립은 선택 설치 Engine을 사용하고 DB Adapter의 `allow_draft_writes`는 기본 false다.
+- **FSN 설정·운영 Gate·원 ABC/Legacy Class·규칙/Golden·Config/Run Schema는 변경하지 않았다.**
+  실제 DB 접속/적용·업무 데이터 Write·입력 승인·Runtime 배포·발주·Commit/Push는 없다.
+  기존 개발 Python 환경을 교체하지 않고 임시 Target에만 Parser를 설치했다. 개인 보고서·기존 미커밋은 보존했다.
+
+**다음 작업 — 새 Catalog 결과의 선정·영속 및 분석 포인터 연결 · InventoryEngine·Platform**
+
+- 후보 원문/실제 PSI 검증을 유지하며 선정·평가 Artifact를 연결한 뒤, 정확한 분석 포인터를 Run Binding에 고정한다.
+  기존 ABC 선택 결과/Hash와 FSN/운영 Gate는 유지한다. Studio 분석 조회 준비는 계약 고정 후 병행 가능하다.
+
+**당시 승인 경계 — 위 최신 절에서 Schema 적용 승인·접속 차단 상태로 갱신**
+
+- 실제 Schema/Role 읽기 대사 후 별도 승인으로 Canary·동시성·권한·실행계획을 검증하고 Migration을 적용한다.
+  079·21개 Evidence Table 초안과 별도 범위이며 기존 074~078을 재실행하지 않는다.
+
+아래 후보 Catalog·Class/Adapter 절은 완료한 선행 이력이다.
+
+## 2026-10-19 명시적 후보 Catalog·공통 Guard/PSI 연결 — 로컬 구현 완료
+
+- [실행·검증 계약](IO_CANDIDATE_CATALOG_PSI.md)에 새 입력 Catalog와 별도 Offline 실행 진입점을 정리했다.
+  Legacy/ABC 공통 예산은 각 32개 요청 후보, 넓은 참조는 정확한 합집합 88개다. 256개 전체 곱으로 늘리지 않는다.
+- 전체 분류/Feature를 한 번 검증하고 품목별로 후보를 조회한다. 원 Config/분류·W0/Scope/Cut-off·공유
+  Calendar/Master·26주 수요·물리 Lead Time을 실제 수학적 입력과 대사한다. 원 Snapshot을 재봉인하지 않는다.
+- 기존 `RunPolicySearchUseCase` 내부에 선택적 Catalog 연결을 추가했다. 모든 후보는 실제 기존
+  CandidateStrategy·Guard·PSI·평가 함수를 사용하며 기존 기본 ABC 호출의 결과/Hash는 유지한다.
+- 결과는 `inventory-offline-catalog-psi-result / 1.0.0`으로 별도 구분한다. 원 입력과 Catalog/후보·PSI·주문·
+  실패/제외·평가 Hash를 보존하며 결과 Verifier는 원 입력에서 Guard/PSI를 재실행한다.
+  기존 ABC 선택기는 새 결과를 거부한다. 최적 정책을 선정하거나 기존 Artifact/DB에 게시한 것은 아니다.
+- 신규 기능 48개와 기존 고정 Hash 계약 4개를 함께 실행해 **52 passed**를 확인했다.
+  수작업 Q=11/ROP=10/S=21 Golden, 88개 실제 Guard 호출, 2품목 176개 후보의 Ledger 격리,
+  FSN BLOCK/REVIEW·VED·SDE·MOQ/Lot/용량·실패 격리·누락/변조·작업 상한을 검증했다.
+- 별도 메모리 Probe에서 13주×88개=1,144개 PSI Row·8,008 Observation 상한과 BOH/EOH 이월을 확인했다.
+  Python Hash Seed 1/731의 Catalog/결과 Hash도 동일했다. 미사용 Holdout 성과 실험은 아니다.
+- 최종 전체 Unit·Contract·Offline Integration **1,065 passed / 34 skipped / 655 subtests passed**,
+  기존 Starlette 경고 1건. Ruff·Format 282파일·JSON Schema 36개·Diff Check를 확인했다.
+  기존 ABC/Class·Legacy Class/Adapter·호환/Golden·개인 보고서의 작업 전후 파일 지문도 대사했다.
+- **기존 FSN 설정·운영 Gate·원 ABC/Class·Golden·DB·Platform은 변경하지 않았다.**
+  외부 DB 조회/Write·Migration·실제 Claim/E2E Write·Runtime 설치/공용 배포·실제 발주·Commit/Push는 없다.
+  개인 보고서·환경·이전 미커밋 변경은 보존했다.
+
+**다음 작업 — 중립 후보 결과의 선정·평가를 연결한다 · InventoryEngine**
+
+- 기존 선택기의 ABC 후보 재생성 의존성을 분리하고, 새 Catalog의 정확한 목록과 실제 PSI 검증을 유지하며
+  기존 서비스·비용·재고·발주횟수·동점/미선정 기준을 적용한다. 원 ABC PSR/선택 Hash는 유지한다.
+- 이후 새 미사용 기간에서 ABC·XYZ/LEGACY_STYLE/넓은 참조를 동일 조건으로 비교한다.
+  선정 연결·검증 → 성과 비교는 직렬이다. Legacy 원본 자료 확보는 별도 병행 가능하다.
+
+아래 Class/Adapter·규칙 정의·원본 대사는 완료한 선행 이력이다.
+
+## 2026-10-15 LEGACY_STYLE Class·Adapter·Feature Producer — 로컬 구현 완료
+
+- [로컬 구현 계약](IO_LEGACY_STYLE_IMPLEMENTATION.md)에 입력·책임·Hash·재검증·실행 경계를 정리했다.
+  새 `legacy_rules.py`·`legacy_features.py`·`legacy_style.py`·`legacy_adapters.py`만 추가했으며
+  기존 ABC Class/Adapter·분류 Snapshot·정책 탐색/선택·7축/FSN·운영 Gate 코드는 수정하지 않았다.
+- Producer는 정확히 W0 이전 마감 26주·물리 Lead Time·USD/EA 단가와 별도 입력 Binding을 검증한다.
+  입력 원문·기존 ABC 결과·참조 통계/정책/계산 근거·모든 미분류 사유를 가진 불변 Feature ID/Hash를 생성한다.
+  Source 수집·DB 게시·업무 승인 또는 실제 설치 Build 탐색 기능은 아니다.
+- Class는 확정한 구간/점수와 W0 기준 품목 예외를 적용하고 Adapter는 공통 중립 분류/후보 범위로 변환한다.
+  원 ABC 등급·Hash는 별도 보존한다. 기존 Snapshot을 재봉인하거나 Legacy 그룹을 AX/CZ로 위장하지 않는다.
+- 단순 Hash 검사뿐 아니라 원 입력에서 Feature와 분류를 재생성해 변조를 대사한다.
+  구간 비교는 정확한 유리수로 처리하며, 새 내부 설정 Hash에는 원 Config·규칙·품목 예외 Hash를 묶는다.
+  기존 Config/Run 계약 Version과 규칙 Profile Hash·원 Golden 파일은 그대로다.
+- 신규 테스트 **120 passed**: 그룹 27건·경계 15건·참조 ROP 7건·누락 12건, 0일/잘못된 LT·가격 신선도,
+  품목 예외·기간/중복·입력/Hash/Version 변조·순서/Decimal Context·불변성·새 결과 지문을 검증했다.
+  기존 실제 정책 탐색 경로의 FSN BLOCK/REVIEW 전후 Hash·Baseline·주문 제한과 미분류 3품목도 확인했다.
+- 최종 전체 Unit·Contract·Offline Integration **1,017 passed / 34 skipped / 655 subtests passed**,
+  기존 Starlette 경고 1건을 확인했다. 실제 DB 연동 Flag는 비활성으로 고정했다.
+  Ruff·Format 277파일·JSON Schema 36개와 작업 전후 기존 코드/Schema/호환 테스트·Golden 무변경을 대사했다.
+  Coverage/Bandit은 사용 가능한 두 Python 환경에 설치되지 않아 수치/검사 결과를 주장하지 않는다.
+- **FSN 설정·운영 Gate·DB는 변경하지 않았다.** DB/Source 원천 접속·Migration·실제 Claim/E2E Write·
+  Runtime 설치/배포·실제 발주·Commit/Push는 수행하지 않았다. 개인 보고서·환경·기존 미커밋 변경도 보존했다.
+
+**당시 다음 작업 — 후보 Catalog/PSI 연결은 위 최신 절에서 완료**
+
+- 후보 범위 Adapter까지 완료했다. 다음은 32개 요청 조합과 정확한 88개 합집합을 실제 공통 Guard/PSI로
+  전달하는 경로다. 전체 결과를 품목마다 반복 재검증하는 방식은 대량 실행으로 확대하지 않는다.
+- 이후 새 미사용 기간에서 ABC·XYZ/LEGACY_STYLE/넓은 참조를 동일 조건으로 비교한다.
+  후보 실행 경로 구현·테스트 → 성과 비교는 직렬이며, Legacy 원본 자료 확보는 별도 병행 가능하다.
+
+아래 규칙 정의와 대사는 완료한 선행 이력이다. Class 구현을 다시 다음 작업으로 잡지 않는다.
+
+## 2026-10-15 LEGACY_STYLE 개발 규칙 V1 — 정의 완료 / 구현·성과 비교 미수행
+
+- [개발 규칙](IO_LEGACY_STYLE_DEVELOPMENT_RULES.md)과 [프로필 원문](data/legacy-style-development-rules-v1.json)에
+  `D1~D7`을 고정했다. 확인된 Legacy 근거와 새 인자·구간·단위·점수·후보 숫자를 명확히 분리했다.
+  프로필 Hash는 `a3121dfa885f8b4d2e0df54605789ad841661693b0f386329fe4fa60946ecbae`다.
+- W0 이전 26주로 계산한 참조 ROP 커버리지(0.5/1.5개월), 물리 Lead Time(14/42일),
+  USD/EA 단가(10/100)의 3인자를 최대 27개 그룹으로 나눈다. 분류용 정규분포 ROP는 Legacy Bootstrap이 아니다.
+- 그룹을 SMALL/MEDIUM/LARGE 후보 묶음에 연결한다. 요청 조합 각 32개, 중복 제거한 넓은 참조 88개다.
+  고정 구간·점수·후보 숫자는 미보정 개발 가정이며 기존 ABC/ML 실험과는 별도 프로필이다.
+- 누락·미검증 Source·통화/기간 오류·평균 0은 품목 미분류로 보존한다. 유효한 Lead Time 0은 누락과 구분한다.
+  기존 미분류 3품목·FSN·운영 Gate·Config/Run/DB·설치 Build는 변경하지 않았다.
+- [수작업 Golden](data/legacy-style-development-rules-golden-v1.json)의 그룹 27건·경계 15건을
+  메모리 산술로 대사하고 참조 ROP 7건을 기존 순수 계산 함수와 비교했다. 공통 CandidateRange로
+  3개 프로필의 범위·32개 조합/88개 합집합·중복/상한을 확인했다. 12개 누락/오류와 3개 Gate 항목은
+  **후속 Class의 기대 사양**이며 신규 알고리즘 실행 통과 건수가 아니다.
+- 기존 호환·Adapter·탐색·선택 회귀 **69 passed**를 재확인했다. 아래 선행 전체 회귀 897건을
+  이번에 재실행한 것으로 합산하지 않는다. Python 코드·테스트·Schema는 이번 단계에서 수정하지 않았다.
+- 관련 문서 5개의 로컬 링크 62개·JSON 2개·규칙 Hash·Diff Check를 검증했다.
+  작업 시작/종료의 `src`·`tests`·`schemas` 차이와 신규 Class/계약/테스트 파일 지문도 동일함을 확인했다.
+- DB 조회/Write·Migration·실제 Claim/E2E·Runtime 배포·발주·Commit/Push는 수행하지 않았다.
+
+**당시 다음 작업 — Class·Adapter는 위 최신 절에서 완료 / 후보 PSI 연결은 후속**
+
+- Feature Producer·`LegacyFactorSegmentation`·공통 Adapter와 개별 Golden 검증을 완료했다.
+  현 AX~CZ 전용 Config를 임의 확장하거나 Legacy 그룹을 위장하지 않는다.
+- 명시적 중립 후보 Catalog를 공통 PSI/Guard에 연결한 뒤 ABC 32개/LEGACY_STYLE 32개/참조 88개를
+  새 미사용 기간의 소규모 Offline 실험으로 비교한다. 기존에 본 Holdout은 재사용하지 않는다.
+- 이 경로는 계약→구현→개별 검증→비교 순으로 직렬이다. Legacy 원본 자료 확보는 독립 진행 가능하다.
+
+아래는 선행 대사/구현 이력이다. 완료한 개발 규칙 정의는 다시 실행 대상으로 삼지 않는다.
+
+## 2026-10-15 Legacy 규칙 로컬 대사 — 완료 / 원본 Segmentation 동등성 미확정
+
+- [규칙 대사표](IO_LEGACY_SEGMENTATION_RULE_RECONCILIATION.md)에 인자·구간·단위·후보 범위를
+  코드 확인·DDL 확인·업무 설명·미확인·개발 가정으로 구분했다. 근거 파일 5개의 Hash·코드 위치를 보존했다.
+- 로컬 Rop Python/R은 품목별 일 수요와 고정 `STOCK_LT`를 이용해 10,000회 표본을 만들고
+  서비스수준별 ROP·중앙값·안전재고를 산출한다. Segmentation 그룹 생성이나 10,000개 정책 후보 탐색이 아니다.
+- TGSM은 Segmentation `PO_POLICY_CD`, POSM은 Master `APPY_PO_POLICY_CD`를 Engine에 전달한다.
+  실제 그룹 구간·RMOS/EMOS 후보·후속 변환·주문 분기 본문과 현재 적용 언어/Version은 미확보다.
+- Python/R 간 Seed·표준편차 분기·수량/분위수 반올림·R 음수 보정 덮어쓰기 차이를 기록했다.
+  원본을 import/source·실행하거나 수정하지 않았고 현 Python의 월수 커버리지 후보식을 Legacy로 재명명하지 않았다.
+- 이번 변경은 대사 문서·근거 Register와 관련 계약/기준선 정리뿐이다.
+  FSN 설정·운영 Gate·미분류 3품목 차단·Engine 계산 코드·Platform 코드는 변경하지 않았다.
+  DB 접속/Write·Migration·실제 E2E·배포·Commit·Push도 수행하지 않았다.
+- 근거 파일 Hash **5개**, 코드 위치 **14곳**, 로컬 문서 링크 **49개** 검증과 관련 호환/탐색/선택
+  회귀 **69 passed**, Diff Check를 확인했다. Legacy 원본 프로그램의 계산 동등성 검증은 아니다.
+- 아래 **897 passed / 34 skipped**는 선행 Class/Adapter 추출의 전체 회귀 이력이다.
+  이번 문서 대사의 검증 건수와 혼합하지 않으며, 최종 근거·링크·호환 검사 결과는 대사 문서를 따른다.
+
+**당시 다음 작업 — 개발 규칙 정의는 위 최신 절에서 완료**
+
+- 원본 숫자를 Legacy 기본값으로 추정하지 않고 `D1~D7`을 개발 설정으로 정의했다.
+  Class/Adapter·Offline 후보 전달·동일 조건 비교는 아직 후속이며 현재 순서는 최상단 기준선을 따른다.
+- 원본 동등성 경로는 상위 프로시저·구간/후보 설정·실제 주문 분기 자료 대기다.
+  자료 확보는 개발 재구성과 독립 진행할 수 있으나 개발 결과를 원본 동등성 근거로 올리지 않는다.
+
+아래 절은 선행 구현과 검증 이력이며 완료한 로컬 규칙 대사를 다시 실행 대상으로 삼지 않는다.
+
+## 2026-10-15 공통 분류·후보 범위 계약과 ABC·XYZ Class/Adapter 추출 — 완료
+
+- [공통 계약과 호환 경계](IO_SEGMENTATION_ADAPTER_CONTRACT.md)를 프로세스 내부 1.0.0으로 정의했다.
+  기본 `abc_xyz_class`와 탐색용 `search_group_id`를 분리하고, 방법/구현 Version·Source/설정 Hash,
+  품목별 배정·미분류 사유·후보 범위·품목 예외 근거와 별도 내부 Hash를 보존한다.
+- `AbcXyzSegmentation`에 기존 계산을 이동하고 `classify_items()`의 기존 호출을 유지했다.
+  `AbcXyzSegmentationAdapter`는 원 분류 결과를 중립 계약으로 변환한다.
+  후보 Adapter는 실제 `RunPolicySearchUseCase`에 연결하되 기존 V1 Candidate 형식으로 출력한다.
+- 기존 Config 1.1.0/2.0.0/2.1.0의 Snapshot·UUID·Source/설정/유효 정책·후보·PSI 탐색·선택 Hash를
+  변경 전 지문으로 검증했다. 참조 Commit `99f2f12`와 600개 입력의 반환/오류, 전체 Snapshot 4건도 일치했다.
+  ABC·XYZ 계산 본문 AST는 동일하다. 기존 계산·Gate 테스트는 수정하지 않았다.
+- 신규 **23 passed**, 전체 **897 passed / 34 skipped / 655 subtests passed**, 기존 경고 1건.
+  Ruff·Format 10파일·JSON Schema 36개·Diff Check 통과. 이전 Offline 비교의 의미상 결과 Hash도
+  `b8b8d7423dafdbcf717da2919820e863dedb570f3ad7c1561bd10c9107332d80`으로 동일하다.
+  이번 비교 재실행은 메모리 검증만 했고 Artifact 재게시·DB 기록은 하지 않았다.
+- 분류 조립 파일은 1,533→1,107줄로 줄였고 새 ABC·XYZ Class는 401줄이다.
+  파일 전체 재설계가 아닌 분류/직렬화/자료형의 책임별 추출이며 나머지 7축 조립 코드는 유지했다.
+- **FSN 설정·운영 Gate·미분류 3품목의 차단은 그대로다.** 신규 중립 그룹 표현은 Legacy Runtime 허가가 아니다.
+  Platform 코드·Config/Run/JSON Schema·DB·설치 Build/공용 Runtime은 변경하지 않았다.
+  개인 보고서·이전 미커밋 변경·환경·임시 산출물을 보존했으며 Commit·Push도 수행하지 않았다.
+
+이 단계 후속의 로컬 규칙 대사는 위 절에서 완료했다. 개발 규칙 확정·Class/Adapter·비교의 현재 순서는
+최상단 기준선을 따른다. 서비스 충족 여부를 우선하고 비용·재고·발주횟수·계산시간·누락을 함께 평가한다.
+
+Source/Claim·079/Evidence 실제 DB 적용은 별도 승인 경계이며 아래 절은 완료/검증 이력이다.
+
+## 2026-10-15 정책 성과 기반 ML Segmentation Offline 비교 — 완료 / 우월성 미확인
+
+- [실험 방법·결과](IO_POLICY_SEGMENTATION_OFFLINE_EXPERIMENT.md): ABC·XYZ 후보, ML Profile 후보,
+  넓은 후보를 같은 Canonical·Prepared 입력으로 실제 검색·Guard·PSI·선택기를 거쳐 비교했다.
+  TRAIN/VALIDATION과 두 미사용 HOLDOUT 기간을 분리하고, Forecast에서 선택한 정책을 고정한 뒤
+  실적 Replay를 평가했다. 기존 Config·FSN·운영 Gate·Source·DB와 Platform 코드는 변경하지 않았다.
+- 독립 합성 Window의 작은 실험이다. ML의 좋은 후보 누락은 5→4건이지만 실적 서비스 자격 충족은
+  ABC 5건/ML 4건(일반 평가대상 8건), 공통 서비스 충족 3건의 비용은 ML이 35.02% 높았다.
+  ML과 ABC의 후보 수는 동일하고 넓은 탐색보다 적다. 성능 개선·운영 승격을 주장하지 않는다.
+- 신규 19 passed, 전체 **874 passed / 34 skipped / 655 subtests passed**, 기존 경고 1건.
+  Ruff·Format·JSON Schema 36개·Diff Check 통과. 입력 원문 및 PSR/PSEL 16쌍 재읽기를 확인했다.
+- 기존 합성 데이터 생성 독립성 검사를 보존하고 평가 Runner를 `evaluate_replenishment`에 배치했다.
+  학습 모델은 개발용 Profile Routing이며 기존 보충용 ML/PPO·Runtime 모델 등록과 별개다.
+- 개인 보고서·환경·임시 산출물은 보존했다. 실제 DB 접속·Write·Migration·배포·발주·Commit·Push는 없다.
+
+**다음 작업 — 서비스 손실 원인과 새로운 검증 자료를 정리한다.**
+
+- 독립 연속 자료·다중 Seed·수요/비용 가정·종료 효과로 검증 범위를 넓힐지 결정한다.
+  모델 개선에 이번 Holdout 결과를 사용하면 새 미사용 Holdout을 준비한다.
+  신규 Config/API/UI·운영 Runtime의 필수 ML 경로 확대는 우월성 검증 전 보류한다.
+- 아래 Source/Claim·079/Evidence 적용 작업은 별도 기준선이다. 이번 실험이 기존 운영 차단을
+  해소하거나 DB 변경을 승인한 것은 아니며, 완료한 기존 구현도 다시 실행하지 않는다.
+
 ## 2026-10-15 Source·설치 Build·Projection 실행 조립 — 현재 로컬 기준선
 
 - [Source 실행 계약](IO_DSIM_SOURCE_EXECUTION.md)에 설치 Build·정확한 Manifest·분류·Bundle·Projection

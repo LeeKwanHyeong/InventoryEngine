@@ -1,0 +1,158 @@
+{
+  "contract_id": "inventory-robustness-verification-read-evidence",
+  "contract_version": "1.0.0",
+  "date": "2026-10-20",
+  "repository": "InventoryEngine",
+  "branch": "inventory_engine_dev",
+  "base_head": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+  "scope": "LOCAL_OFFLINE_HAND_CASES_ONLY",
+  "implementation": {
+    "response_contract": "inventory-robustness-verification-view:1.0.0",
+    "inspect": {
+      "verification_level": "ARTIFACT_INTEGRITY",
+      "artifact_integrity_status": "VERIFIED",
+      "source_recalculation_status": "NOT_RUN",
+      "psi_recalculation_status": "NOT_RUN",
+      "metrics_recalculation_status": "NOT_RUN",
+      "reads_all_artifacts_and_candidates": true,
+      "header_only": false,
+      "requires_source_producer_or_model": false,
+      "writes_or_repairs_files": false
+    },
+    "verify_recalculation": {
+      "verification_level": "FULL_PSI_RECALCULATION",
+      "artifact_integrity_status": "VERIFIED",
+      "source_recalculation_status": "VERIFIED",
+      "psi_recalculation_status": "VERIFIED",
+      "metrics_recalculation_status": "VERIFIED",
+      "required_expected_hashes": ["input_hash", "result_hash"],
+      "flow": ["inspect", "existing_read_with_actual_replay", "inspect", "compare_read_time_bindings"],
+      "prior_view_accepted_as_proof": false
+    },
+    "original_read_and_recover_actual_replay_preserved": true,
+    "original_result_bytes_and_hashes_changed": false,
+    "original_receipt_or_storage_formats_changed": false,
+    "v1_v2_v3_reader_supported": true,
+    "verification_flags_persisted_into_results": false,
+    "global_status_cache": false,
+    "response_is_signed_authorization_or_build_certificate": false,
+    "result_hash_implementation": "same_canonical_JSON_SHA256_streamed_by_header_field_and_leaf",
+    "full_verification_does_not_mean_all_candidates_succeeded": true
+  },
+  "verification": {
+    "new_unit_tests": 26,
+    "new_contract_tests": 23,
+    "new_offline_integration_tests": 16,
+    "focused": {
+      "unit_and_contract_passed": 49,
+      "unit_and_contract_seconds": 0.99,
+      "offline_integration_passed": 16,
+      "offline_integration_seconds": 199.81
+    },
+    "checks": [
+      "all_32_32_88_candidates_and_65_weeks",
+      "original_2080_2080_5720_PSI_rows_and_result_hashes",
+      "actual_full_replay_strategy_calls_equal_candidate_count_times_65",
+      "fast_inspection_has_no_Source_PSI_strategy_or_metrics_recalculation",
+      "entire_manifest_leaf_trace_scorecard_binding_and_count_checks",
+      "canonical_stream_hash_handles_Unicode_and_escaping",
+      "wrong_hash_version_status_safety_flag_and_unknown_keys_rejected",
+      "boolean_counts_missing_duplicate_and_reordered_candidates_rejected",
+      "missing_or_corrupt_shared_compressed_leaf_and_complete_files_rejected",
+      "previous_success_does_not_hide_current_damage",
+      "consistently_resealed_wrong_cost_passes_integrity_but_fails_actual_replay",
+      "implementation_change_requires_actual_replay_and_cannot_reuse_prior_status",
+      "manifest_change_during_full_recalculation_rejected",
+      "failed_candidates_preserved_in_original_denominator",
+      "FSN_BLOCK_REVIEW_and_no_automatic_publication_or_order",
+      "old_V1_V2_V3_files_receipts_read_and_recover_unchanged"
+    ],
+    "full_regression": {
+      "status": "PASSED",
+      "passed": 1674,
+      "skipped": 9,
+      "subtests_passed": 669,
+      "warnings": 3,
+      "warning_class": "existing_StarletteDeprecationWarning",
+      "seconds": 925.76,
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.:src:tests:tests/support DSAI_PLATFORM_ROOT=/Users/igwanhyeong/PycharmProjects/dsai-platform /Users/igwanhyeong/PycharmProjects/dsai-platform/backend/.venv/bin/python -m pytest -q -p no:cacheprovider tests/unit tests/contract tests/integration/*offline.py"
+    },
+    "static": {
+      "ruff": "PASSED",
+      "format_python_files": 348,
+      "json_schemas_valid": 38,
+      "diff_check": "PASSED",
+      "manual_local_document_references": {
+        "checked": 117,
+        "missing": []
+      }
+    },
+    "limitations": [
+      "no_new_speed_ratio_or_peak_RSS_benchmark",
+      "full_recalculation_adds_pre_and_post_integrity_IO",
+      "all_artifact_bytes_are_still_read_restored_and_hashed",
+      "no_global_resource_enforcement_or_full_split_study",
+      "coverage_bandit_mypy_unavailable",
+      "no_independent_agent_review",
+      "oma_docs_CLI_and_shared_core_references_unavailable; manual_local_reference_check"
+    ]
+  },
+  "manual_inputs": {
+    "w0": "2055-01-04",
+    "path_id": "HAND-CATALOG-PATH",
+    "seed": 71,
+    "split": "NOMINAL",
+    "horizon_weeks": 65,
+    "candidate_counts": [32, 32, 88],
+    "official_2037_2044_paths_generated": false,
+    "unchanged_result_hashes": {
+      "ABC_XYZ_SHARED_BUDGET": "a04d8830ff370b3717dff144042abfcc9a4d6d882a4b10d60f415de851277ee7",
+      "LEGACY_STYLE": "fbd77610f2019fb44b68dbf12a3667dbe6f31238e2d428909355bc7e7f1c67c6",
+      "WIDE_REFERENCE": "0c2a92d7fdd6d835a665d3c2bf1a4865b0fe797e0851e0a9268750fbfa31759b"
+    }
+  },
+  "source_files_sha256": {
+    "schemas/robustness_verification_view.schema.json": "881a024ae42305de5253d8ae6512210feb53e1d499c37fc4f8218aee9d213696",
+    "src/dsio_inventory_engine/evaluate_replenishment/robustness/durable.py": "e4d85b488a7b9fc699461bc815b5646d0ae78fcca89c44d396bf32b4b0c6d137",
+    "src/dsio_inventory_engine/evaluate_replenishment/robustness/integrity_read.py": "f9670308274db0ef3254bf37a726e865489644f58d3430960e00e58e3a4070cc",
+    "src/dsio_inventory_engine/inventory_contracts/robustness_verification.py": "14145f927761b149f532694721b16912af486df52053dfc307ed4cad10509d3b",
+    "tests/contract/test_robustness_verification_contract.py": "7bcfdb92ea175e6729acc02ab64fe2e1a0fff64701bd0d9e5c2666bca40eaa2e",
+    "tests/integration/test_robustness_verification_offline.py": "66145397fe160bcc07e0a561deb5f5a5b5f7e529ca403ebb2ca2c360432e4eb5",
+    "tests/support/robustness_verification_fixtures.py": "b617687ad263b4f7c68d65228ec66157e756f615e203413df5545cbc24926142",
+    "tests/unit/test_robustness_integrity_read.py": "c15842bbec93820a21c877a67cf3bd489e6c8bf772e919b49b7ab36cdcfece98"
+  },
+  "source_files_fingerprint": "d0c57c639ce0fc4f91db81d17cf2f73a2fdf0f6f120a743b33ed478f50c058ff",
+  "preservation": {
+    "preexisting_files": 522,
+    "unchanged_preexisting_files": 518,
+    "allowed_changed_preexisting_files": [
+      "src/dsio_inventory_engine/evaluate_replenishment/robustness/durable.py",
+      "docs/architecture/IO_DEVELOPMENT_BASELINE.md",
+      "docs/architecture/IO_CATALOG_ROBUSTNESS_CONTRACT.md",
+      "docs/architecture/IO_ROBUSTNESS_IMMUTABLE_PREPARATION_CONTRACT.md"
+    ],
+    "new_files": 9,
+    "personal_report_sha256": "3d0f5e9bb762b590beef00a65b39b2578b0b281f07fd1f5a2630261dfcb4835e",
+    "previous_evidence_rules_Golden_schemas_and_FSNGate_unchanged": true,
+    "previous_performance_records_preserved": true
+  },
+  "boundaries": {
+    "automatic_publish_allowed": false,
+    "automatic_order_allowed": false,
+    "operational_policy_approved": false,
+    "database_writes": false,
+    "development_postgresql_accessed": false,
+    "FSN_configuration_changed": false,
+    "operational_gate_changed": false,
+    "platform_changed": false,
+    "public_runtime_deployed": false,
+    "official_paths_generated": false,
+    "main_study_executed": false,
+    "commit_created": false,
+    "pushed": false
+  },
+  "next": [
+    "global_raw_20GB_reservation_and_3600_second_cancellation_resume_temporary_file_policy",
+    "full_split_assembly_resource_preflight_before_any_official_generation_or_study"
+  ]
+}

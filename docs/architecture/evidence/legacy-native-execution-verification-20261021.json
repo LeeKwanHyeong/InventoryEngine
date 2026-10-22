@@ -1,0 +1,157 @@
+{
+  "as_of_date": "2026-10-21",
+  "repository": "InventoryEngine",
+  "branch": "inventory_engine_dev",
+  "head_commit": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+  "scope": "ACTUAL_DOTNET_EXECUTION_OF_FROZEN_CSHARP_FRAGMENTS_AND_CURRENT_PYTHON_COMPARISON",
+  "csharp_execution_performed": true,
+  "original_main_or_prepostprocess_executed": false,
+  "original_legacy_source_changed": false,
+  "production_python_calculation_changed": false,
+  "legacy_full_engine_equivalence_verified": false,
+  "deployed_legacy_identity_verified": false,
+  "execution": {
+    "image": "mcr.microsoft.com/dotnet/sdk",
+    "digest": "sha256:f7e28a0a3f6f9235929ec19274fd0ddf8534e9159f99fac602ac73304f1ce99f",
+    "sdk_version": "8.0.426",
+    "framework": ".NET 8.0.32",
+    "architecture": "Arm64",
+    "host_global_dotnet_installed": false,
+    "isolation": {
+      "network": "none",
+      "root_filesystem": "read-only",
+      "source_mount": "read-only",
+      "build_outputs": "container tmpfs only",
+      "nuget_sources": [],
+      "host_database_mounts": [],
+      "secret_mounts": [],
+      "docker_socket_mounted": false,
+      "capabilities": "ALL dropped",
+      "no_new_privileges": true,
+      "container_removed_on_exit": true,
+      "memory_limit": "1g",
+      "cpus": 2,
+      "pids_limit": 256
+    },
+    "repeat_runs": 2,
+    "repeat_native_json_byte_identical": true,
+    "source_files": 7,
+    "source_fragments": 21,
+    "input_sha256": "309f86c8c035cde337160227cd6c93b895a023dead4d5995024c9afefdfa6046",
+    "capture_file": "../../../tests/fixtures/native_legacy_reference_output.json",
+    "capture_file_sha256": "0427950c32527b5d53a75572f08964ac14b6aa085f9b07e47f2e0df7a8050f5d",
+    "source_extraction_manifest": "legacy-native-extraction-manifest-20261021.json",
+    "warnings": [
+      "CS8632 from original nullable DTO annotations in wrapper context; compilation succeeded",
+      "Read-only SDK workload verification notice; no workload update was run"
+    ],
+    "preparation_repairs": [
+      "Corrected extraction closing-line bounds before successful compilation; original source text unchanged",
+      "Used repository root in invocation PYTHONPATH for existing test support imports"
+    ]
+  },
+  "golden_verification": {
+    "manual_pack_unchanged": true,
+    "pack": "../../../tests/fixtures/golden_legacy_python_semantics.json",
+    "csharp_case_count": 20,
+    "csharp_execution_count": 29,
+    "python_case_count": 21,
+    "mismatch_count": 0,
+    "scoped_field_matches": 6,
+    "documented_semantic_differences": 12,
+    "eligibility_component_comparisons_not_full_winners": 2,
+    "unsupported_legacy_cost_cases": 1,
+    "unsupported": [
+      {
+        "case": "missing_cost_is_not_zero_cost",
+        "reason": "NO_COMPARABLE_LEGACY_COST_CONTRACT"
+      }
+    ],
+    "comparison_report": "legacy-native-python-comparison-20261021.json"
+  },
+  "test_results": {
+    "new_tests": 9,
+    "golden_and_native_group": {
+      "passed": 48,
+      "seconds": 0.14
+    },
+    "targeted_regression": {
+      "passed": 371,
+      "subtests_passed": 124,
+      "seconds": 22.79
+    },
+    "full_regression_rerun": false,
+    "ruff_check": "PASS: src tests scripts --no-cache",
+    "ruff_format": "PASS: 379 Python files",
+    "diff_check": "PASS",
+    "local_markdown_links_verified": 129
+  },
+  "test_and_harness_fingerprints": [
+    {
+      "path": "tests/fixtures/native_legacy_reference_output.json",
+      "sha256": "0427950c32527b5d53a75572f08964ac14b6aa085f9b07e47f2e0df7a8050f5d"
+    },
+    {
+      "path": "tests/integration/test_native_legacy_reference_offline.py",
+      "sha256": "51019988b2c6183a2f185f5562ca76034e6b9fcad362b7a189c1f0b3bcafe29d"
+    },
+    {
+      "path": "tests/reference/legacy_csharp/NuGet.Config",
+      "sha256": "2142cfb2dfa2c7feefbe40fabcc68b0dfecadafa99a1db9b70239d977cf2a7ef"
+    },
+    {
+      "path": "tests/reference/legacy_csharp/README.md",
+      "sha256": "48cc49a6865244e27971bdad08d8145a582d81d6e207893b3d382349b099cdc7"
+    },
+    {
+      "path": "tests/reference/legacy_csharp/Reference.csproj",
+      "sha256": "9983476fccd2b4c7acc0e281923bc1a0bb5c130af9618376894d4dc157f63880"
+    },
+    {
+      "path": "tests/reference/legacy_csharp/ReferenceHarness.cs",
+      "sha256": "af3c31380ae9292795a44ae7d271d421ab73639426521b1a3fc20b4e9ba327bd"
+    },
+    {
+      "path": "tests/reference/legacy_csharp/compare_reference.py",
+      "sha256": "09ee8d83c342f5e1ebf460b60377e851a245a532b9bc7c568f96038a79ce655f"
+    },
+    {
+      "path": "tests/reference/legacy_csharp/prepare_legacy_reference.py",
+      "sha256": "9e6d236e56b714105bfb3bb08cf3071eda440347035d46430a51568d3d24e693"
+    }
+  ],
+  "preservation": {
+    "existing_files_at_start": 574,
+    "approved_existing_document_changes": 3,
+    "other_existing_files_unchanged": 571,
+    "new_files": 11,
+    "manual_goldens_unchanged": true,
+    "production_source_and_schema_unchanged": true,
+    "existing_abc_xyz_hashes_unchanged": true,
+    "fsn_unchanged": true,
+    "operational_gates_unchanged": true,
+    "db_unchanged": true,
+    "platform_unchanged": true,
+    "public_runtime_unchanged": true,
+    "commit_or_push_performed": false
+  },
+  "residual_limits": [
+    "Extracted original methods and normalized fixture inputs, not full DB-to-DB Legacy program equivalence",
+    "Selection native cases execute ApplyFixedCondition only; no full optimizer winner is claimed",
+    "No authoritative SVC_LV aggregation, group-to-item expansion, real RMOS/EMOS generation or upstream LT conversion validation",
+    "No Legacy cost counterpart for missing-cost case",
+    "No universal double tolerance, real operational plan, performance experiment or deployment validation"
+  ],
+  "local_artifacts_remaining": [
+    "Official Docker SDK image cache retained for reproducible reruns",
+    "Private temporary source staging folders retained; original files were not modified"
+  ],
+  "next_work": [
+    "Decide target application boundaries for measured order-phase/policy/lot/arrival differences",
+    "Investigate remaining service/selection source lineage independently",
+    "Implement only approved target changes, regress, then resume order-plan persistence"
+  ],
+  "independent_agent_review_performed": false,
+  "coverage_run": false,
+  "db_write_or_erp_execution_performed": false
+}

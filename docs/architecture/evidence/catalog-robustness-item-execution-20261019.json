@@ -1,0 +1,219 @@
+{
+  "contract_id": "inventory-robustness-item-execution-verification",
+  "contract_version": "1.0.0",
+  "date": "2026-10-19",
+  "status": "LOCAL_ITEM_EXECUTION_VERIFIED_OFFICIAL_ROBUSTNESS_STUDY_NOT_EXECUTED",
+  "repository": "InventoryEngine",
+  "branch": "inventory_engine_dev",
+  "base_commit": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+  "protocol_hash": "a3e35fcf23915e87823883ea8c1f09448b245ae7ea1fffa8c77482bab0433280",
+  "rules_profile_hash": "a3121dfa885f8b4d2e0df54605789ad841661693b0f386329fe4fa60946ecbae",
+  "scope": "ONE_ITEM_ONE_SUPPLIED_MANUAL_PATH_LOCAL_V2_MATHEMATICAL_SHADOW_65_WEEKS",
+  "implemented": [
+    "Exact unmodified full parent classification, original UUID/hash/config/scope/W0 and item policy projection",
+    "Full original Feature/Catalog universe preserved; selected item history and physical input checked separately",
+    "Actual Catalog Producer replay, original ABC result binding and complete 32/32/88 candidate lists",
+    "Production CandidateStrategy, unchanged V2/FSN admission, common Guard and causal PSI",
+    "At most 16 candidates per <=128MB in-memory leaf; complete candidate and leaf hash provenance",
+    "Raw observation/proposal/Guard/order/PSI retained; candidate execution failures remain in the denominator",
+    "Invalid Source/scope/hash/Guard contracts abort rather than become performance failures",
+    "Pure evaluator receives actual 52-week/tail/prefix PSI and five explicitly assumed cost profiles",
+    "Actual full Catalog/strategy/Guard/PSI replay rejects self-resealed counterfeit metrics or HOLD-only strategies",
+    "Bounded header and at most six individually bounded leaves permit large 88-candidate in-memory verification",
+    "Existing flat Reader and clone 128MB limits unchanged",
+    "JSON type changes cannot reuse a seal even when Python equality would equate false with zero"
+  ],
+  "not_implemented_or_performed": [
+    "Durable parent/leaf Manifest Writer/Reader, streaming, append-only persistence and restart recovery",
+    "Complete multi-path Split bank assembly and automatic locked selection/evaluation from these fragments",
+    "Official history/path generation, official Seeds/periods or main robustness study",
+    "Global 20GB disk and 3600-second invocation resource preflight",
+    "Actual Source authority approval, V100/P12 admission resolution or operational policy promotion",
+    "PPO/ML training or changes, Platform/API/Runtime deployment or installation",
+    "Business PostgreSQL access/writes, migrations, FSN configuration or operational Gate changes",
+    "Commit, push or branch changes"
+  ],
+  "limits": {
+    "deployment": "DEVELOPMENT",
+    "execution_mode": "LOCAL_SHADOW",
+    "execution_purpose": "SHADOW",
+    "company_cd": "DSE",
+    "subs_cd": "C100",
+    "site_cd": "V101",
+    "uom": "EA",
+    "item_count_per_call": 1,
+    "week_count": 65,
+    "score_weeks": 52,
+    "tail_weeks": 13,
+    "candidate_counts": [
+      32,
+      32,
+      88
+    ],
+    "candidate_count_per_leaf_max": 16,
+    "leaf_bytes_max": 128000000,
+    "leaf_count_max": 6,
+    "observation_work_limit_unchanged": 200000,
+    "wide_item_observation_work_bound": 188760,
+    "source_authority_verified": false,
+    "official_experiment_performed": false,
+    "operational_policy_approved": false,
+    "automatic_publish_allowed": false,
+    "automatic_order_allowed": false,
+    "durable_artifact_persisted": false,
+    "malicious_python_sandbox": false
+  },
+  "manual_evidence": {
+    "manual_run": {
+      "assembly_hash": "62461078a19a6d78cd0a42a9f4508d4698c349099b9c0108b60c196f8f20879b",
+      "candidate_count": 32,
+      "durable_artifact_persisted": false,
+      "hand_candidate": {
+        "candidate_id": "OCCP-0931f9dc427f0a459b345dc622e588cd6073cceb37c50140aa937d200480de5c",
+        "emos": "1",
+        "item_id": "ITEM-A",
+        "override_reason": null,
+        "policy_kind": "ROP_FIXED_Q",
+        "range_source": "GROUP_PROFILE",
+        "review_cycle_weeks": 1,
+        "rmos": "1.5",
+        "search_group_id": "LS1:R2-L2-P1",
+        "semantic_policy_hash": "51b4b995c787794875cf06c9849bb45b93cdd9fd5722fcabedb4e4aaf8761cfd",
+        "target_service_level": "0.95"
+      },
+      "hand_score": {
+        "average_on_hand_eoh_qty": "3.788461538461538461538461538461538461538",
+        "average_on_hand_eoh_value": "7.576923076923076923076923076923076923076",
+        "calculation_gate_allowed": true,
+        "cost": {
+          "components": {
+            "customer_backorder": "0",
+            "fixed_order": "275",
+            "forecast_shortage": "0",
+            "holding": "1.515384615384615384615384615384615384615",
+            "variable_order": "110"
+          },
+          "cost_per_week": "7.432988165680473372781065088757396449704",
+          "cost_profile_hash": "15df613c09eda13a6bf00c4331fe611a303238e6246747601a2839057ccb560a",
+          "display_total_cost": "386.52",
+          "reason_code": null,
+          "status": "CALCULABLE",
+          "total_cost": "386.5153846153846153846153846153846153846"
+        },
+        "current_demand_qty": "52",
+        "current_fulfilled_qty": "52",
+        "customer_backorder_unit_weeks": "0",
+        "ending_customer_backorder_qty": "0",
+        "ending_on_hand_eoh_qty": "3",
+        "fill_rate": "1",
+        "forecast_shortage_qty": "0",
+        "on_hand_eoh_unit_weeks": "197",
+        "order_count": 11,
+        "ordered_qty": "55",
+        "path_service_success": true,
+        "service_status": "EVALUABLE",
+        "source_review_required": true,
+        "start_index": 0,
+        "stop_index_exclusive": 52,
+        "week_count": 52
+      },
+      "leaf_bytes": [
+        24502037,
+        24489877
+      ],
+      "leaf_counts": [
+        16,
+        16
+      ],
+      "official_experiment": false,
+      "performance_comparison": false,
+      "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+      "result_hash": "fbd77610f2019fb44b68dbf12a3667dbe6f31238e2d428909355bc7e7f1c67c6",
+      "serialized_result_bytes": 50575502,
+      "source_hash": "0b0866909548573df8cdcd6cbeabb446b1889044f21eb3a6afea21711d092699",
+      "source_manifest_hash": "3b678310d55adc302407fc676c32494dc5a9e7a0615347bf0a20d80cad1c5ac7",
+      "successful_count": 32,
+      "w0": "2055-01-04"
+    },
+    "mode_bindings": [
+      {
+        "candidate_count": 32,
+        "catalog_hash": "fb33440fb596a2c8c6665d8e0ec5243e3e231ca5242e7871aba061bf482e7c8e",
+        "immutable_input_hash": "33175d91dd7a7c6f855ab06961aeaeec41866092dffa871e717941e7e80253a3",
+        "mode": "ABC_XYZ_SHARED_BUDGET",
+        "parent_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "parent_id": "1fe9914e-75c1-5d7b-99e3-2985340d87de",
+        "projection_hash": "e860abf43fe0afb38d1f6426ff45f56cb26ad2b74712f04a3173f8130363e714",
+        "work_bound": 68640
+      },
+      {
+        "candidate_count": 32,
+        "catalog_hash": "3694c6772d64508178eddd78f4ee8edaf03659dd37aa5b2ff8872fd6ce12a8d6",
+        "immutable_input_hash": "33175d91dd7a7c6f855ab06961aeaeec41866092dffa871e717941e7e80253a3",
+        "mode": "LEGACY_STYLE",
+        "parent_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "parent_id": "1fe9914e-75c1-5d7b-99e3-2985340d87de",
+        "projection_hash": "e860abf43fe0afb38d1f6426ff45f56cb26ad2b74712f04a3173f8130363e714",
+        "work_bound": 68640
+      },
+      {
+        "candidate_count": 88,
+        "catalog_hash": "ccb91d2cee8661e929fe33867b1468b1ac229af2f126ce1e73c91e730c615c67",
+        "immutable_input_hash": "33175d91dd7a7c6f855ab06961aeaeec41866092dffa871e717941e7e80253a3",
+        "mode": "WIDE_REFERENCE",
+        "parent_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "parent_id": "1fe9914e-75c1-5d7b-99e3-2985340d87de",
+        "projection_hash": "e860abf43fe0afb38d1f6426ff45f56cb26ad2b74712f04a3173f8130363e714",
+        "work_bound": 188760
+      }
+    ]
+  },
+  "verification": {
+    "new_unit_tests_passed": 28,
+    "new_offline_integration_tests_passed": 23,
+    "focused_total_passed": 51,
+    "focused_seconds": 110.05,
+    "full_regression": {
+      "status": "PASSED",
+      "passed": 1402,
+      "skipped": 9,
+      "subtests_passed": 669,
+      "warnings": 3,
+      "seconds": 304.79,
+      "scope": "tests/unit tests/contract tests/integration/*offline.py",
+      "warnings_note": "Three existing Platform Starlette deprecations; no new warnings"
+    },
+    "ruff": "PASSED",
+    "formatted_python_files": 318,
+    "existing_json_schemas_valid": 37,
+    "diff_check": "PASSED",
+    "local_document_reference_check": "PASSED_72_LOCAL_LINKS_ACROSS_TWO_APPROVED_DOCUMENTS",
+    "preexisting_file_count": 461,
+    "unchanged_non_document_files": 459,
+    "authorized_document_changes": [
+      "docs/architecture/IO_DEVELOPMENT_BASELINE.md",
+      "docs/architecture/IO_CATALOG_ROBUSTNESS_CONTRACT.md"
+    ],
+    "unexpected_protected_changes": [],
+    "personal_report_sha256": "3d0f5e9bb762b590beef00a65b39b2578b0b281f07fd1f5a2630261dfcb4835e",
+    "coverage_percentage_measured": false,
+    "independent_subagent_review_performed": false
+  },
+  "implementation_files_sha256": {
+    "src/dsio_inventory_engine/evaluate_replenishment/robustness/item_execution.py": "35545b70b98ed5dab2cb0fa130d02cc568d248a6ac64d538f6eeaed7b7531c93",
+    "src/dsio_inventory_engine/evaluate_replenishment/robustness/item_projection.py": "0a95f8d1f2adbf78b832dd532953a5b20049e0e774ab09992833c6e338fc12c3",
+    "tests/integration/test_robustness_item_execution_offline.py": "aad995eae4464ebd80009bae07d2bb60c929bbc256343b9cb3cc44257502ee40",
+    "tests/support/robustness_item_fixtures.py": "10342f34a6fddad021f876bca4504efbe32cbc01290fea3ac53154e00ec2857b",
+    "tests/unit/test_robustness_item_projection.py": "1f4808330447a13e3c24d735a8b0ce9f3b67552708b8ca04bd6f60a8d994f1b3"
+  },
+  "documentation_approval": "Explicit user approval for both named baseline and robustness contract documents",
+  "tooling_limits": [
+    "Some shared skill references are not installed; repository contracts and direct QA checks used",
+    "oma docs and lychee are unavailable; selected local Markdown links checked directly; external URLs not audited"
+  ],
+  "next_work_in_order": [
+    "Durable chunked parent/leaf storage, exact hash/count/completeness verification, idempotency and offline restart recovery",
+    "Manual resource preflight and complete Split assembly before official path/input generation",
+    "Frozen official comparison only after explicit follow-up; business DB writes/deployment require separate approval"
+  ]
+}

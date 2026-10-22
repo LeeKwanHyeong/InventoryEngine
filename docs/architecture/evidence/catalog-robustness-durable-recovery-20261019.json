@@ -1,0 +1,143 @@
+{
+  "contract_id": "inventory-robustness-durable-recovery-verification",
+  "contract_version": "1.0.0",
+  "date": "2026-10-19",
+  "status": "LOCAL_DURABLE_STORAGE_VERIFIED_OFFICIAL_STUDY_NOT_EXECUTED",
+  "repository": "InventoryEngine",
+  "branch": "inventory_engine_dev",
+  "base_commit": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+  "protocol_hash": "a3e35fcf23915e87823883ea8c1f09448b245ae7ea1fffa8c77482bab0433280",
+  "rules_profile_hash": "a3121dfa885f8b4d2e0df54605789ad841661693b0f386329fe4fa60946ecbae",
+  "scope": "ONE_ITEM_ONE_SUPPLIED_MANUAL_PATH_LOCAL_V2_MATHEMATICAL_SHADOW_65_WEEKS",
+  "implemented": [
+    "Shared actual Catalog/CandidateStrategy/Guard/causal PSI steps preserve the original calculation result hash",
+    "Append-only bounded POSIX objects and exclusive input/leaf/complete pointers; canonical content hash and exact byte count",
+    "Sealed input -> fixed complete-Catalog leaf/checkpoint -> header -> full manifest -> COMPLETE",
+    "Same logical reference and same hash do not overwrite files; a different binding fails with a conflict",
+    "Manifest binds every expected candidate ID, candidate execution and leaf hashes, counts, PSI row counts and input/parent/Catalog provenance",
+    "Read and recovery replay the actual original Catalog/strategy/Guard/PSI and five-component cost evaluation",
+    "Existing checkpoint leaves are recomputed for verification; only missing incomplete leaves are newly published",
+    "Fresh-process recovery from a pinned stored input hash requires no original in-memory assembly or live/latest Source lookup",
+    "Missing or corrupt committed evidence fails closed; an explicit fully verified write can restore missing identical bytes without overwriting corruption",
+    "Process exit after first leaf checkpoint and all persistence-boundary exceptions recover idempotently",
+    "Failed and mixed-success candidate lists retain the complete denominator; FSN BLOCK/REVIEW and publication/order restrictions remain unchanged",
+    "Symlinks, FIFO/directories, malformed/noncanonical/duplicate-key JSON, replaced roots and concurrent conflicting pointers are rejected"
+  ],
+  "not_implemented_or_performed": [
+    "Official history/path generation, official Seeds/periods or the main robustness study",
+    "Complete multi-path Split bank assembly and locked selection/evaluation orchestration",
+    "Global 20GB disk or 3600-second invocation preflight/enforcement; lifecycle cleanup of crash-abandoned temporary files",
+    "Zero-computation recovery, streaming of the whole result, distributed filesystem support or power-loss verification",
+    "Actual Source authority approval, V100/P12 admission resolution or operational policy promotion",
+    "Business PostgreSQL access/writes, migrations, Platform/API/Runtime installation or deployment",
+    "FSN configuration or operational Gate changes; ML/PPO training or model promotion",
+    "Commit, push, or branch changes"
+  ],
+  "manual_evidence": {
+    "fixture_scope": "DSE/C100/V101/ITEM-A/EA",
+    "fixture_w0": "2055-01-04",
+    "source_authority_verified": false,
+    "performance_comparison": false,
+    "official_experiment": false,
+    "legacy_style_32": {
+      "result_hash": "fbd77610f2019fb44b68dbf12a3667dbe6f31238e2d428909355bc7e7f1c67c6",
+      "manifest_hash": "b2757f79d6cd72360eb2c3e29559926624698cb7acf6a08250644a41f9bb39ed",
+      "candidate_count": 32,
+      "successful_count": 32,
+      "failed_count": 0,
+      "psi_row_count": 2080,
+      "leaf_candidate_counts": [
+        16,
+        16
+      ],
+      "leaf_file_bytes": [
+        24502038,
+        24489878
+      ],
+      "manifest_bytes": 8838,
+      "original_result_hash_preserved": true
+    },
+    "wide_reference_88": {
+      "result_hash": "0c2a92d7fdd6d835a665d3c2bf1a4865b0fe797e0851e0a9268750fbfa31759b",
+      "manifest_hash": "68499acbaf5833d8348fe6f196fd2415f1f718396e9fab1fa224c46661122bc0",
+      "candidate_count": 88,
+      "successful_count": 88,
+      "failed_count": 0,
+      "psi_row_count": 5720,
+      "leaf_candidate_counts": [
+        16,
+        16,
+        16,
+        16,
+        16,
+        8
+      ],
+      "leaf_file_bytes": [
+        24497260,
+        24466673,
+        24488769,
+        24476429,
+        24501131,
+        12244792
+      ],
+      "manifest_bytes": 21899,
+      "aggregate_result_exceeds_flat_reader_limit": true,
+      "flat_reader_limit_unchanged": 128000000
+    },
+    "abc_xyz_32": "Complete parent classification and Catalog preserved in storage/replay; existing successful ABC/XYZ execution regression retained",
+    "all_failed": "32 expected, 0 successful, 32 failed, 0 PSI rows; failure evidence preserved",
+    "mixed_failure": "Successful and failed candidates remain in the full 32-candidate manifest",
+    "process_crash": "Fresh child process os._exit(97) after first durable checkpoint; parent recovered the unchanged original 32-candidate result hash",
+    "durability_flags": "Original pure result flags remain unchanged; separate immutable receipt acknowledges durable_local_artifact=true",
+    "qa_artifact_location": "Temporary test directories only; no production evidence publication"
+  },
+  "verification": {
+    "added_unit_tests": 28,
+    "added_offline_integration_tests": 35,
+    "added_tests_total": 63,
+    "interruption_and_negative_focus": {
+      "passed": 61,
+      "deselected": 2
+    },
+    "ruff": "PASS",
+    "format_files": 323,
+    "existing_json_schemas_valid": 37,
+    "coverage_measured": false,
+    "bandit_executed": false,
+    "mypy_executed": false,
+    "additional_tool_limit": "coverage, bandit, mypy, oma docs and lychee are not installed; no scanner or coverage verdict claimed",
+    "doc_reference_verification": "Manual deterministic local-link existence check; no external URL check",
+    "full_suite": {
+      "passed": 1465,
+      "skipped": 9,
+      "warnings": 3,
+      "subtests_passed": 669,
+      "duration_seconds": 430.34
+    },
+    "full_suite_command": "python -m pytest -q -p no:cacheprovider tests/unit tests/contract tests/integration/*offline.py",
+    "added_tests_status": "ALL_63_PASS_IN_FULL_SUITE",
+    "local_doc_links_valid": 81,
+    "resolved_during_verification": [
+      "Validate fstat regular-file status before fdopen and close the descriptor on all paths; directory input no longer leaks IsADirectoryError",
+      "Instrument real strategy calls to prove replay: production intentionally wraps strategy exceptions, and this established behavior remains unchanged"
+    ]
+  },
+  "preservation": {
+    "original_count": 467,
+    "unchanged_count": 464,
+    "changed": [
+      "docs/architecture/IO_CATALOG_ROBUSTNESS_CONTRACT.md",
+      "docs/architecture/IO_DEVELOPMENT_BASELINE.md",
+      "src/dsio_inventory_engine/evaluate_replenishment/robustness/item_execution.py"
+    ],
+    "personal_report_hash": "3d0f5e9bb762b590beef00a65b39b2578b0b281f07fd1f5a2630261dfcb4835e"
+  },
+  "implementation_file_sha256": {
+    "src/dsio_inventory_engine/evaluate_replenishment/robustness/item_execution.py": "87f51d7be09a2bd00918f54a70ca548f554be72254cba5ce4a07b018fbbb686d",
+    "src/dsio_inventory_engine/evaluate_replenishment/robustness/item_execution_steps.py": "77e4bc02add5148a0599272ff7bc0c830112b5cc8e1dd382a65efacdf0fbdb70",
+    "src/dsio_inventory_engine/evaluate_replenishment/robustness/durable.py": "266f4713ad5ff7c772b2f3f95d93fbbc8feb92afd7c132ad661ea036d8b516b5",
+    "src/dsio_inventory_engine/infrastructure/robustness_artifacts.py": "ed276f8dc6bc775e4a982d7bc64fe1507cefdc87d029b9027316de347fc8fbd3",
+    "tests/unit/test_robustness_artifact_store.py": "c93ca2688d36c0123519f2a36be3924c78c434b3cc619ffb002d85c8c81055ac",
+    "tests/integration/test_robustness_durable_offline.py": "fbd86e248e9eb7c003d1a522e3cd9818ff36d5aec544ababec82c3737455f83a"
+  }
+}

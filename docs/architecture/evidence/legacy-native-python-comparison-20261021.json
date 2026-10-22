@@ -1,0 +1,793 @@
+{
+  "golden_sha256": "309f86c8c035cde337160227cd6c93b895a023dead4d5995024c9afefdfa6046",
+  "native_capture_sha256": "0427950c32527b5d53a75572f08964ac14b6aa085f9b07e47f2e0df7a8050f5d",
+  "native_case_count": 20,
+  "native_execution_count": 29,
+  "python_case_count": 21,
+  "golden_mismatches": [],
+  "runtime": ".NET 8.0.32",
+  "scope": "EXTRACTED_ORIGINAL_METHODS_NO_DB_NO_ORIGINAL_ENTRYPOINT",
+  "comparisons": [
+    {
+      "case": "receipts_then_previous_bo_then_current_demand",
+      "legacy_actual": {
+        "eoh": "5",
+        "backorder_close": "0",
+        "demand_allocation": "6",
+        "stock_allocation": "9",
+        "weekly_demand_allocation_rate": "1"
+      },
+      "python_actual": {
+        "eoh_qty": "5",
+        "backorder_close_qty": "0",
+        "fulfilled_backorder_qty": "3",
+        "fulfilled_confirmed_customer_order_qty": "6",
+        "forecast_shortage_qty": "0"
+      },
+      "status": "SCOPED_FIELDS_MATCH",
+      "common_field_checks": [
+        {
+          "field": "eoh",
+          "legacy": "5",
+          "python": "5",
+          "equal": true
+        },
+        {
+          "field": "backorder_close",
+          "legacy": "0",
+          "python": "0",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "case": "forecast_shortage_is_not_customer_backorder",
+      "legacy_actual": {
+        "eoh": "0",
+        "backorder_close": "10",
+        "demand_allocation": "0",
+        "stock_allocation": "0",
+        "weekly_demand_allocation_rate": "0"
+      },
+      "python_actual": {
+        "eoh_qty": "0",
+        "backorder_close_qty": "0",
+        "fulfilled_forecast_qty": "0",
+        "forecast_shortage_qty": "10"
+      },
+      "status": "DOCUMENTED_SEMANTIC_DIFFERENCE",
+      "common_field_checks": [
+        {
+          "field": "eoh",
+          "legacy": "0",
+          "python": "0",
+          "equal": true
+        },
+        {
+          "field": "backorder_close",
+          "legacy": "10",
+          "python": "0",
+          "equal": false
+        }
+      ]
+    },
+    {
+      "case": "confirmed_customer_shortage_carries",
+      "legacy_actual": {
+        "eoh": "0",
+        "backorder_close": "6",
+        "demand_allocation": "4",
+        "stock_allocation": "4",
+        "weekly_demand_allocation_rate": "0.4"
+      },
+      "python_actual": {
+        "eoh_qty": "0",
+        "backorder_close_qty": "6",
+        "fulfilled_confirmed_customer_order_qty": "4",
+        "forecast_shortage_qty": "0"
+      },
+      "status": "SCOPED_FIELDS_MATCH",
+      "common_field_checks": [
+        {
+          "field": "eoh",
+          "legacy": "0",
+          "python": "0",
+          "equal": true
+        },
+        {
+          "field": "backorder_close",
+          "legacy": "6",
+          "python": "6",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "case": "no_demand_is_not_perfect_service",
+      "legacy_actual": {
+        "eoh": "7",
+        "backorder_close": "0",
+        "demand_allocation": "0",
+        "stock_allocation": "0",
+        "weekly_demand_allocation_rate": "0"
+      },
+      "python_actual": {
+        "eoh_qty": "7",
+        "backorder_close_qty": "0",
+        "forecast_shortage_qty": "0",
+        "service_status": "NO_DEMAND_IN_HORIZON",
+        "current_demand_fill_rate": null
+      },
+      "status": "DOCUMENTED_SEMANTIC_DIFFERENCE",
+      "common_field_checks": [
+        {
+          "field": "eoh",
+          "legacy": "7",
+          "python": "7",
+          "equal": true
+        },
+        {
+          "field": "backorder_close",
+          "legacy": "0",
+          "python": "0",
+          "equal": true
+        },
+        {
+          "field": "service_representation",
+          "legacy": "0",
+          "python": null,
+          "equal": false
+        }
+      ]
+    },
+    {
+      "case": "weekly_periodic_target",
+      "legacy_actual": {
+        "boh": [
+          "10",
+          "0",
+          "13"
+        ],
+        "due_in": [
+          "0",
+          "23",
+          "0"
+        ],
+        "eoh": [
+          "0",
+          "13",
+          "3"
+        ],
+        "backorder_close": [
+          "0",
+          "0",
+          "0"
+        ],
+        "purchase_order": [
+          "23",
+          "0",
+          "20"
+        ],
+        "pending_po_close": [
+          "23",
+          "0",
+          "20"
+        ],
+        "demand_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "stock_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "weekly_allocation_rate": [
+          "1",
+          "1",
+          "1"
+        ],
+        "exp_mos": [
+          "0",
+          "0.57",
+          "0.13"
+        ],
+        "order_dates": [
+          "2026-09-28",
+          "2026-10-12"
+        ],
+        "due_dates": [
+          "2026-10-05",
+          "2026-10-19"
+        ],
+        "terminal_pending_po": "20"
+      },
+      "python_actual": {
+        "eoh": [
+          "0",
+          "3",
+          "3"
+        ],
+        "receipt": [
+          "0",
+          "13",
+          "10"
+        ],
+        "orders": [
+          [
+            "2026-09-28",
+            "2026-10-05",
+            "2026-10-05",
+            "13"
+          ],
+          [
+            "2026-10-05",
+            "2026-10-12",
+            "2026-10-12",
+            "10"
+          ]
+        ],
+        "validation_reasons": [
+          [
+            "CONSTRAINTS_PASSED"
+          ],
+          [
+            "CONSTRAINTS_PASSED"
+          ],
+          [
+            "ARRIVAL_OUTSIDE_PLAN_HORIZON"
+          ]
+        ]
+      },
+      "status": "DOCUMENTED_SEMANTIC_DIFFERENCE",
+      "common_field_checks": [
+        {
+          "field": "eoh",
+          "legacy": [
+            "0",
+            "13",
+            "3"
+          ],
+          "python": [
+            "0",
+            "3",
+            "3"
+          ],
+          "equal": false
+        },
+        {
+          "field": "new_order_qty_by_bucket",
+          "legacy": [
+            "23",
+            "0",
+            "20"
+          ],
+          "python": [
+            "13",
+            "10",
+            "0"
+          ],
+          "equal": false
+        }
+      ]
+    },
+    {
+      "case": "weekly_fixed_q_is_not_legacy_ropq_dispatch",
+      "legacy_actual": {
+        "boh": [
+          "10",
+          "0",
+          "13"
+        ],
+        "due_in": [
+          "0",
+          "23",
+          "0"
+        ],
+        "eoh": [
+          "0",
+          "13",
+          "3"
+        ],
+        "backorder_close": [
+          "0",
+          "0",
+          "0"
+        ],
+        "purchase_order": [
+          "23",
+          "0",
+          "20"
+        ],
+        "pending_po_close": [
+          "23",
+          "0",
+          "20"
+        ],
+        "demand_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "stock_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "weekly_allocation_rate": [
+          "1",
+          "1",
+          "1"
+        ],
+        "exp_mos": [
+          "0",
+          "0.57",
+          "0.13"
+        ],
+        "order_dates": [
+          "2026-09-28",
+          "2026-10-12"
+        ],
+        "due_dates": [
+          "2026-10-05",
+          "2026-10-19"
+        ],
+        "terminal_pending_po": "20"
+      },
+      "python_actual": {
+        "eoh": [
+          "0",
+          "3",
+          "0"
+        ],
+        "receipt": [
+          "0",
+          "13",
+          "0"
+        ],
+        "orders": [
+          [
+            "2026-09-28",
+            "2026-10-05",
+            "2026-10-05",
+            "13"
+          ]
+        ],
+        "validation_reasons": [
+          [
+            "CONSTRAINTS_PASSED"
+          ],
+          [
+            "HOLD"
+          ],
+          [
+            "ARRIVAL_OUTSIDE_PLAN_HORIZON"
+          ]
+        ]
+      },
+      "status": "DOCUMENTED_SEMANTIC_DIFFERENCE",
+      "common_field_checks": [
+        {
+          "field": "eoh",
+          "legacy": [
+            "0",
+            "13",
+            "3"
+          ],
+          "python": [
+            "0",
+            "3",
+            "0"
+          ],
+          "equal": false
+        },
+        {
+          "field": "new_order_qty_by_bucket",
+          "legacy": [
+            "23",
+            "0",
+            "20"
+          ],
+          "python": [
+            "13",
+            "0",
+            "0"
+          ],
+          "equal": false
+        }
+      ]
+    },
+    {
+      "case": "zero_lt_observes_different_phase",
+      "legacy_actual": {
+        "boh": [
+          "10",
+          "0",
+          "13"
+        ],
+        "due_in": [
+          "0",
+          "0",
+          "0"
+        ],
+        "eoh": [
+          "0",
+          "13",
+          "3"
+        ],
+        "backorder_close": [
+          "0",
+          "0",
+          "0"
+        ],
+        "purchase_order": [
+          "0",
+          "23",
+          "0"
+        ],
+        "pending_po_close": [
+          "0",
+          "0",
+          "0"
+        ],
+        "demand_allocation": [
+          "10",
+          "0",
+          "10"
+        ],
+        "stock_allocation": [
+          "10",
+          "10",
+          "10"
+        ],
+        "weekly_allocation_rate": [
+          "1",
+          "0",
+          "1"
+        ],
+        "exp_mos": [
+          "0",
+          "1",
+          "0.23"
+        ],
+        "order_dates": [
+          "2026-10-05"
+        ],
+        "due_dates": [
+          "2026-10-05"
+        ],
+        "terminal_pending_po": "0"
+      },
+      "python_actual": {
+        "eoh": [
+          "3",
+          "3",
+          "3"
+        ],
+        "receipt": [
+          "3",
+          "10",
+          "10"
+        ],
+        "orders": [
+          [
+            "2026-09-28",
+            "2026-09-28",
+            "2026-09-28",
+            "3"
+          ],
+          [
+            "2026-10-05",
+            "2026-10-05",
+            "2026-10-05",
+            "10"
+          ],
+          [
+            "2026-10-12",
+            "2026-10-12",
+            "2026-10-12",
+            "10"
+          ]
+        ],
+        "validation_reasons": [
+          [
+            "CONSTRAINTS_PASSED"
+          ],
+          [
+            "CONSTRAINTS_PASSED"
+          ],
+          [
+            "CONSTRAINTS_PASSED"
+          ]
+        ]
+      },
+      "status": "DOCUMENTED_SEMANTIC_DIFFERENCE",
+      "common_field_checks": [
+        {
+          "field": "eoh",
+          "legacy": [
+            "0",
+            "13",
+            "3"
+          ],
+          "python": [
+            "3",
+            "3",
+            "3"
+          ],
+          "equal": false
+        },
+        {
+          "field": "new_order_qty_by_bucket",
+          "legacy": [
+            "0",
+            "23",
+            "0"
+          ],
+          "python": [
+            "3",
+            "10",
+            "10"
+          ],
+          "equal": false
+        }
+      ]
+    },
+    {
+      "case": "position_equals_rop",
+      "legacy_actual": {
+        "order_triggered": false
+      },
+      "python_actual": {
+        "PERIODIC_ORDER_UP_TO": true,
+        "ROP_FIXED_Q": true
+      },
+      "status": "DOCUMENTED_SEMANTIC_DIFFERENCE",
+      "common_field_checks": [
+        {
+          "field": "PERIODIC_ORDER_UP_TO",
+          "legacy": false,
+          "python": true,
+          "equal": false
+        },
+        {
+          "field": "ROP_FIXED_Q",
+          "legacy": false,
+          "python": true,
+          "equal": false
+        }
+      ]
+    },
+    {
+      "case": "offset_lattice",
+      "legacy_actual": "25",
+      "python_actual": "20",
+      "status": "DOCUMENTED_SEMANTIC_DIFFERENCE",
+      "common_field_checks": [
+        {
+          "field": "order_qty",
+          "legacy": "25",
+          "python": "20",
+          "equal": false
+        }
+      ]
+    },
+    {
+      "case": "below_minimum",
+      "legacy_actual": "5",
+      "python_actual": "10",
+      "status": "DOCUMENTED_SEMANTIC_DIFFERENCE",
+      "common_field_checks": [
+        {
+          "field": "order_qty",
+          "legacy": "5",
+          "python": "10",
+          "equal": false
+        }
+      ]
+    },
+    {
+      "case": "equal_max_is_not_hard_cap",
+      "legacy_actual": "25",
+      "python_actual": "30",
+      "status": "DOCUMENTED_SEMANTIC_DIFFERENCE",
+      "common_field_checks": [
+        {
+          "field": "order_qty",
+          "legacy": "25",
+          "python": "30",
+          "equal": false
+        }
+      ]
+    },
+    {
+      "case": "above_max_uses_max_offset",
+      "legacy_actual": "32",
+      "python_actual": "30",
+      "status": "DOCUMENTED_SEMANTIC_DIFFERENCE",
+      "common_field_checks": [
+        {
+          "field": "order_qty",
+          "legacy": "32",
+          "python": "30",
+          "equal": false
+        }
+      ]
+    },
+    {
+      "case": "zero_lt",
+      "legacy_actual": {
+        "lead_time_days": 0,
+        "due_date": "2026-09-28",
+        "containing_bucket_start": "2026-09-28"
+      },
+      "python_actual": {
+        "due_date": "2026-09-28",
+        "receipt_date": "2026-09-28"
+      },
+      "status": "SCOPED_FIELDS_MATCH",
+      "common_field_checks": [
+        {
+          "field": "receipt_bucket_start",
+          "legacy": "2026-09-28",
+          "python": "2026-09-28",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "case": "midweek",
+      "legacy_actual": {
+        "lead_time_days": 3,
+        "due_date": "2026-10-01",
+        "containing_bucket_start": "2026-09-28"
+      },
+      "python_actual": {
+        "due_date": "2026-10-01",
+        "receipt_date": "2026-10-05"
+      },
+      "status": "DOCUMENTED_SEMANTIC_DIFFERENCE",
+      "common_field_checks": [
+        {
+          "field": "receipt_bucket_start",
+          "legacy": "2026-09-28",
+          "python": "2026-10-05",
+          "equal": false
+        }
+      ]
+    },
+    {
+      "case": "exact_next_boundary",
+      "legacy_actual": {
+        "lead_time_days": 7,
+        "due_date": "2026-10-05",
+        "containing_bucket_start": "2026-10-05"
+      },
+      "python_actual": {
+        "due_date": "2026-10-05",
+        "receipt_date": "2026-10-05"
+      },
+      "status": "SCOPED_FIELDS_MATCH",
+      "common_field_checks": [
+        {
+          "field": "receipt_bucket_start",
+          "legacy": "2026-10-05",
+          "python": "2026-10-05",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "case": "outside_horizon",
+      "legacy_actual": {
+        "lead_time_days": 21,
+        "due_date": "2026-10-19",
+        "containing_bucket_start": null
+      },
+      "python_actual": {
+        "due_date": "2026-10-19",
+        "receipt_date": null
+      },
+      "status": "SCOPED_FIELDS_MATCH",
+      "common_field_checks": [
+        {
+          "field": "receipt_bucket_start",
+          "legacy": null,
+          "python": null,
+          "equal": true
+        }
+      ]
+    },
+    {
+      "case": "explicit_base_month_differs_from_week_start",
+      "legacy_actual": {
+        "base_month": "202609",
+        "rop": "20"
+      },
+      "python_actual": {
+        "policy": "AUGUST",
+        "rop": "10"
+      },
+      "status": "DOCUMENTED_SEMANTIC_DIFFERENCE",
+      "common_field_checks": [
+        {
+          "field": "rop",
+          "legacy": "20",
+          "python": "10",
+          "equal": false
+        }
+      ]
+    },
+    {
+      "case": "missing_base_month_uses_start_month_not_wednesday",
+      "legacy_actual": {
+        "base_month": "202608",
+        "rop": "10"
+      },
+      "python_actual": {
+        "policy": "AUGUST",
+        "rop": "10"
+      },
+      "status": "SCOPED_FIELDS_MATCH",
+      "common_field_checks": [
+        {
+          "field": "rop",
+          "legacy": "10",
+          "python": "10",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "case": "threshold_equality_component",
+      "legacy_actual": {
+        "individual_condition_met": [
+          false
+        ],
+        "force_eligible_label": "A",
+        "final_selected_label": null
+      },
+      "python_actual": {
+        "selected_label": "A",
+        "ineligible_reasons": []
+      },
+      "status": "ELIGIBILITY_COMPONENTS_NOT_FULL_WINNER_EQUIVALENCE",
+      "common_field_checks": []
+    },
+    {
+      "case": "all_below_service_no_forced_target_selection",
+      "legacy_actual": {
+        "individual_condition_met": [
+          false,
+          false
+        ],
+        "force_eligible_label": "A",
+        "final_selected_label": null
+      },
+      "python_actual": {
+        "selected_label": null,
+        "ineligible_reasons": [
+          "FILL_RATE_BELOW_MINIMUM"
+        ]
+      },
+      "status": "ELIGIBILITY_COMPONENTS_NOT_FULL_WINNER_EQUIVALENCE",
+      "common_field_checks": []
+    },
+    {
+      "case": "missing_cost_is_not_zero_cost",
+      "legacy_actual": null,
+      "python_actual": {
+        "selected_label": null,
+        "ineligible_reasons": [
+          "COST_PROFILE_NOT_BOUND"
+        ]
+      },
+      "status": "NO_COMPARABLE_LEGACY_CONTRACT",
+      "common_field_checks": []
+    }
+  ],
+  "legacy_full_engine_equivalence_verified": false,
+  "database_writes": false,
+  "production_calculation_changed": false
+}

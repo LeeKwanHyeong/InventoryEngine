@@ -1,0 +1,67 @@
+{
+  "record_type": "DEVELOPMENT_CONDITIONS_AND_STATIC_VALIDATION_ONLY",
+  "experiment_id": "CATALOG-ROBUSTNESS-2037-2044-V1",
+  "protocol_path": "docs/architecture/data/catalog-robustness-protocol-v1.json",
+  "protocol_content_hash": "a3e35fcf23915e87823883ea8c1f09448b245ae7ea1fffa8c77482bab0433280",
+  "repository_branch": "inventory_engine_dev",
+  "git_head": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+  "existing_uncommitted_work_preserved": true,
+  "official_generation_or_results": null,
+  "official_history_boh_or_path_generated": false,
+  "official_52_week_or_65_week_psi_run_performed": false,
+  "production_evaluator_or_selector_implemented": false,
+  "conditions_frozen": true,
+  "verification": {
+    "new_static_conditions_and_hand_arithmetic_passed": 25,
+    "existing_hash_compatibility_passed": 4,
+    "previous_comparison_offline_regression_passed": 16,
+    "total_passed": 45,
+    "elapsed_seconds": "12.80",
+    "test_files": [
+      "tests/contract/test_catalog_robustness_protocol.py",
+      "tests/contract/test_segmentation_compatibility_contract.py",
+      "tests/integration/test_catalog_comparison_offline.py"
+    ],
+    "regression_synthetic_period": "PREVIOUS_2040_TECHNICAL_SMOKE_ONLY_NOT_NEW_OFFICIAL_WINDOWS",
+    "full_regression_rerun": false,
+    "ruff_and_format_checked_files": 300,
+    "json_schemas_checked": 37,
+    "git_diff_check": "PASS",
+    "protected_file_count_including_personal_report": 381,
+    "protected_files_sha256_changed": [],
+    "personal_report_sha256": "3d0f5e9bb762b590beef00a65b39b2578b0b281f07fd1f5a2630261dfcb4835e",
+    "independent_agent_review_performed": false,
+    "coverage_percentage_measured": false
+  },
+  "confirmed_constraints": {
+    "score_weeks": 52,
+    "tail_weeks": 13,
+    "simulation_weeks": 65,
+    "wide_single_item_work": 188760,
+    "maximum_work_per_call_unchanged": 200000,
+    "maximum_existing_artifact_bytes_unchanged": 128000000,
+    "nominal_selection_validation_holdout_banks": 198,
+    "diagnostic_stress_banks": 16,
+    "existing_13_week_runner_modified": false
+  },
+  "pending_before_official_execution": [
+    "independent_warmup_and_bootstrap_truth_source_producers",
+    "planning_forecast_vs_future_realization_observation_separation",
+    "score_window_and_five_component_cost_reducer",
+    "empirical_risk_and_two_offline_selectors",
+    "parent_classification_single_item_projection_binding",
+    "chunk_manifest_replay_and_idempotent_restart",
+    "separate_2055_technical_preflight_and_resource_estimate"
+  ],
+  "preservation": {
+    "existing_fsn_configuration_changed": false,
+    "existing_operational_gates_changed": false,
+    "existing_source_code_or_golden_changed": false,
+    "previous_protocol_or_experiment_result_changed": false,
+    "database_connection_performed": false,
+    "database_write_or_migration_performed": false,
+    "platform_or_shared_runtime_modified": false,
+    "automatic_publication_or_order_performed": false,
+    "commit_or_push_performed": false
+  }
+}

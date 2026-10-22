@@ -1,0 +1,165 @@
+{
+  "contract_id": "inventory-robustness-development-source-causal-verification",
+  "contract_version": "1.0.0",
+  "date": "2026-10-19",
+  "status": "LOCAL_SOURCE_AND_CAUSAL_PSI_VERIFIED_OFFICIAL_EXPERIMENT_NOT_EXECUTED",
+  "repository": "InventoryEngine",
+  "branch": "inventory_engine_dev",
+  "base_commit": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+  "protocol_hash": "a3e35fcf23915e87823883ea8c1f09448b245ae7ea1fffa8c77482bab0433280",
+  "previous_pure_evaluator": "catalog-robustness-pure-evaluator-20261019.json",
+  "scope": "HAND_AUTHORED_DEVELOPMENT_SOURCE_AND_CAUSAL_PSI_ONLY",
+  "implemented": [
+    "Independent Warm-up over supplied complete 104-week uncensored history, no random sampling",
+    "Frozen pre-Warm-up 26-week population statistics and 52-week integer/Decimal stock ledger",
+    "Exact W0 EOH, customer Backorder and unreceived order quantities and dates",
+    "Preserved uncensored history, explicit zero-demand status, no missing-to-zero imputation",
+    "Pre-W0 last-26-week mean ceiling planning Forecast, separate from realized demand",
+    "Exact development Source replay and Canonical Scope/W0/Master/Calendar/stock/supply/policy checks",
+    "Closed separate realization contract bound to the exact planning request hash",
+    "New opt-in V2 local mathematical Shadow causal runner using unchanged admission, Guard and PSI",
+    "Strategy/Guard observe only frozen planning demand and current state, not future realization or path metadata",
+    "Actual current demand is consumed only after proposal and Guard validation",
+    "Known customer orders remain fixed, forecast consumption applied once, old Backorder served first",
+    "Source/result resealing cannot replace the exact Warm-up or actual strategy/Guard replay"
+  ],
+  "development_scope_limits": {
+    "company_cd": "DSE",
+    "subs_cd": "C100",
+    "site_cd": "V101",
+    "uom": "EA",
+    "max_items_per_call": 1,
+    "history_weeks": 104,
+    "reference_history_indices": [26, 52],
+    "warmup_history_indices": [52, 104],
+    "simulation_horizons": [52, 65],
+    "lead_time_days": "0 through 49, multiples of 7 only; intermediate-day LT rejected",
+    "moq": "5",
+    "order_multiple": "5",
+    "execution_contract_version": "2.0.0",
+    "execution_mode": "LOCAL_SHADOW",
+    "execution_purpose": "SHADOW",
+    "strategy_family": "MATHEMATICAL",
+    "calendar_revision_field_meaning": "Exact Calendar Snapshot ID, not an unbound calendar label",
+    "warmup_q_is_eoq_optimum": false,
+    "malicious_python_strategy_sandbox": false
+  },
+  "hand_expectations": {
+    "w0": "2055-01-04",
+    "constant_gross_demand_qty_per_week": "1",
+    "lead_7": {
+      "initial_warmup_boh": "3",
+      "w0_on_hand_qty": "1",
+      "pending_qty": "0",
+      "source_hash": "bfb459c52d40c61d83a6bcd33b3fe596ac786bfeff876be33c048bce88b198ca",
+      "ledger_hash": "6ab0647c3452d4a9dee49bd9017b6b06e4c9f88687b60227ba34759e993f3529"
+    },
+    "lead_35": {
+      "initial_warmup_boh": "7",
+      "w0_on_hand_qty": "0",
+      "pending_qty": "5",
+      "pending_due_date": "2055-01-04",
+      "first_io_confirmed_receipt_qty": "5",
+      "first_io_available_qty": "5",
+      "first_io_eoh_qty": "4",
+      "source_hash": "0b0866909548573df8cdcd6cbeabb446b1889044f21eb3a6afea21711d092699",
+      "ledger_hash": "9f5eecade4a7850b698f9ae6df741412e1af635dfc37af83c58fe07c477e1ac5"
+    },
+    "lead_49": {
+      "initial_warmup_boh": "9",
+      "w0_on_hand_qty": "2",
+      "pending_qty": "5",
+      "pending_due_date": "2055-01-18",
+      "source_hash": "41f044929a62ec2d123a18cd19e7f53e78ee4fb24bb17a530282a3abe0f49579",
+      "ledger_hash": "fee441f9cb1cd2b0fb311043623e1c91502d67494530cef9cd73bacd8b7eacbe"
+    },
+    "last_warmup_week_customer_order_10": {
+      "lead_time_days": 35,
+      "w0_customer_backorder_qty": "9",
+      "w0_confirmed_receipt_qty": "5",
+      "first_io_fulfilled_old_backorder_qty": "5",
+      "first_io_ending_customer_backorder_qty": "4",
+      "first_io_eoh_qty": "0"
+    }
+  },
+  "future_information_tests": {
+    "probe_shock_indices": [0, 1, 12, 51, 64],
+    "prefix_includes_decision_at_shock_before_consumption": true,
+    "path_id_seed_and_hash_not_in_observations": true,
+    "post_observation_state_feedback_may_change_later_actions": true,
+    "actual_production_mathematical_strategy": {
+      "implementation_id": "historical-normal-r-s",
+      "version": "1.0.0",
+      "shock_index": 13,
+      "matching_prefix_decision_count": 14,
+      "matching_observation_proposal_and_guard_prefix_hash": "8c6287d0d3c8dc5a2b9dd3654aa99d6b8952dd4ac7980869f89b99552c756b31",
+      "left_result_hash": "fb817ef23febfb88f51c2513db0b8ccdcfe832a3e603a94441d0194481c84015",
+      "right_result_hash": "897f221ef40f844f22d235053a16e1ff53c4d29cb0fa872171b2f87c4cc74150",
+      "left_shortage_at_13": "0",
+      "right_shortage_at_13": "899993"
+    }
+  },
+  "verification": {
+    "new_warmup_unit_tests_passed": 23,
+    "new_source_causal_offline_tests_passed": 28,
+    "focused_with_evaluator_protocol_and_compatibility_passed": 164,
+    "full_regression": {
+      "passed": 1351,
+      "skipped": 9,
+      "subtests_passed": 669,
+      "warnings": 3,
+      "seconds": 195.51,
+      "scope": "tests/unit tests/contract tests/integration/*offline.py",
+      "warnings_note": "Three existing Platform Starlette deprecations; no new warnings"
+    },
+    "ruff": "PASSED",
+    "format_file_count": 313,
+    "existing_json_schemas_valid": 37,
+    "diff_check": "PASSED",
+    "protected_preexisting_files": 392,
+    "changed_protected_files": [],
+    "coverage_percentage_measured": false,
+    "independent_subagent_review_performed": false
+  },
+  "implementation_files_sha256": {
+    "src/dsio_inventory_engine/evaluate_replenishment/robustness/development_source.py": "f6d2adf081d70ff7a6f669c238d4e6608ff8a53d3a9cf2c13979b2465d2dfdbf",
+    "src/dsio_inventory_engine/evaluate_replenishment/robustness/source_binding.py": "63db8b883847ebd02cc30911cc2e0aafedb15d08b79e3b657f2e62c128b2a2d4",
+    "src/dsio_inventory_engine/evaluate_replenishment/robustness/causal_simulation.py": "f20fc647acd73b1fd71171eef3a7e8fbd229fd90264acbc9e8cba009eee9156f",
+    "tests/support/robustness_source_fixtures.py": "fd0cf26969db7c8be7bac5dc91b29b746fdb7a3f51e096716c0e4889784fb46b",
+    "tests/unit/test_robustness_development_source.py": "590f9cd9d8e11402217e15a71f90e0da3f1b158b94844d3c61e0b8aa879c4ce8",
+    "tests/integration/test_robustness_source_causal_offline.py": "5c4a85b6a4e7797308c75577539acfe6656286a75c558c0f259a1f530d1dd01c"
+  },
+  "documentation": {
+    "user_approved_baseline_and_robustness_contract_updates": true,
+    "previous_1300_passed_evaluator_result_recorded": true,
+    "definition_time_protocol_and_previous_evidence_unchanged": true,
+    "oma_docs_cli_available": false,
+    "local_reference_check": "PASSED_SELECTED_TWO_DOCS_MANUAL_FALLBACK",
+    "selected_documents": ["IO_DEVELOPMENT_BASELINE.md", "IO_CATALOG_ROBUSTNESS_CONTRACT.md"]
+  },
+  "preserved": {
+    "existing_abc_xyz_results_and_hashes": true,
+    "existing_recommended_psi_runner": true,
+    "existing_fsn_configuration_and_admission": true,
+    "existing_operational_gates": true,
+    "source_physical_lead_time_distinct_from_sde_protection_time": true,
+    "existing_finite_horizon_guard": true,
+    "personal_report_sha256": "3d0f5e9bb762b590beef00a65b39b2578b0b281f07fd1f5a2630261dfcb4835e"
+  },
+  "not_implemented_or_not_performed": [
+    "Official stochastic history, Warm-up or future demand path generation",
+    "Official 32/32/88 candidate-bank experiment, superiority claim or winner promotion",
+    "Original parent classification projection, full Catalog/Guard-to-scorecard intake and Chunk Manifest recovery",
+    "Cross-split Source registry and complete experiment resource preflight",
+    "Actual authoritative Source approval, DB snapshot publication or Runtime/Platform integration",
+    "New ML/PPO training, inference activation or model promotion",
+    "FSN or operational Gate changes",
+    "Development PostgreSQL connection, migration or data write",
+    "Shared Runtime deployment or actual order placement",
+    "Commit or Push"
+  ],
+  "automatic_publish_allowed": false,
+  "automatic_order_allowed": false,
+  "operational_policy_approved": false,
+  "database_writes": false
+}

@@ -1,0 +1,2150 @@
+{
+  "experiment_id": "CATALOG-HOLDOUT-2033-2034-V1",
+  "verification": {
+    "full_unit_contract_offline_integration": {"passed": 1191, "skipped": 9, "subtests_passed": 669, "warnings": 3, "elapsed_seconds": "182.57"},
+    "new_comparison_tests_passed": 16,
+    "existing_compatibility_tests_passed": 4,
+    "ruff_and_format_file_count": 299,
+    "json_schemas_validated": 37,
+    "existing_protected_files_sha256_unchanged": 350,
+    "personal_report_sha256_unchanged": "3d0f5e9bb762b590beef00a65b39b2578b0b281f07fd1f5a2630261dfcb4835e",
+    "git_diff_check": "PASS",
+    "coverage_percentage_measured": false,
+    "independent_agent_review_performed": false
+  },
+  "source_type": "SYNTHETIC_DEVELOPMENT_HOLDOUT",
+  "git_head": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+  "uncommitted_implementation_pinned_by_manifest": true,
+  "implementation_manifest_hash": "56c2b2bbac819ebb91210456bc38007d604aff1c97a32b1a600481c3eee5353e",
+  "report_byte_sha256": "585e1dde115158445edb71801e588297ec5fd8620f02b0956feecaf96d647352",
+  "input_receipt": {
+    "byte_count": 273404,
+    "path": "pinned-inputs.json",
+    "sha256": "4a8da3fcf8e100830908319a9a1160517df4b31239ca40a29e49102103167412"
+  },
+  "full_local_evidence_directory": "/private/tmp/io-catalog-holdout.I7OAQb",
+  "artifact_file_count": 14,
+  "artifact_bytes": 291700986,
+  "artifact_files": [
+    {
+      "file_name": "2339c21d215d110d065d16bfb05636427e22e09983c9e43a66787182631944fe.json",
+      "sha256": "6a697b52f3a81554ed481e0e3a3ecb2967bc7de01bc3ffb4504481b5833cd41f",
+      "byte_count": 19461809,
+      "contract_id": "inventory-offline-catalog-psi-result",
+      "content_hash": "2339c21d215d110d065d16bfb05636427e22e09983c9e43a66787182631944fe"
+    },
+    {
+      "file_name": "27d2f025a9002aef0be3fe500b41e83ab8052733399961a2528002adeca99eb2.json",
+      "sha256": "23e91eb6fcac65bebdb45f45def8ca734c61633db4557560bba4cb167f477b72",
+      "byte_count": 53230085,
+      "contract_id": "inventory-offline-catalog-psi-result",
+      "content_hash": "27d2f025a9002aef0be3fe500b41e83ab8052733399961a2528002adeca99eb2"
+    },
+    {
+      "file_name": "2e63f89b1afa22fa7e6f83823144c261e526cf636af3a5dd58e75154a1fff13b.json",
+      "sha256": "ba55b7581649832dd56638c3b984f7bc14fcde8d063d3801208067d8835d0256",
+      "byte_count": 219913,
+      "contract_id": "inventory-offline-catalog-policy-selection-result",
+      "content_hash": "2e63f89b1afa22fa7e6f83823144c261e526cf636af3a5dd58e75154a1fff13b"
+    },
+    {
+      "file_name": "406f722c16953d78011847f2e96707c5333657ac5a0440db0af01727b0d5d116.json",
+      "sha256": "20f0bf1a34755c7562dc8dba3dfe99a5d0cd39b9a19165b637fd3b0895ecda8c",
+      "byte_count": 586788,
+      "contract_id": "inventory-offline-catalog-policy-selection-result",
+      "content_hash": "406f722c16953d78011847f2e96707c5333657ac5a0440db0af01727b0d5d116"
+    },
+    {
+      "file_name": "4c3d29abe4acd03432c0431fe4df62611b03ed09c3fee48af0214aca091735b3.json",
+      "sha256": "835c0d529c0efb748b907b978c118a1fdc41feba70bd41ff4313dc7d594a3c45",
+      "byte_count": 19360174,
+      "contract_id": "inventory-offline-catalog-psi-result",
+      "content_hash": "4c3d29abe4acd03432c0431fe4df62611b03ed09c3fee48af0214aca091735b3"
+    },
+    {
+      "file_name": "4dc27fbccb3f3ae78126b98ea327228c737b0fa3b403716d5a4c31c2259ee41c.json",
+      "sha256": "5ce529082cbecb01f6942ea970081efe839d3bbeb3f0e7a1e8e5bc6f10c5a3dd",
+      "byte_count": 53116641,
+      "contract_id": "inventory-offline-catalog-psi-result",
+      "content_hash": "4dc27fbccb3f3ae78126b98ea327228c737b0fa3b403716d5a4c31c2259ee41c"
+    },
+    {
+      "file_name": "541ac2ba31bee18d282fb7b3740c783041258061dcde5df9fca120f83ca5dffe.json",
+      "sha256": "da7405b85fc91414af47b07a3a94498ce68f47f62b3fb0d6230181b1179be428",
+      "byte_count": 52875060,
+      "contract_id": "inventory-offline-catalog-psi-result",
+      "content_hash": "541ac2ba31bee18d282fb7b3740c783041258061dcde5df9fca120f83ca5dffe"
+    },
+    {
+      "file_name": "7decc9155cc1ee4506fbae952949ad6c361a404dd48d4e48fde671dc59299cc9.json",
+      "sha256": "7814e8ac9c9485b2452f489071dd967c8aa8f343d368a3b97a8160f12e562061",
+      "byte_count": 19372235,
+      "contract_id": "inventory-offline-catalog-psi-result",
+      "content_hash": "7decc9155cc1ee4506fbae952949ad6c361a404dd48d4e48fde671dc59299cc9"
+    },
+    {
+      "file_name": "8581cad135c024e6b17cfc9a1ec2f4dd98f4c4f86441db3c6b55adb25105f7ad.json",
+      "sha256": "31cc177f8f2ad6cc7732089f704585a31c6bdaf5509c457eb62a30366d4f22b0",
+      "byte_count": 223970,
+      "contract_id": "inventory-offline-catalog-policy-selection-result",
+      "content_hash": "8581cad135c024e6b17cfc9a1ec2f4dd98f4c4f86441db3c6b55adb25105f7ad"
+    },
+    {
+      "file_name": "a5907eebcc4955a24cf0c93ddae8ed9863a5ecf4512111018cff2e65ee11e7e0.json",
+      "sha256": "7e22282306809e743fb01ae582ef72ab8a8095d91edede706c0f842252f0f611",
+      "byte_count": 52814315,
+      "contract_id": "inventory-offline-catalog-psi-result",
+      "content_hash": "a5907eebcc4955a24cf0c93ddae8ed9863a5ecf4512111018cff2e65ee11e7e0"
+    },
+    {
+      "file_name": "d5be1a776eed2a6e148716dd41a99fb0c1951895403c2c771429afcd58c96b05.json",
+      "sha256": "3e070be79d051788658a96f7cf73459ee907325ef30a50978f965ef728822c70",
+      "byte_count": 594835,
+      "contract_id": "inventory-offline-catalog-policy-selection-result",
+      "content_hash": "d5be1a776eed2a6e148716dd41a99fb0c1951895403c2c771429afcd58c96b05"
+    },
+    {
+      "file_name": "e2cb788a9c6a7de0bb87f971dfe8493808cd006e09797c9026375555a442ead2.json",
+      "sha256": "31114de68803221c34dadfca8eb072669dbc5680c270a5e9d095002d2265b230",
+      "byte_count": 222294,
+      "contract_id": "inventory-offline-catalog-policy-selection-result",
+      "content_hash": "e2cb788a9c6a7de0bb87f971dfe8493808cd006e09797c9026375555a442ead2"
+    },
+    {
+      "file_name": "eeb0fc59dd23610e2dd2925b814b91fd3894e939bf4f997611aa8bfae1a5d6bc.json",
+      "sha256": "03b9bef6c4741ebca6a074846136a39558241fa41c5f4dcb5e15915350dd3b66",
+      "byte_count": 219148,
+      "contract_id": "inventory-offline-catalog-policy-selection-result",
+      "content_hash": "eeb0fc59dd23610e2dd2925b814b91fd3894e939bf4f997611aa8bfae1a5d6bc"
+    },
+    {
+      "file_name": "f8ef9158ab6913dd18adf9546106e84c8c7e1bdfe6de139ff38627a2ca6826ab.json",
+      "sha256": "a5e3db58cd7aa7362eeb568fe0dafc87a37b6af1a66007273892a3713e113acf",
+      "byte_count": 19403719,
+      "contract_id": "inventory-offline-catalog-psi-result",
+      "content_hash": "f8ef9158ab6913dd18adf9546106e84c8c7e1bdfe6de139ff38627a2ca6826ab"
+    }
+  ],
+  "result": {
+    "automatic_order_allowed": false,
+    "automatic_publish_allowed": false,
+    "case_bindings": [
+      {
+        "canonical_input_hash": "5031fe037560903086151d6d40421f21496eecd44b8b7e051380cbadc4c71216",
+        "case_id": "NEW-HOLDOUT-A",
+        "catalog_source_selection_hashes": {
+          "ABC_XYZ_SHARED_BUDGET": [
+            "c73303fa607ba0e37a2261088e9502224d2bf82613d9fb88114ff14cbb67840b",
+            "7decc9155cc1ee4506fbae952949ad6c361a404dd48d4e48fde671dc59299cc9",
+            "2e63f89b1afa22fa7e6f83823144c261e526cf636af3a5dd58e75154a1fff13b"
+          ],
+          "LEGACY_STYLE": [
+            "c5f9aa5c6415617ca814b88cef876ff20a859263368b404639abc0d892cb5e9a",
+            "2339c21d215d110d065d16bfb05636427e22e09983c9e43a66787182631944fe",
+            "eeb0fc59dd23610e2dd2925b814b91fd3894e939bf4f997611aa8bfae1a5d6bc"
+          ],
+          "WIDE_REFERENCE": [
+            "9765e56dcd8abbf7bd55d3c7782c2b660d192bbfc55412b125fb93a6d9998ff7",
+            "27d2f025a9002aef0be3fe500b41e83ab8052733399961a2528002adeca99eb2",
+            "406f722c16953d78011847f2e96707c5333657ac5a0440db0af01727b0d5d116"
+          ]
+        },
+        "classification_hash": "ee190fa1f3400ec0e4974f20dd71e66e0dfcd85de13732e874358e186a913f0b",
+        "config_hash": "e8ca8808745cd7b17908ac9ab6378e3eb4dcdbe74c31d6081b6149fdcd7a80ee",
+        "feature_hash": "de9935b9767d14527752b04fa4b57865d8d50fc7fbe1d193d0ab6864d80844be",
+        "gate_hash": "48aee3a7db56066589eade2d4926c96b2864e5ae3d5474548a464fa889a6960e",
+        "prepared_input_hash": "34e88c2d6e5d06fef3a9d257b6ca6e75952c0008eb967e52480e5fbd972ccc27",
+        "realized_wide_hash": "541ac2ba31bee18d282fb7b3740c783041258061dcde5df9fca120f83ca5dffe"
+      },
+      {
+        "canonical_input_hash": "56edebb3e2ac91c517bce33fbeeefd7dbb54fa362e2c093086e39c1de2652a04",
+        "case_id": "NEW-HOLDOUT-B",
+        "catalog_source_selection_hashes": {
+          "ABC_XYZ_SHARED_BUDGET": [
+            "1e5f97e8bf7fc6b281a392e8c5117c6b548e47a9196b6c65ce31bb25e24ca56a",
+            "4c3d29abe4acd03432c0431fe4df62611b03ed09c3fee48af0214aca091735b3",
+            "e2cb788a9c6a7de0bb87f971dfe8493808cd006e09797c9026375555a442ead2"
+          ],
+          "LEGACY_STYLE": [
+            "301cf9abb897ec82394abdec28db15ceb981748d577c86b6ca30c004bdb114d9",
+            "f8ef9158ab6913dd18adf9546106e84c8c7e1bdfe6de139ff38627a2ca6826ab",
+            "8581cad135c024e6b17cfc9a1ec2f4dd98f4c4f86441db3c6b55adb25105f7ad"
+          ],
+          "WIDE_REFERENCE": [
+            "46c1e174be8a25f7f528491e86af8f929568956facd9a4b30b6b0df3bc7ccbb1",
+            "4dc27fbccb3f3ae78126b98ea327228c737b0fa3b403716d5a4c31c2259ee41c",
+            "d5be1a776eed2a6e148716dd41a99fb0c1951895403c2c771429afcd58c96b05"
+          ]
+        },
+        "classification_hash": "4901584231119a22e17374237662bbfb5a3d434ffb93cbed96bff272afcadf0a",
+        "config_hash": "e8ca8808745cd7b17908ac9ab6378e3eb4dcdbe74c31d6081b6149fdcd7a80ee",
+        "feature_hash": "7d4ba5f8aebabc17c5fb6618127233a5306aedc73854216ba4d24aa0442c7e8a",
+        "gate_hash": "7f513c69329a0f559e0ece35fff13e389e45ad52c47fdd9c14b62203e39b9fb2",
+        "prepared_input_hash": "4ff3fd796cc22b67fbbb5fd81957480fe46a33cc23656b927a2c802153c06436",
+        "realized_wide_hash": "a5907eebcc4955a24cf0c93ddae8ed9863a5ecf4512111018cff2e65ee11e7e0"
+      }
+    ],
+    "contract_id": "inventory-catalog-holdout-comparison-result",
+    "contract_version": "1.0.0",
+    "database_writes": false,
+    "holdout_reselection_performed": false,
+    "operational_policy_approved": false,
+    "parameter_tuning_performed": false,
+    "protocol_hash": "693f51040fed2a91b08a81979a5ceb0433b74c9e2a23651b9d536ce35a70f8fb",
+    "records": [
+      {
+        "case_id": "NEW-HOLDOUT-A",
+        "hindsight_reference_cost": "1182",
+        "item_id": "HC-INTERMITTENT-HIGH",
+        "locked_policy": {
+          "candidate_id": "OCCP-7aad13765ccf892f2002a61a74318a4b4bb812965339c4d105695775b3d31763",
+          "emos": "1",
+          "item_id": "HC-INTERMITTENT-HIGH",
+          "override_reason": null,
+          "policy_kind": "ROP_FIXED_Q",
+          "range_source": "GROUP_PROFILE",
+          "review_cycle_weeks": 1,
+          "rmos": "0",
+          "search_group_id": "ABC:AZ",
+          "semantic_policy_hash": "b025db4d208544d71916881ee1282b8750cfce9c6f541aa109f1760bb081f477",
+          "target_service_level": "0.99"
+        },
+        "mode": "ABC_XYZ_SHARED_BUDGET",
+        "planning_candidate_count": 32,
+        "planning_cost_regret": "350",
+        "planning_good_candidate_count": 2,
+        "planning_good_candidate_recall": "0",
+        "planning_good_candidate_retained": false,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "45.07692307692307692307692307692307692308",
+          "candidate_id": "OCCP-7aad13765ccf892f2002a61a74318a4b4bb812965339c4d105695775b3d31763",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "ending_backorder_qty": "0",
+          "order_count": 3,
+          "total_cost": "1051"
+        },
+        "realized_candidate_hash": "777e565c52116c8a641378347bcd8582e1f5c09f23621e15998b99659fd259ff",
+        "realized_cost_regret": null,
+        "realized_feasible_opportunity_missed": true,
+        "realized_good_candidate_retained": true,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "44.53846153846153846153846153846153846154",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "579",
+            "ordering_fixed": "50",
+            "ordering_variable": "260"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.8882978723404255319148936170212765957447",
+          "current_demand_fulfilled_qty": "167",
+          "current_demand_qty": "188",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "37",
+          "forecast_shortage_qty": "21",
+          "guard_rejection_count": 1,
+          "observed_average_on_hand_mos": "0.694105894105894105894105894105894105894",
+          "order_count": 2,
+          "ordered_qty": "130",
+          "policy_selection_eligible": false,
+          "service_feasible": false,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "0.8333333333333333333333333333333333333333",
+          "total_cost": "889"
+        },
+        "realized_service_feasible": false,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "LOWEST_TOTAL_COST"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-A",
+        "hindsight_reference_cost": "344",
+        "item_id": "HC-STABLE-LOCAL",
+        "locked_policy": {
+          "candidate_id": "OCCP-2403d902d123b1f4177a5ed915f68153bdf66708b3862bcc74d473e357f8828e",
+          "emos": "0.25",
+          "item_id": "HC-STABLE-LOCAL",
+          "override_reason": null,
+          "policy_kind": "PERIODIC_ORDER_UP_TO",
+          "range_source": "GROUP_PROFILE",
+          "review_cycle_weeks": 2,
+          "rmos": "0.5",
+          "search_group_id": "ABC:CX",
+          "semantic_policy_hash": "2cee719e138f8754e9ec8d18459a95124fb1bb23613f9aeef901b6c13bbe26d8",
+          "target_service_level": "0.95"
+        },
+        "mode": "ABC_XYZ_SHARED_BUDGET",
+        "planning_candidate_count": 32,
+        "planning_cost_regret": "0",
+        "planning_good_candidate_count": 2,
+        "planning_good_candidate_recall": "1",
+        "planning_good_candidate_retained": true,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "7.461538461538461538461538461538461538462",
+          "candidate_id": "OCCP-2403d902d123b1f4177a5ed915f68153bdf66708b3862bcc74d473e357f8828e",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.9615384615384615384615384615384615384615",
+          "ending_backorder_qty": "0",
+          "order_count": 5,
+          "total_cost": "352"
+        },
+        "realized_candidate_hash": "1827f140d6ade53c96162b647a5c21485ff550b2a38cc7922eb2de75628554e9",
+        "realized_cost_regret": "40",
+        "realized_feasible_opportunity_missed": false,
+        "realized_good_candidate_retained": true,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "9.153846153846153846153846153846153846154",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "119",
+            "ordering_fixed": "125",
+            "ordering_variable": "140"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "current_demand_fulfilled_qty": "98",
+          "current_demand_qty": "98",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "10",
+          "forecast_shortage_qty": "0",
+          "guard_rejection_count": 1,
+          "observed_average_on_hand_mos": "0.278797344787192502928543537680593518157",
+          "order_count": 5,
+          "ordered_qty": "70",
+          "policy_selection_eligible": true,
+          "service_feasible": true,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "1",
+          "total_cost": "384"
+        },
+        "realized_service_feasible": true,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-A",
+        "hindsight_reference_cost": "441",
+        "item_id": "HC-STABLE-LONG",
+        "locked_policy": {
+          "candidate_id": "OCCP-901a8b3188a54b1f216e0fe19e5d262519e949e6c08dc433a63bf81789e7a19f",
+          "emos": "0.25",
+          "item_id": "HC-STABLE-LONG",
+          "override_reason": null,
+          "policy_kind": "PERIODIC_ORDER_UP_TO",
+          "range_source": "GROUP_PROFILE",
+          "review_cycle_weeks": 2,
+          "rmos": "0.5",
+          "search_group_id": "ABC:CX",
+          "semantic_policy_hash": "2cee719e138f8754e9ec8d18459a95124fb1bb23613f9aeef901b6c13bbe26d8",
+          "target_service_level": "0.95"
+        },
+        "mode": "ABC_XYZ_SHARED_BUDGET",
+        "planning_candidate_count": 32,
+        "planning_cost_regret": "15",
+        "planning_good_candidate_count": 2,
+        "planning_good_candidate_recall": "0",
+        "planning_good_candidate_retained": false,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "29.23076923076923076923076923076923076923",
+          "candidate_id": "OCCP-901a8b3188a54b1f216e0fe19e5d262519e949e6c08dc433a63bf81789e7a19f",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "ending_backorder_qty": "0",
+          "order_count": 2,
+          "total_cost": "490"
+        },
+        "realized_candidate_hash": "7405cd68cfea8f3d341aef479c9b0d1192dcbd3340f9e0cd4df986224daa9da0",
+        "realized_cost_regret": "101",
+        "realized_feasible_opportunity_missed": false,
+        "realized_good_candidate_retained": true,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "34",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "442",
+            "ordering_fixed": "50",
+            "ordering_variable": "50"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "current_demand_fulfilled_qty": "105",
+          "current_demand_qty": "105",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "11",
+          "forecast_shortage_qty": "0",
+          "guard_rejection_count": 4,
+          "observed_average_on_hand_mos": "0.9532710280373831775700934579439252336448",
+          "order_count": 2,
+          "ordered_qty": "25",
+          "policy_selection_eligible": true,
+          "service_feasible": true,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "1",
+          "total_cost": "542"
+        },
+        "realized_service_feasible": true,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-A",
+        "hindsight_reference_cost": "1046",
+        "item_id": "HC-VOLATILE-REGIONAL",
+        "locked_policy": {
+          "candidate_id": "OCCP-72f4e0c5f62b80624624d597491edaf4ac9fe5f2660e5bd978a4807736140ebf",
+          "emos": "1",
+          "item_id": "HC-VOLATILE-REGIONAL",
+          "override_reason": null,
+          "policy_kind": "ROP_FIXED_Q",
+          "range_source": "GROUP_PROFILE",
+          "review_cycle_weeks": 4,
+          "rmos": "0",
+          "search_group_id": "ABC:BZ",
+          "semantic_policy_hash": "32a212883ae02e45406c6ed9c3f4320621d1aaf820bbfae8f9378f92d196ab15",
+          "target_service_level": "0.95"
+        },
+        "mode": "ABC_XYZ_SHARED_BUDGET",
+        "planning_candidate_count": 32,
+        "planning_cost_regret": "33",
+        "planning_good_candidate_count": 2,
+        "planning_good_candidate_recall": "0",
+        "planning_good_candidate_retained": false,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "38.76923076923076923076923076923076923077",
+          "candidate_id": "OCCP-72f4e0c5f62b80624624d597491edaf4ac9fe5f2660e5bd978a4807736140ebf",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.9846153846153846153846153846153846153846",
+          "ending_backorder_qty": "0",
+          "order_count": 2,
+          "total_cost": "894"
+        },
+        "realized_candidate_hash": "fce115dba785bee3f032c3e51ea240ab86becf532b767c06aa01cc0bdc006dc5",
+        "realized_cost_regret": "65",
+        "realized_feasible_opportunity_missed": false,
+        "realized_good_candidate_retained": false,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "70.46153846153846153846153846153846153846",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "916",
+            "ordering_fixed": "25",
+            "ordering_variable": "170"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "current_demand_fulfilled_qty": "135",
+          "current_demand_qty": "135",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "86",
+          "forecast_shortage_qty": "0",
+          "guard_rejection_count": 1,
+          "observed_average_on_hand_mos": "0.8371667936024371667936024371667936024371",
+          "order_count": 1,
+          "ordered_qty": "85",
+          "policy_selection_eligible": true,
+          "service_feasible": true,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "1",
+          "total_cost": "1111"
+        },
+        "realized_service_feasible": true,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-A",
+        "hindsight_reference_cost": "1182",
+        "item_id": "HC-INTERMITTENT-HIGH",
+        "locked_policy": {
+          "candidate_id": "OCCP-12724d3cb73d687d00ceff86f8cfbc31b35a8920b5cb4b61d2de36d85b848b4a",
+          "emos": "0.5",
+          "item_id": "HC-INTERMITTENT-HIGH",
+          "override_reason": null,
+          "policy_kind": "ROP_FIXED_Q",
+          "range_source": "GROUP_PROFILE",
+          "review_cycle_weeks": 2,
+          "rmos": "0",
+          "search_group_id": "LS1:R2-L1-P3",
+          "semantic_policy_hash": "aa5e5dc3e18e10669383788f2d1895e65443a1c49f7d149c885b7bb0cc1248a2",
+          "target_service_level": "0.99"
+        },
+        "mode": "LEGACY_STYLE",
+        "planning_candidate_count": 32,
+        "planning_cost_regret": "0",
+        "planning_good_candidate_count": 2,
+        "planning_good_candidate_recall": "1",
+        "planning_good_candidate_retained": true,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "24.69230769230769230769230769230769230769",
+          "candidate_id": "OCCP-12724d3cb73d687d00ceff86f8cfbc31b35a8920b5cb4b61d2de36d85b848b4a",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "ending_backorder_qty": "0",
+          "order_count": 4,
+          "total_cost": "701"
+        },
+        "realized_candidate_hash": "59c4c486e3885c58b24154f6022911b960c7cc950670339ce5d05ec2ca55ca6a",
+        "realized_cost_regret": null,
+        "realized_feasible_opportunity_missed": true,
+        "realized_good_candidate_retained": false,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "33.76923076923076923076923076923076923077",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "439",
+            "ordering_fixed": "75",
+            "ordering_variable": "210"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.7287234042553191489361702127659574468085",
+          "current_demand_fulfilled_qty": "137",
+          "current_demand_qty": "188",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "42",
+          "forecast_shortage_qty": "51",
+          "guard_rejection_count": 1,
+          "observed_average_on_hand_mos": "0.5262737262737262737262737262737262737262",
+          "order_count": 3,
+          "ordered_qty": "105",
+          "policy_selection_eligible": false,
+          "service_feasible": false,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "0.6666666666666666666666666666666666666667",
+          "total_cost": "724"
+        },
+        "realized_service_feasible": false,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-A",
+        "hindsight_reference_cost": "344",
+        "item_id": "HC-STABLE-LOCAL",
+        "locked_policy": {
+          "candidate_id": "OCCP-06186a9342bee2ad59cecb3c5356cd433e112805a025086e622f5b89c7686667",
+          "emos": "0.25",
+          "item_id": "HC-STABLE-LOCAL",
+          "override_reason": null,
+          "policy_kind": "PERIODIC_ORDER_UP_TO",
+          "range_source": "GROUP_PROFILE",
+          "review_cycle_weeks": 2,
+          "rmos": "0.5",
+          "search_group_id": "LS1:R1-L1-P1",
+          "semantic_policy_hash": "2cee719e138f8754e9ec8d18459a95124fb1bb23613f9aeef901b6c13bbe26d8",
+          "target_service_level": "0.95"
+        },
+        "mode": "LEGACY_STYLE",
+        "planning_candidate_count": 32,
+        "planning_cost_regret": "0",
+        "planning_good_candidate_count": 2,
+        "planning_good_candidate_recall": "1",
+        "planning_good_candidate_retained": true,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "7.461538461538461538461538461538461538462",
+          "candidate_id": "OCCP-06186a9342bee2ad59cecb3c5356cd433e112805a025086e622f5b89c7686667",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.9615384615384615384615384615384615384615",
+          "ending_backorder_qty": "0",
+          "order_count": 5,
+          "total_cost": "352"
+        },
+        "realized_candidate_hash": "1827f140d6ade53c96162b647a5c21485ff550b2a38cc7922eb2de75628554e9",
+        "realized_cost_regret": "40",
+        "realized_feasible_opportunity_missed": false,
+        "realized_good_candidate_retained": true,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "9.153846153846153846153846153846153846154",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "119",
+            "ordering_fixed": "125",
+            "ordering_variable": "140"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "current_demand_fulfilled_qty": "98",
+          "current_demand_qty": "98",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "10",
+          "forecast_shortage_qty": "0",
+          "guard_rejection_count": 1,
+          "observed_average_on_hand_mos": "0.278797344787192502928543537680593518157",
+          "order_count": 5,
+          "ordered_qty": "70",
+          "policy_selection_eligible": true,
+          "service_feasible": true,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "1",
+          "total_cost": "384"
+        },
+        "realized_service_feasible": true,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-A",
+        "hindsight_reference_cost": "441",
+        "item_id": "HC-STABLE-LONG",
+        "locked_policy": {
+          "candidate_id": "OCCP-9e4cc8ee6659386216cdb2dc281d6c02363c64a51415ed7567a7b5fc4bafbedf",
+          "emos": "1",
+          "item_id": "HC-STABLE-LONG",
+          "override_reason": null,
+          "policy_kind": "ROP_FIXED_Q",
+          "range_source": "GROUP_PROFILE",
+          "review_cycle_weeks": 1,
+          "rmos": "0",
+          "search_group_id": "LS1:R3-L3-P1",
+          "semantic_policy_hash": "b025db4d208544d71916881ee1282b8750cfce9c6f541aa109f1760bb081f477",
+          "target_service_level": "0.99"
+        },
+        "mode": "LEGACY_STYLE",
+        "planning_candidate_count": 32,
+        "planning_cost_regret": "50",
+        "planning_good_candidate_count": 2,
+        "planning_good_candidate_recall": "0",
+        "planning_good_candidate_retained": false,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "32.30769230769230769230769230769230769231",
+          "candidate_id": "OCCP-9e4cc8ee6659386216cdb2dc281d6c02363c64a51415ed7567a7b5fc4bafbedf",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "ending_backorder_qty": "0",
+          "order_count": 1,
+          "total_cost": "525"
+        },
+        "realized_candidate_hash": "3a142b67e031c0089307724c137d21af132cf67b829e7350f791a4ee0f95a746",
+        "realized_cost_regret": "156",
+        "realized_feasible_opportunity_missed": false,
+        "realized_good_candidate_retained": false,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "37.84615384615384615384615384615384615385",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "492",
+            "ordering_fixed": "25",
+            "ordering_variable": "80"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "current_demand_fulfilled_qty": "105",
+          "current_demand_qty": "105",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "26",
+          "forecast_shortage_qty": "0",
+          "guard_rejection_count": 5,
+          "observed_average_on_hand_mos": "1.06110711718188353702372393961179007908",
+          "order_count": 1,
+          "ordered_qty": "40",
+          "policy_selection_eligible": true,
+          "service_feasible": true,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "1",
+          "total_cost": "597"
+        },
+        "realized_service_feasible": true,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-A",
+        "hindsight_reference_cost": "1046",
+        "item_id": "HC-VOLATILE-REGIONAL",
+        "locked_policy": {
+          "candidate_id": "OCCP-d6f0dce8a9a170fee6924afd215a26270a0c0d7a36d2a01b1dc0944abaf2ce84",
+          "emos": "0.5",
+          "item_id": "HC-VOLATILE-REGIONAL",
+          "override_reason": null,
+          "policy_kind": "ROP_FIXED_Q",
+          "range_source": "GROUP_PROFILE",
+          "review_cycle_weeks": 1,
+          "rmos": "0",
+          "search_group_id": "LS1:R2-L2-P2",
+          "semantic_policy_hash": "d99bd7734f1537c59652b2a4eab8b7cf02cbfa30ced443edf786a3fd0ed212dc",
+          "target_service_level": "0.95"
+        },
+        "mode": "LEGACY_STYLE",
+        "planning_candidate_count": 32,
+        "planning_cost_regret": "205",
+        "planning_good_candidate_count": 2,
+        "planning_good_candidate_recall": "0",
+        "planning_good_candidate_retained": false,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "46.61538461538461538461538461538461538462",
+          "candidate_id": "OCCP-d6f0dce8a9a170fee6924afd215a26270a0c0d7a36d2a01b1dc0944abaf2ce84",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "ending_backorder_qty": "0",
+          "order_count": 4,
+          "total_cost": "1066"
+        },
+        "realized_candidate_hash": "468c5946c7ffa15050b392d20feba348bf3028d7fc6a6701e32c479afb6c3c60",
+        "realized_cost_regret": "335",
+        "realized_feasible_opportunity_missed": false,
+        "realized_good_candidate_retained": false,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "88.53846153846153846153846153846153846154",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "1151",
+            "ordering_fixed": "50",
+            "ordering_variable": "180"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "current_demand_fulfilled_qty": "135",
+          "current_demand_qty": "135",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "91",
+          "forecast_shortage_qty": "0",
+          "guard_rejection_count": 1,
+          "observed_average_on_hand_mos": "1.051942117288651942117288651942117288652",
+          "order_count": 2,
+          "ordered_qty": "90",
+          "policy_selection_eligible": true,
+          "service_feasible": true,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "1",
+          "total_cost": "1381"
+        },
+        "realized_service_feasible": true,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "LOWEST_TOTAL_COST"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-A",
+        "hindsight_reference_cost": "1182",
+        "item_id": "HC-INTERMITTENT-HIGH",
+        "locked_policy": {
+          "candidate_id": "OCCP-2fc90a693a19c725997541df1fa28a088f372c22392e9ff88a87ceb548fd4a9a",
+          "emos": "0.5",
+          "item_id": "HC-INTERMITTENT-HIGH",
+          "override_reason": null,
+          "policy_kind": "ROP_FIXED_Q",
+          "range_source": "EXACT_SHARED_UNION",
+          "review_cycle_weeks": 2,
+          "rmos": "0",
+          "search_group_id": "LS1:WIDE_REFERENCE",
+          "semantic_policy_hash": "aa5e5dc3e18e10669383788f2d1895e65443a1c49f7d149c885b7bb0cc1248a2",
+          "target_service_level": "0.99"
+        },
+        "mode": "WIDE_REFERENCE",
+        "planning_candidate_count": 88,
+        "planning_cost_regret": "0",
+        "planning_good_candidate_count": 2,
+        "planning_good_candidate_recall": "1",
+        "planning_good_candidate_retained": true,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "24.69230769230769230769230769230769230769",
+          "candidate_id": "OCCP-2fc90a693a19c725997541df1fa28a088f372c22392e9ff88a87ceb548fd4a9a",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "ending_backorder_qty": "0",
+          "order_count": 4,
+          "total_cost": "701"
+        },
+        "realized_candidate_hash": "59c4c486e3885c58b24154f6022911b960c7cc950670339ce5d05ec2ca55ca6a",
+        "realized_cost_regret": null,
+        "realized_feasible_opportunity_missed": true,
+        "realized_good_candidate_retained": true,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "33.76923076923076923076923076923076923077",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "439",
+            "ordering_fixed": "75",
+            "ordering_variable": "210"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.7287234042553191489361702127659574468085",
+          "current_demand_fulfilled_qty": "137",
+          "current_demand_qty": "188",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "42",
+          "forecast_shortage_qty": "51",
+          "guard_rejection_count": 1,
+          "observed_average_on_hand_mos": "0.5262737262737262737262737262737262737262",
+          "order_count": 3,
+          "ordered_qty": "105",
+          "policy_selection_eligible": false,
+          "service_feasible": false,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "0.6666666666666666666666666666666666666667",
+          "total_cost": "724"
+        },
+        "realized_service_feasible": false,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-A",
+        "hindsight_reference_cost": "344",
+        "item_id": "HC-STABLE-LOCAL",
+        "locked_policy": {
+          "candidate_id": "OCCP-0204ddb6cac6b1792de3999d42b56a0e74000b52aba820cc76f5ead88f48641d",
+          "emos": "0.25",
+          "item_id": "HC-STABLE-LOCAL",
+          "override_reason": null,
+          "policy_kind": "PERIODIC_ORDER_UP_TO",
+          "range_source": "EXACT_SHARED_UNION",
+          "review_cycle_weeks": 2,
+          "rmos": "0",
+          "search_group_id": "LS1:WIDE_REFERENCE",
+          "semantic_policy_hash": "04553fa25b0093387eaec4cfb6654022cdfd59d0e69e9a8862978a43f1ff73f3",
+          "target_service_level": "0.95"
+        },
+        "mode": "WIDE_REFERENCE",
+        "planning_candidate_count": 88,
+        "planning_cost_regret": "0",
+        "planning_good_candidate_count": 2,
+        "planning_good_candidate_recall": "1",
+        "planning_good_candidate_retained": true,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "7.461538461538461538461538461538461538462",
+          "candidate_id": "OCCP-0204ddb6cac6b1792de3999d42b56a0e74000b52aba820cc76f5ead88f48641d",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.9615384615384615384615384615384615384615",
+          "ending_backorder_qty": "0",
+          "order_count": 5,
+          "total_cost": "352"
+        },
+        "realized_candidate_hash": "b6b39d02c745ecef166643f7c64389c254d5e113677eb31306dc93ae5c38a38a",
+        "realized_cost_regret": "40",
+        "realized_feasible_opportunity_missed": false,
+        "realized_good_candidate_retained": true,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "9.153846153846153846153846153846153846154",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "119",
+            "ordering_fixed": "125",
+            "ordering_variable": "140"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "current_demand_fulfilled_qty": "98",
+          "current_demand_qty": "98",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "10",
+          "forecast_shortage_qty": "0",
+          "guard_rejection_count": 1,
+          "observed_average_on_hand_mos": "0.278797344787192502928543537680593518157",
+          "order_count": 5,
+          "ordered_qty": "70",
+          "policy_selection_eligible": true,
+          "service_feasible": true,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "1",
+          "total_cost": "384"
+        },
+        "realized_service_feasible": true,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-A",
+        "hindsight_reference_cost": "441",
+        "item_id": "HC-STABLE-LONG",
+        "locked_policy": {
+          "candidate_id": "OCCP-6bc865dd022be1d7e5d73939df629a87033409c2288ea32faa187076130b853f",
+          "emos": "0.5",
+          "item_id": "HC-STABLE-LONG",
+          "override_reason": null,
+          "policy_kind": "PERIODIC_ORDER_UP_TO",
+          "range_source": "EXACT_SHARED_UNION",
+          "review_cycle_weeks": 3,
+          "rmos": "1.5",
+          "search_group_id": "LS1:WIDE_REFERENCE",
+          "semantic_policy_hash": "7069f4060f4f9bca8df6496c19c7fa1d02dcb7e5cc19d7e6eae11046deb0716d",
+          "target_service_level": "0.95"
+        },
+        "mode": "WIDE_REFERENCE",
+        "planning_candidate_count": 88,
+        "planning_cost_regret": "0",
+        "planning_good_candidate_count": 2,
+        "planning_good_candidate_recall": "1",
+        "planning_good_candidate_retained": true,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "30",
+          "candidate_id": "OCCP-6bc865dd022be1d7e5d73939df629a87033409c2288ea32faa187076130b853f",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "ending_backorder_qty": "0",
+          "order_count": 1,
+          "total_cost": "475"
+        },
+        "realized_candidate_hash": "9ee95fb1f6b499ef04b441bea6f8a140358767c67b59e555c55227def01f3ba0",
+        "realized_cost_regret": "81",
+        "realized_feasible_opportunity_missed": false,
+        "realized_good_candidate_retained": true,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "34.38461538461538461538461538461538461538",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "447",
+            "ordering_fixed": "25",
+            "ordering_variable": "50"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "current_demand_fulfilled_qty": "105",
+          "current_demand_qty": "105",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "11",
+          "forecast_shortage_qty": "0",
+          "guard_rejection_count": 3,
+          "observed_average_on_hand_mos": "0.9640546369518332135154565061107117181881",
+          "order_count": 1,
+          "ordered_qty": "25",
+          "policy_selection_eligible": true,
+          "service_feasible": true,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "1",
+          "total_cost": "522"
+        },
+        "realized_service_feasible": true,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-A",
+        "hindsight_reference_cost": "1046",
+        "item_id": "HC-VOLATILE-REGIONAL",
+        "locked_policy": {
+          "candidate_id": "OCCP-8eee292adb73b9adfe883836c88142e3ff3ffb8343920348157d1c12cd564966",
+          "emos": "0.5",
+          "item_id": "HC-VOLATILE-REGIONAL",
+          "override_reason": null,
+          "policy_kind": "ROP_FIXED_Q",
+          "range_source": "EXACT_SHARED_UNION",
+          "review_cycle_weeks": 2,
+          "rmos": "0.5",
+          "search_group_id": "LS1:WIDE_REFERENCE",
+          "semantic_policy_hash": "e53d7367c9f796b570902bbbd74314a3caa39ed9eecf30086753bdcc9d08b44f",
+          "target_service_level": "0.95"
+        },
+        "mode": "WIDE_REFERENCE",
+        "planning_candidate_count": 88,
+        "planning_cost_regret": "0",
+        "planning_good_candidate_count": 2,
+        "planning_good_candidate_recall": "1",
+        "planning_good_candidate_retained": true,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "39.69230769230769230769230769230769230769",
+          "candidate_id": "OCCP-8eee292adb73b9adfe883836c88142e3ff3ffb8343920348157d1c12cd564966",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "ending_backorder_qty": "0",
+          "order_count": 3,
+          "total_cost": "861"
+        },
+        "realized_candidate_hash": "01e68b6452a1517aa998e8daeda97313c4b61e53b63cad787844c64b86b965b8",
+        "realized_cost_regret": "200",
+        "realized_feasible_opportunity_missed": false,
+        "realized_good_candidate_retained": true,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "78.15384615384615384615384615384615384615",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "1016",
+            "ordering_fixed": "50",
+            "ordering_variable": "180"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "current_demand_fulfilled_qty": "135",
+          "current_demand_qty": "135",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "91",
+          "forecast_shortage_qty": "0",
+          "guard_rejection_count": 1,
+          "observed_average_on_hand_mos": "0.9285605483625285605483625285605483625285",
+          "order_count": 2,
+          "ordered_qty": "90",
+          "policy_selection_eligible": true,
+          "service_feasible": true,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "1",
+          "total_cost": "1246"
+        },
+        "realized_service_feasible": true,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-B",
+        "hindsight_reference_cost": "1053",
+        "item_id": "HC-INTERMITTENT-HIGH",
+        "locked_policy": {
+          "candidate_id": "OCCP-14264e1a5b0b7441fca4c738e212499e4821387686968f814bbc4843f42d1a93",
+          "emos": "1",
+          "item_id": "HC-INTERMITTENT-HIGH",
+          "override_reason": null,
+          "policy_kind": "ROP_FIXED_Q",
+          "range_source": "GROUP_PROFILE",
+          "review_cycle_weeks": 1,
+          "rmos": "0",
+          "search_group_id": "ABC:AZ",
+          "semantic_policy_hash": "3d8eb5ce710d2fbdb307c0175f13346a80943c89ac684b2c60e8101f904cb3bd",
+          "target_service_level": "0.95"
+        },
+        "mode": "ABC_XYZ_SHARED_BUDGET",
+        "planning_candidate_count": 32,
+        "planning_cost_regret": "210",
+        "planning_good_candidate_count": 2,
+        "planning_good_candidate_recall": "0",
+        "planning_good_candidate_retained": false,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "31",
+          "candidate_id": "OCCP-14264e1a5b0b7441fca4c738e212499e4821387686968f814bbc4843f42d1a93",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.9846153846153846153846153846153846153846",
+          "ending_backorder_qty": "0",
+          "order_count": 3,
+          "total_cost": "748"
+        },
+        "realized_candidate_hash": "7e070d5a56b2aa3ab7113d002e38ce8f39f1aaac686730f3ddc9f045013f7b98",
+        "realized_cost_regret": null,
+        "realized_feasible_opportunity_missed": true,
+        "realized_good_candidate_retained": true,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "20.61538461538461538461538461538461538462",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "268",
+            "ordering_fixed": "75",
+            "ordering_variable": "270"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.7612612612612612612612612612612612612613",
+          "current_demand_fulfilled_qty": "169",
+          "current_demand_qty": "222",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "12",
+          "forecast_shortage_qty": "53",
+          "guard_rejection_count": 1,
+          "observed_average_on_hand_mos": "0.5111252383979656706929434202161474888749",
+          "order_count": 3,
+          "ordered_qty": "135",
+          "policy_selection_eligible": false,
+          "service_feasible": false,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "0.5714285714285714285714285714285714285714",
+          "total_cost": "613"
+        },
+        "realized_service_feasible": false,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "LOWEST_TOTAL_COST"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-B",
+        "hindsight_reference_cost": "392",
+        "item_id": "HC-STABLE-LOCAL",
+        "locked_policy": {
+          "candidate_id": "OCCP-2403d902d123b1f4177a5ed915f68153bdf66708b3862bcc74d473e357f8828e",
+          "emos": "0.25",
+          "item_id": "HC-STABLE-LOCAL",
+          "override_reason": null,
+          "policy_kind": "PERIODIC_ORDER_UP_TO",
+          "range_source": "GROUP_PROFILE",
+          "review_cycle_weeks": 2,
+          "rmos": "0.5",
+          "search_group_id": "ABC:CX",
+          "semantic_policy_hash": "2cee719e138f8754e9ec8d18459a95124fb1bb23613f9aeef901b6c13bbe26d8",
+          "target_service_level": "0.95"
+        },
+        "mode": "ABC_XYZ_SHARED_BUDGET",
+        "planning_candidate_count": 32,
+        "planning_cost_regret": "0",
+        "planning_good_candidate_count": 2,
+        "planning_good_candidate_recall": "1",
+        "planning_good_candidate_retained": true,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "7.846153846153846153846153846153846153846",
+          "candidate_id": "OCCP-2403d902d123b1f4177a5ed915f68153bdf66708b3862bcc74d473e357f8828e",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.9829059829059829059829059829059829059829",
+          "ending_backorder_qty": "0",
+          "order_count": 5,
+          "total_cost": "387"
+        },
+        "realized_candidate_hash": "2be94abcb0ae3cdadf59578e1f254997acc8f0c81eb1f5c28efbe81f565d6238",
+        "realized_cost_regret": "0",
+        "realized_feasible_opportunity_missed": false,
+        "realized_good_candidate_retained": true,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "9",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "117",
+            "ordering_fixed": "125",
+            "ordering_variable": "150"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "current_demand_fulfilled_qty": "110",
+          "current_demand_qty": "110",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "6",
+          "forecast_shortage_qty": "0",
+          "guard_rejection_count": 1,
+          "observed_average_on_hand_mos": "0.2511627906976744186046511627906976744186",
+          "order_count": 5,
+          "ordered_qty": "75",
+          "policy_selection_eligible": true,
+          "service_feasible": true,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "1",
+          "total_cost": "392"
+        },
+        "realized_service_feasible": true,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-B",
+        "hindsight_reference_cost": "439",
+        "item_id": "HC-STABLE-LONG",
+        "locked_policy": {
+          "candidate_id": "OCCP-1dad97b428216523ed9287d8308d4ba86c33afff8125dc1ef3345c7472dda751",
+          "emos": "0.5",
+          "item_id": "HC-STABLE-LONG",
+          "override_reason": null,
+          "policy_kind": "ROP_FIXED_Q",
+          "range_source": "GROUP_PROFILE",
+          "review_cycle_weeks": 2,
+          "rmos": "0",
+          "search_group_id": "ABC:CX",
+          "semantic_policy_hash": "1cead3009f75960b3d7292d81141fb4ca69c7929e6ecc6e508f0515e2791a3b7",
+          "target_service_level": "0.95"
+        },
+        "mode": "ABC_XYZ_SHARED_BUDGET",
+        "planning_candidate_count": 32,
+        "planning_cost_regret": "0",
+        "planning_good_candidate_count": 4,
+        "planning_good_candidate_recall": "1",
+        "planning_good_candidate_retained": true,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "27.38461538461538461538461538461538461538",
+          "candidate_id": "OCCP-1dad97b428216523ed9287d8308d4ba86c33afff8125dc1ef3345c7472dda751",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.9615384615384615384615384615384615384615",
+          "ending_backorder_qty": "0",
+          "order_count": 1,
+          "total_cost": "421"
+        },
+        "realized_candidate_hash": "ed5b2f1ec3374936601b72940a0b57457d43bc29c6f81309519ca6a757db4ad7",
+        "realized_cost_regret": "0",
+        "realized_feasible_opportunity_missed": false,
+        "realized_good_candidate_retained": true,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "28.76923076923076923076923076923076923077",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "374",
+            "ordering_fixed": "25",
+            "ordering_variable": "40"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.9514563106796116504854368932038834951456",
+          "current_demand_fulfilled_qty": "98",
+          "current_demand_qty": "103",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "6",
+          "forecast_shortage_qty": "5",
+          "guard_rejection_count": 4,
+          "observed_average_on_hand_mos": "0.8717948717948717948717948717948717948718",
+          "order_count": 1,
+          "ordered_qty": "20",
+          "policy_selection_eligible": true,
+          "service_feasible": true,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "0.9230769230769230769230769230769230769231",
+          "total_cost": "439"
+        },
+        "realized_service_feasible": true,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-B",
+        "hindsight_reference_cost": "1030",
+        "item_id": "HC-VOLATILE-REGIONAL",
+        "locked_policy": {
+          "candidate_id": "OCCP-2526c9256db8db0e0e2735edb10b084b8097f7ad504d2a39bf146ef6efe11df5",
+          "emos": "0.5",
+          "item_id": "HC-VOLATILE-REGIONAL",
+          "override_reason": null,
+          "policy_kind": "ROP_FIXED_Q",
+          "range_source": "GROUP_PROFILE",
+          "review_cycle_weeks": 3,
+          "rmos": "0",
+          "search_group_id": "ABC:BY",
+          "semantic_policy_hash": "95311b0d06f51b063ca465932a3f55e8967b8d55255348ac7d9f5d11c6353284",
+          "target_service_level": "0.95"
+        },
+        "mode": "ABC_XYZ_SHARED_BUDGET",
+        "planning_candidate_count": 32,
+        "planning_cost_regret": "0",
+        "planning_good_candidate_count": 4,
+        "planning_good_candidate_recall": "1",
+        "planning_good_candidate_retained": true,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "30.76923076923076923076923076923076923077",
+          "candidate_id": "OCCP-2526c9256db8db0e0e2735edb10b084b8097f7ad504d2a39bf146ef6efe11df5",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.9615384615384615384615384615384615384615",
+          "ending_backorder_qty": "0",
+          "order_count": 3,
+          "total_cost": "745"
+        },
+        "realized_candidate_hash": "a1464279bc0d522ca1902706a886ba4fd6441673fd58ebadfa241ff46c39a923",
+        "realized_cost_regret": "0",
+        "realized_feasible_opportunity_missed": false,
+        "realized_good_candidate_retained": true,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "70.38461538461538461538461538461538461538",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "915",
+            "ordering_fixed": "25",
+            "ordering_variable": "90"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "current_demand_fulfilled_qty": "185",
+          "current_demand_qty": "185",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "0",
+          "forecast_shortage_qty": "0",
+          "guard_rejection_count": 1,
+          "observed_average_on_hand_mos": "0.8121301775147928994082840236686390532544",
+          "order_count": 1,
+          "ordered_qty": "45",
+          "policy_selection_eligible": true,
+          "service_feasible": true,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "1",
+          "total_cost": "1030"
+        },
+        "realized_service_feasible": true,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-B",
+        "hindsight_reference_cost": "1053",
+        "item_id": "HC-INTERMITTENT-HIGH",
+        "locked_policy": {
+          "candidate_id": "OCCP-6a2ddd7e70024b74658b682eebe73f65563d199492ec20d0b353a68c4935e740",
+          "emos": "0.5",
+          "item_id": "HC-INTERMITTENT-HIGH",
+          "override_reason": null,
+          "policy_kind": "ROP_FIXED_Q",
+          "range_source": "GROUP_PROFILE",
+          "review_cycle_weeks": 2,
+          "rmos": "0",
+          "search_group_id": "LS1:R2-L1-P3",
+          "semantic_policy_hash": "1cead3009f75960b3d7292d81141fb4ca69c7929e6ecc6e508f0515e2791a3b7",
+          "target_service_level": "0.95"
+        },
+        "mode": "LEGACY_STYLE",
+        "planning_candidate_count": 32,
+        "planning_cost_regret": "0",
+        "planning_good_candidate_count": 2,
+        "planning_good_candidate_recall": "1",
+        "planning_good_candidate_retained": true,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "18.30769230769230769230769230769230769231",
+          "candidate_id": "OCCP-6a2ddd7e70024b74658b682eebe73f65563d199492ec20d0b353a68c4935e740",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.9846153846153846153846153846153846153846",
+          "ending_backorder_qty": "0",
+          "order_count": 4,
+          "total_cost": "538"
+        },
+        "realized_candidate_hash": "093ab5e1b4d50b90b11b25a899d439eff575d7d1f8f14e89ec3325f38a264712",
+        "realized_cost_regret": null,
+        "realized_feasible_opportunity_missed": true,
+        "realized_good_candidate_retained": false,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "13.30769230769230769230769230769230769231",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "173",
+            "ordering_fixed": "100",
+            "ordering_variable": "200"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.6126126126126126126126126126126126126126",
+          "current_demand_fulfilled_qty": "136",
+          "current_demand_qty": "222",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "10",
+          "forecast_shortage_qty": "86",
+          "guard_rejection_count": 1,
+          "observed_average_on_hand_mos": "0.3299427844882390336935791481246026700573",
+          "order_count": 4,
+          "ordered_qty": "100",
+          "policy_selection_eligible": false,
+          "service_feasible": false,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "0.2857142857142857142857142857142857142857",
+          "total_cost": "473"
+        },
+        "realized_service_feasible": false,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-B",
+        "hindsight_reference_cost": "392",
+        "item_id": "HC-STABLE-LOCAL",
+        "locked_policy": {
+          "candidate_id": "OCCP-06186a9342bee2ad59cecb3c5356cd433e112805a025086e622f5b89c7686667",
+          "emos": "0.25",
+          "item_id": "HC-STABLE-LOCAL",
+          "override_reason": null,
+          "policy_kind": "PERIODIC_ORDER_UP_TO",
+          "range_source": "GROUP_PROFILE",
+          "review_cycle_weeks": 2,
+          "rmos": "0.5",
+          "search_group_id": "LS1:R1-L1-P1",
+          "semantic_policy_hash": "2cee719e138f8754e9ec8d18459a95124fb1bb23613f9aeef901b6c13bbe26d8",
+          "target_service_level": "0.95"
+        },
+        "mode": "LEGACY_STYLE",
+        "planning_candidate_count": 32,
+        "planning_cost_regret": "0",
+        "planning_good_candidate_count": 2,
+        "planning_good_candidate_recall": "1",
+        "planning_good_candidate_retained": true,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "7.846153846153846153846153846153846153846",
+          "candidate_id": "OCCP-06186a9342bee2ad59cecb3c5356cd433e112805a025086e622f5b89c7686667",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.9829059829059829059829059829059829059829",
+          "ending_backorder_qty": "0",
+          "order_count": 5,
+          "total_cost": "387"
+        },
+        "realized_candidate_hash": "2be94abcb0ae3cdadf59578e1f254997acc8f0c81eb1f5c28efbe81f565d6238",
+        "realized_cost_regret": "0",
+        "realized_feasible_opportunity_missed": false,
+        "realized_good_candidate_retained": true,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "9",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "117",
+            "ordering_fixed": "125",
+            "ordering_variable": "150"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "current_demand_fulfilled_qty": "110",
+          "current_demand_qty": "110",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "6",
+          "forecast_shortage_qty": "0",
+          "guard_rejection_count": 1,
+          "observed_average_on_hand_mos": "0.2511627906976744186046511627906976744186",
+          "order_count": 5,
+          "ordered_qty": "75",
+          "policy_selection_eligible": true,
+          "service_feasible": true,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "1",
+          "total_cost": "392"
+        },
+        "realized_service_feasible": true,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-B",
+        "hindsight_reference_cost": "439",
+        "item_id": "HC-STABLE-LONG",
+        "locked_policy": {
+          "candidate_id": "OCCP-19fae0d1ee61b1ec7d6d20e580a9a2eeb13dc38535e90c7f9a7a17790093479d",
+          "emos": "1",
+          "item_id": "HC-STABLE-LONG",
+          "override_reason": null,
+          "policy_kind": "ROP_FIXED_Q",
+          "range_source": "GROUP_PROFILE",
+          "review_cycle_weeks": 4,
+          "rmos": "0",
+          "search_group_id": "LS1:R3-L3-P1",
+          "semantic_policy_hash": "22ab26380fcea37013600933adf0c634593370e62a505cb727dae20f85cd7b7d",
+          "target_service_level": "0.99"
+        },
+        "mode": "LEGACY_STYLE",
+        "planning_candidate_count": 32,
+        "planning_cost_regret": "60",
+        "planning_good_candidate_count": 4,
+        "planning_good_candidate_recall": "0",
+        "planning_good_candidate_retained": false,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "29.69230769230769230769230769230769230769",
+          "candidate_id": "OCCP-19fae0d1ee61b1ec7d6d20e580a9a2eeb13dc38535e90c7f9a7a17790093479d",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.9615384615384615384615384615384615384615",
+          "ending_backorder_qty": "0",
+          "order_count": 1,
+          "total_cost": "481"
+        },
+        "realized_candidate_hash": "fc2a9ff47754b2f4def3a87201f0f3c5391cca261ad9353e0db8b6a498a689b3",
+        "realized_cost_regret": "60",
+        "realized_feasible_opportunity_missed": false,
+        "realized_good_candidate_retained": false,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "31.07692307692307692307692307692307692308",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "404",
+            "ordering_fixed": "25",
+            "ordering_variable": "70"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.9514563106796116504854368932038834951456",
+          "current_demand_fulfilled_qty": "98",
+          "current_demand_qty": "103",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "21",
+          "forecast_shortage_qty": "5",
+          "guard_rejection_count": 2,
+          "observed_average_on_hand_mos": "0.9417249417249417249417249417249417249418",
+          "order_count": 1,
+          "ordered_qty": "35",
+          "policy_selection_eligible": true,
+          "service_feasible": true,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "0.9230769230769230769230769230769230769231",
+          "total_cost": "499"
+        },
+        "realized_service_feasible": true,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-B",
+        "hindsight_reference_cost": "1030",
+        "item_id": "HC-VOLATILE-REGIONAL",
+        "locked_policy": {
+          "candidate_id": "OCCP-3b3883aec393d8fb6c113af5b7ebdf95d6d3ee2b09ac20ce586f1804e54cd623",
+          "emos": "0.5",
+          "item_id": "HC-VOLATILE-REGIONAL",
+          "override_reason": null,
+          "policy_kind": "ROP_FIXED_Q",
+          "range_source": "GROUP_PROFILE",
+          "review_cycle_weeks": 3,
+          "rmos": "0",
+          "search_group_id": "LS1:R2-L2-P2",
+          "semantic_policy_hash": "148fc8a40fc06c72a0f93a2bdd00b9893f28b64a733dbd05abbe37a3cc257d56",
+          "target_service_level": "0.99"
+        },
+        "mode": "LEGACY_STYLE",
+        "planning_candidate_count": 32,
+        "planning_cost_regret": "0",
+        "planning_good_candidate_count": 4,
+        "planning_good_candidate_recall": "1",
+        "planning_good_candidate_retained": true,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "30.76923076923076923076923076923076923077",
+          "candidate_id": "OCCP-3b3883aec393d8fb6c113af5b7ebdf95d6d3ee2b09ac20ce586f1804e54cd623",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.9615384615384615384615384615384615384615",
+          "ending_backorder_qty": "0",
+          "order_count": 3,
+          "total_cost": "745"
+        },
+        "realized_candidate_hash": "b210fcb91a5014e8f3095d31ad07c4358b51620218463415e638a77c15172fde",
+        "realized_cost_regret": "430",
+        "realized_feasible_opportunity_missed": false,
+        "realized_good_candidate_retained": true,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "94.61538461538461538461538461538461538462",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "1230",
+            "ordering_fixed": "50",
+            "ordering_variable": "180"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "current_demand_fulfilled_qty": "185",
+          "current_demand_qty": "185",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "45",
+          "forecast_shortage_qty": "0",
+          "guard_rejection_count": 1,
+          "observed_average_on_hand_mos": "1.091715976331360946745562130177514792899",
+          "order_count": 2,
+          "ordered_qty": "90",
+          "policy_selection_eligible": true,
+          "service_feasible": true,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "1",
+          "total_cost": "1460"
+        },
+        "realized_service_feasible": true,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-B",
+        "hindsight_reference_cost": "1053",
+        "item_id": "HC-INTERMITTENT-HIGH",
+        "locked_policy": {
+          "candidate_id": "OCCP-2e67c954f2106ac2f25c2c217780227537aacc76f1e5bcbc8769d0498047e238",
+          "emos": "0.5",
+          "item_id": "HC-INTERMITTENT-HIGH",
+          "override_reason": null,
+          "policy_kind": "ROP_FIXED_Q",
+          "range_source": "EXACT_SHARED_UNION",
+          "review_cycle_weeks": 2,
+          "rmos": "0.5",
+          "search_group_id": "LS1:WIDE_REFERENCE",
+          "semantic_policy_hash": "e53d7367c9f796b570902bbbd74314a3caa39ed9eecf30086753bdcc9d08b44f",
+          "target_service_level": "0.95"
+        },
+        "mode": "WIDE_REFERENCE",
+        "planning_candidate_count": 88,
+        "planning_cost_regret": "0",
+        "planning_good_candidate_count": 2,
+        "planning_good_candidate_recall": "1",
+        "planning_good_candidate_retained": true,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "18.30769230769230769230769230769230769231",
+          "candidate_id": "OCCP-2e67c954f2106ac2f25c2c217780227537aacc76f1e5bcbc8769d0498047e238",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.9846153846153846153846153846153846153846",
+          "ending_backorder_qty": "0",
+          "order_count": 4,
+          "total_cost": "538"
+        },
+        "realized_candidate_hash": "5e372ddae9138e903d2639be4bfea319960aec74a05d436c00b7e5ac5a418e08",
+        "realized_cost_regret": null,
+        "realized_feasible_opportunity_missed": true,
+        "realized_good_candidate_retained": true,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "13.30769230769230769230769230769230769231",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "173",
+            "ordering_fixed": "100",
+            "ordering_variable": "200"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.6126126126126126126126126126126126126126",
+          "current_demand_fulfilled_qty": "136",
+          "current_demand_qty": "222",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "10",
+          "forecast_shortage_qty": "86",
+          "guard_rejection_count": 1,
+          "observed_average_on_hand_mos": "0.3299427844882390336935791481246026700573",
+          "order_count": 4,
+          "ordered_qty": "100",
+          "policy_selection_eligible": false,
+          "service_feasible": false,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "0.2857142857142857142857142857142857142857",
+          "total_cost": "473"
+        },
+        "realized_service_feasible": false,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-B",
+        "hindsight_reference_cost": "392",
+        "item_id": "HC-STABLE-LOCAL",
+        "locked_policy": {
+          "candidate_id": "OCCP-0204ddb6cac6b1792de3999d42b56a0e74000b52aba820cc76f5ead88f48641d",
+          "emos": "0.25",
+          "item_id": "HC-STABLE-LOCAL",
+          "override_reason": null,
+          "policy_kind": "PERIODIC_ORDER_UP_TO",
+          "range_source": "EXACT_SHARED_UNION",
+          "review_cycle_weeks": 2,
+          "rmos": "0",
+          "search_group_id": "LS1:WIDE_REFERENCE",
+          "semantic_policy_hash": "04553fa25b0093387eaec4cfb6654022cdfd59d0e69e9a8862978a43f1ff73f3",
+          "target_service_level": "0.95"
+        },
+        "mode": "WIDE_REFERENCE",
+        "planning_candidate_count": 88,
+        "planning_cost_regret": "0",
+        "planning_good_candidate_count": 2,
+        "planning_good_candidate_recall": "1",
+        "planning_good_candidate_retained": true,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "7.846153846153846153846153846153846153846",
+          "candidate_id": "OCCP-0204ddb6cac6b1792de3999d42b56a0e74000b52aba820cc76f5ead88f48641d",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.9829059829059829059829059829059829059829",
+          "ending_backorder_qty": "0",
+          "order_count": 5,
+          "total_cost": "387"
+        },
+        "realized_candidate_hash": "a6e540db54ca222811570a36a7b12e4669a36bc1bb84118b38da1b37d466dee6",
+        "realized_cost_regret": "0",
+        "realized_feasible_opportunity_missed": false,
+        "realized_good_candidate_retained": true,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "9",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "117",
+            "ordering_fixed": "125",
+            "ordering_variable": "150"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "current_demand_fulfilled_qty": "110",
+          "current_demand_qty": "110",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "6",
+          "forecast_shortage_qty": "0",
+          "guard_rejection_count": 1,
+          "observed_average_on_hand_mos": "0.2511627906976744186046511627906976744186",
+          "order_count": 5,
+          "ordered_qty": "75",
+          "policy_selection_eligible": true,
+          "service_feasible": true,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "1",
+          "total_cost": "392"
+        },
+        "realized_service_feasible": true,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-B",
+        "hindsight_reference_cost": "439",
+        "item_id": "HC-STABLE-LONG",
+        "locked_policy": {
+          "candidate_id": "OCCP-8e66cdcb80c191eff6b7f5a59a013ad6c81dbdc91265dab97d5f66a18203f36b",
+          "emos": "0.5",
+          "item_id": "HC-STABLE-LONG",
+          "override_reason": null,
+          "policy_kind": "ROP_FIXED_Q",
+          "range_source": "EXACT_SHARED_UNION",
+          "review_cycle_weeks": 2,
+          "rmos": "0.5",
+          "search_group_id": "LS1:WIDE_REFERENCE",
+          "semantic_policy_hash": "36f3c0faa6ecc9f24bd6b603886f0869f1dbc02d3923c6f1650552eb5a5de96c",
+          "target_service_level": "0.99"
+        },
+        "mode": "WIDE_REFERENCE",
+        "planning_candidate_count": 88,
+        "planning_cost_regret": "0",
+        "planning_good_candidate_count": 4,
+        "planning_good_candidate_recall": "1",
+        "planning_good_candidate_retained": true,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "27.38461538461538461538461538461538461538",
+          "candidate_id": "OCCP-8e66cdcb80c191eff6b7f5a59a013ad6c81dbdc91265dab97d5f66a18203f36b",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.9615384615384615384615384615384615384615",
+          "ending_backorder_qty": "0",
+          "order_count": 1,
+          "total_cost": "421"
+        },
+        "realized_candidate_hash": "bd6acef2a6473d8d0d4a68450f37163146b7769745a824ac71b046dabe65bf6d",
+        "realized_cost_regret": "0",
+        "realized_feasible_opportunity_missed": false,
+        "realized_good_candidate_retained": true,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "28.76923076923076923076923076923076923077",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "374",
+            "ordering_fixed": "25",
+            "ordering_variable": "40"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.9514563106796116504854368932038834951456",
+          "current_demand_fulfilled_qty": "98",
+          "current_demand_qty": "103",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "6",
+          "forecast_shortage_qty": "5",
+          "guard_rejection_count": 4,
+          "observed_average_on_hand_mos": "0.8717948717948717948717948717948717948718",
+          "order_count": 1,
+          "ordered_qty": "20",
+          "policy_selection_eligible": true,
+          "service_feasible": true,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "0.9230769230769230769230769230769230769231",
+          "total_cost": "439"
+        },
+        "realized_service_feasible": true,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      },
+      {
+        "case_id": "NEW-HOLDOUT-B",
+        "hindsight_reference_cost": "1030",
+        "item_id": "HC-VOLATILE-REGIONAL",
+        "locked_policy": {
+          "candidate_id": "OCCP-24abeefbc18d8c524994b8981030f190cb4485ff0ba93028af79ee64efbabab5",
+          "emos": "0.5",
+          "item_id": "HC-VOLATILE-REGIONAL",
+          "override_reason": null,
+          "policy_kind": "ROP_FIXED_Q",
+          "range_source": "EXACT_SHARED_UNION",
+          "review_cycle_weeks": 3,
+          "rmos": "0",
+          "search_group_id": "LS1:WIDE_REFERENCE",
+          "semantic_policy_hash": "95311b0d06f51b063ca465932a3f55e8967b8d55255348ac7d9f5d11c6353284",
+          "target_service_level": "0.95"
+        },
+        "mode": "WIDE_REFERENCE",
+        "planning_candidate_count": 88,
+        "planning_cost_regret": "0",
+        "planning_good_candidate_count": 4,
+        "planning_good_candidate_recall": "1",
+        "planning_good_candidate_retained": true,
+        "planning_selected_score": {
+          "average_on_hand_eoh_qty": "30.76923076923076923076923076923076923077",
+          "candidate_id": "OCCP-24abeefbc18d8c524994b8981030f190cb4485ff0ba93028af79ee64efbabab5",
+          "currency": "USD",
+          "current_demand_fill_rate": "0.9615384615384615384615384615384615384615",
+          "ending_backorder_qty": "0",
+          "order_count": 3,
+          "total_cost": "745"
+        },
+        "realized_candidate_hash": "a1464279bc0d522ca1902706a886ba4fd6441673fd58ebadfa241ff46c39a923",
+        "realized_cost_regret": "0",
+        "realized_feasible_opportunity_missed": false,
+        "realized_good_candidate_retained": true,
+        "realized_metrics": {
+          "average_on_hand_eoh_qty": "70.38461538461538461538461538461538461538",
+          "backorder_unit_weeks": "0",
+          "cost_components": {
+            "backorder": "0",
+            "holding": "915",
+            "ordering_fixed": "25",
+            "ordering_variable": "90"
+          },
+          "cost_status": "AVAILABLE_DEVELOPMENT_ASSUMPTION",
+          "currency": "USD",
+          "current_demand_fill_rate": "1",
+          "current_demand_fulfilled_qty": "185",
+          "current_demand_qty": "185",
+          "ending_backorder_qty": "0",
+          "ending_on_hand_qty": "0",
+          "forecast_shortage_qty": "0",
+          "guard_rejection_count": 1,
+          "observed_average_on_hand_mos": "0.8121301775147928994082840236686390532544",
+          "order_count": 1,
+          "ordered_qty": "45",
+          "policy_selection_eligible": true,
+          "service_feasible": true,
+          "service_status": "AVAILABLE",
+          "stockout_free_active_bucket_ratio": "1",
+          "total_cost": "1030"
+        },
+        "realized_service_feasible": true,
+        "search_exclusion_reason": null,
+        "selected": true,
+        "selection_reason_codes": [
+          "RANKED_FIRST",
+          "TIE_RESOLVED_BY_CANDIDATE_ID"
+        ],
+        "source_review_required": false
+      }
+    ],
+    "semantic_content_hash": "bb2b9a5876949f864980dc4669ab3099cd90bfb11e96a292dff958e4e8634208",
+    "source_type": "SYNTHETIC_DEVELOPMENT_HOLDOUT",
+    "summary": {
+      "modes": {
+        "ABC_XYZ_SHARED_BUDGET": {
+          "demand_weighted_realized_fill_rate": "0.9310645724258289703315881326352530541012",
+          "descriptive_total_cost_including_unselected_baseline": "5400",
+          "ending_backorder_qty": "0",
+          "item_period_count": 8,
+          "mean_planning_good_candidate_recall": "0.5",
+          "planning_good_candidate_comparable_count": 8,
+          "planning_good_candidate_missed_count": 4,
+          "realized_feasible_opportunity_missed_count": 2,
+          "realized_range_miss_count": 1,
+          "realized_reference_comparable_count": 8,
+          "realized_service_feasible_count": 6,
+          "selected_count": 8,
+          "sum_item_average_on_hand_eoh_qty": "286.923076923076923076923076923076923077"
+        },
+        "LEGACY_STYLE": {
+          "demand_weighted_realized_fill_rate": "0.8760907504363001745200698080279232111693",
+          "descriptive_total_cost_including_unselected_baseline": "5910",
+          "ending_backorder_qty": "0",
+          "item_period_count": 8,
+          "mean_planning_good_candidate_recall": "0.625",
+          "planning_good_candidate_comparable_count": 8,
+          "planning_good_candidate_missed_count": 3,
+          "realized_feasible_opportunity_missed_count": 2,
+          "realized_range_miss_count": 5,
+          "realized_reference_comparable_count": 8,
+          "realized_service_feasible_count": 6,
+          "selected_count": 8,
+          "sum_item_average_on_hand_eoh_qty": "317.3076923076923076923076923076923076923"
+        },
+        "WIDE_REFERENCE": {
+          "demand_weighted_realized_fill_rate": "0.8760907504363001745200698080279232111693",
+          "descriptive_total_cost_including_unselected_baseline": "5210",
+          "ending_backorder_qty": "0",
+          "item_period_count": 8,
+          "mean_planning_good_candidate_recall": "1",
+          "planning_good_candidate_comparable_count": 8,
+          "planning_good_candidate_missed_count": 0,
+          "realized_feasible_opportunity_missed_count": 2,
+          "realized_range_miss_count": 0,
+          "realized_reference_comparable_count": 8,
+          "realized_service_feasible_count": 6,
+          "selected_count": 8,
+          "sum_item_average_on_hand_eoh_qty": "276.9230769230769230769230769230769230769"
+        }
+      },
+      "paired_service_feasible_comparisons": {
+        "LEGACY_STYLE_VS_ABC": {
+          "abc_sum_average_inventory": "221.7692307692307692307692307692307692308",
+          "abc_total_cost": "3898",
+          "challenger_sum_average_inventory": "270.2307692307692307692307692307692307692",
+          "challenger_total_cost": "4713",
+          "cost_change_ratio": "0.2090815802975885069266290405336069779374",
+          "excluded_pair_count": 2,
+          "jointly_feasible_pair_count": 6
+        },
+        "WIDE_REFERENCE_VS_ABC": {
+          "abc_sum_average_inventory": "221.7692307692307692307692307692307692308",
+          "abc_total_cost": "3898",
+          "challenger_sum_average_inventory": "229.8461538461538461538461538461538461539",
+          "challenger_total_cost": "4013",
+          "cost_change_ratio": "0.02950230887634684453565931246793227296049",
+          "excluded_pair_count": 2,
+          "jointly_feasible_pair_count": 6
+        }
+      }
+    },
+    "timing": [
+      {
+        "artifact_persistence_ns": 104916000750,
+        "case_id": "NEW-HOLDOUT-A",
+        "common_preparation_ns": 4121875,
+        "median_total_ns": {
+          "ABC_XYZ_SHARED_BUDGET": 2669615125,
+          "LEGACY_STYLE": 2788757959,
+          "WIDE_REFERENCE": 7551670625
+        },
+        "realized_wide_replay_ns": 6310594583,
+        "samples": {
+          "ABC_XYZ_SHARED_BUDGET": [
+            {
+              "catalog_ns": 4639250,
+              "search_ns": 984590250,
+              "selection_with_replay_ns": 1659570000,
+              "total_ns": 2648799500
+            },
+            {
+              "catalog_ns": 5301375,
+              "search_ns": 1108135000,
+              "selection_with_replay_ns": 1775832667,
+              "total_ns": 2889269042
+            },
+            {
+              "catalog_ns": 4975541,
+              "search_ns": 1000256709,
+              "selection_with_replay_ns": 1664382875,
+              "total_ns": 2669615125
+            }
+          ],
+          "LEGACY_STYLE": [
+            {
+              "catalog_ns": 4517791,
+              "search_ns": 991367709,
+              "selection_with_replay_ns": 1710108708,
+              "total_ns": 2705994208
+            },
+            {
+              "catalog_ns": 5000125,
+              "search_ns": 1038751084,
+              "selection_with_replay_ns": 1774551042,
+              "total_ns": 2818302251
+            },
+            {
+              "catalog_ns": 4876542,
+              "search_ns": 1051550375,
+              "selection_with_replay_ns": 1732331042,
+              "total_ns": 2788757959
+            }
+          ],
+          "WIDE_REFERENCE": [
+            {
+              "catalog_ns": 6779583,
+              "search_ns": 2742906167,
+              "selection_with_replay_ns": 4766897959,
+              "total_ns": 7516583709
+            },
+            {
+              "catalog_ns": 6625541,
+              "search_ns": 2718021375,
+              "selection_with_replay_ns": 4827023709,
+              "total_ns": 7551670625
+            },
+            {
+              "catalog_ns": 7000875,
+              "search_ns": 2756442375,
+              "selection_with_replay_ns": 4882101541,
+              "total_ns": 7645544791
+            }
+          ]
+        }
+      },
+      {
+        "artifact_persistence_ns": 106170962542,
+        "case_id": "NEW-HOLDOUT-B",
+        "common_preparation_ns": 4919375,
+        "median_total_ns": {
+          "ABC_XYZ_SHARED_BUDGET": 2811499834,
+          "LEGACY_STYLE": 2814539084,
+          "WIDE_REFERENCE": 7634811125
+        },
+        "realized_wide_replay_ns": 6388071041,
+        "samples": {
+          "ABC_XYZ_SHARED_BUDGET": [
+            {
+              "catalog_ns": 4770000,
+              "search_ns": 997271417,
+              "selection_with_replay_ns": 1779257833,
+              "total_ns": 2781299250
+            },
+            {
+              "catalog_ns": 5149500,
+              "search_ns": 1030740542,
+              "selection_with_replay_ns": 1983142917,
+              "total_ns": 3019032959
+            },
+            {
+              "catalog_ns": 5034583,
+              "search_ns": 1019723167,
+              "selection_with_replay_ns": 1786742084,
+              "total_ns": 2811499834
+            }
+          ],
+          "LEGACY_STYLE": [
+            {
+              "catalog_ns": 4961708,
+              "search_ns": 1032741042,
+              "selection_with_replay_ns": 1776836334,
+              "total_ns": 2814539084
+            },
+            {
+              "catalog_ns": 5207458,
+              "search_ns": 1041275125,
+              "selection_with_replay_ns": 1866444833,
+              "total_ns": 2912927416
+            },
+            {
+              "catalog_ns": 4726709,
+              "search_ns": 997300291,
+              "selection_with_replay_ns": 1777168875,
+              "total_ns": 2779195875
+            }
+          ],
+          "WIDE_REFERENCE": [
+            {
+              "catalog_ns": 6877125,
+              "search_ns": 2763102125,
+              "selection_with_replay_ns": 4855016833,
+              "total_ns": 7624996083
+            },
+            {
+              "catalog_ns": 7119458,
+              "search_ns": 2850855875,
+              "selection_with_replay_ns": 5014041500,
+              "total_ns": 7872016833
+            },
+            {
+              "catalog_ns": 7028125,
+              "search_ns": 2766025125,
+              "selection_with_replay_ns": 4861757875,
+              "total_ns": 7634811125
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "database_connections_performed": false,
+  "database_writes": false,
+  "fsn_configuration_changed": false,
+  "operational_gates_changed": false,
+  "commit_push_deployment_performed": false,
+  "statistical_superiority_claimed": false
+}

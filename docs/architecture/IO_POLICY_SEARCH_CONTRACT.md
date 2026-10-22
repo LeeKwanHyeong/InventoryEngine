@@ -5,6 +5,28 @@ Legacy와 동일한 최종 정책을 재현했다거나 EOQ를 경제적으로 �
 기존 Mathematical 기준선과 PPO Shadow의 실행 계약은 변경하지 않는다.
 실제 테스트 범위와 수작업 Golden은 [검증 기록](IO_POLICY_SEARCH_VERIFICATION.md)을 따른다.
 
+2026-10-15 구조 보정: [공통 분류·후보 범위 계약](IO_SEGMENTATION_ADAPTER_CONTRACT.md)을
+프로세스 내부에 추가하고 기존 ABC·XYZ Class/Adapter를 추출했다. 기존 Config·후보·Snapshot·결과
+형식과 Hash는 유지한다. 아래 V1의 `AX~CZ` 필수 조건과 FSN/운영 Gate는 완화하지 않았다.
+Legacy 방식과의 독립 비교는 후속 구현이며 현재 계약으로 Legacy 동등성을 주장하지 않는다.
+
+2026-10-15 개발 규칙 정의: [LEGACY_STYLE V1](IO_LEGACY_STYLE_DEVELOPMENT_RULES.md)에
+참조 ROP 커버리지·물리 Lead Time·단가 구간과 32개 후보 묶음/88개 정확한 합집합을 고정했다.
+이는 별도 Offline 비교용 개발 프로필이며 활성 Config·Legacy 확인값이 아니다.
+후속 [Class·Adapter·Feature Producer](IO_LEGACY_STYLE_IMPLEMENTATION.md)는 로컬 구현·개별 검증했으나
+아래 기존 V1 실행에 연결하지 않았다.
+현 `group_profiles`의 AX~CZ 제한과 기존 Hash/입장 조건은 유지한다. 후속 명시적 후보 Catalog 없이
+중립 그룹 또는 88개 비직사각형 합집합을 기존 단일 프로필로 실행할 수 있다고 간주하지 않는다.
+
+2026-10-19 [별도 후보 Catalog·공통 PSI 실행](IO_CANDIDATE_CATALOG_PSI.md)은 구현했다.
+기존 `execute()`는 그대로이고 내부 실행기가 별도 검증 Catalog도 받을 수 있다. 기존 ABC PSR 1.0.0의
+형식/Hash는 유지하며 새 결과는 `inventory-offline-catalog-psi-result`로 구분한다.
+기존 선택기·Platform/Projection 게시 경로에 새 결과를 기존 PSR인 것처럼 전달하지 않는다.
+
+2026-10-19 [MOS·ROP·Q·서비스 지표 대사](IO_POLICY_TERMINOLOGY_RECONCILIATION.md)를 추가했다.
+요청 EMOS는 기본 Q 커버리지, 유효 EMOS는 최종 `(S−ROP)/Dm`이며 실제 주문량·Q/2와 구분한다.
+Legacy의 `RMOS+EMOS → MOS` 적재식만으로 동일 의미를 확정하지 않는다. 수식·Hash·기존 Gate는 변경하지 않았다.
+
 ## 1. 목적과 단계별 책임
 
 1. Segmentation: 품목을 관리 가능한 그룹으로 묶고 후보 정책의 탐색 범위를 정한다.
@@ -20,8 +42,14 @@ Legacy와 동일한 최종 정책을 재현했다거나 EOQ를 경제적으로 �
 
 ## 2. Legacy에서 확인된 것과 신규 정의를 분리한다
 
+2026-10-15 [원본 규칙 대사](IO_LEGACY_SEGMENTATION_RULE_RECONCILIATION.md)에서 로컬 Rop Python/R,
+제공 Inbound SQL과 보존 DDL을 확인했다. 아래 ROP 확인은 정적 코드 근거이며, 실제 배포 Version이나
+Segmentation 구간·후보 생성 원본의 확보를 뜻하지 않는다.
+
 | 항목 | 확인·정의 |
 |---|---|
+| Legacy ROP 사전 계산 | 로컬 Python/R은 일 수요와 품목 고정 `STOCK_LT`를 이용한 10,000회 재표본추출 분위수 방식. 현재 정규분포 공식 ROP와 구분 |
+| Legacy Segmentation 구간·후보 | 그룹별 범위→품목별 Simulation·선택은 업무 설명으로 확인. 활성 인자·실제 구간 경계·RMOS/EMOS 후보 숫자·증분·조합은 원본 미확보 |
 | Legacy MOS | 제공된 `SP_DSIO_ENG_IN_SAFETY_STOCK`에서 `RMOS + EMOS`로 적재됨 |
 | Legacy RMOS·EMOS 생성식 | 상위 계산 프로시저 미제공. 계산식·단위·EOQ 배부 방식은 미확인 |
 | Legacy MAX/ROP | Inbound 변환은 확인됐지만 `LOT_MAX_QTY`의 생성 의미까지 검증한 것은 아님 |
@@ -66,9 +94,14 @@ MOQ와 발주배수는 정책 산출이 아닌 실제 주문 제약 단계에서
 | Baseline | 신규 주문 없이 기존 확정 공급과 수요만 반영 |
 
 주기적 목표 S 정책은 R+L 보호기간을 사용한다.
-`S = max(기본 S, ceil_UOM(μ×(L+R) + zσ√(L+R)))`이며, 그 안전재고도 R+L로 계산한다.
+안전재고를 먼저 `SS_H=ceil_UOM(zσ√(L+R))`로 올리고,
+`S = max(기본 S, ceil_UOM(μ×(L+R) + SS_H))`로 계산한다. 한 번에만 올림하는 식과 구분한다.
 ROP는 이 정책에서 주문 Trigger가 아니라 비교·분해용 값이다.
 그 결과 실제 S−ROP가 기본 Q보다 커질 수 있으며 유효 EMOS에 이 보정을 기록한다.
+
+현재 Position은 `가용재고 + 미도착 공급 − 고객 BO`이며 예약재고는 제외한다.
+On-hand/MOS·보관비·물리 용량에는 예약재고를 포함한다. `ORDER_UP_TO(S)`의 S는 주문량이 아니라
+목표 Position이며 실제 필요량 `max(0, S−Position)`과 MOQ·배수·용량 적용 수량을 별도로 보존한다.
 
 발주 점검주기 R은 1~13주 정수 후보다. W0를 기준으로 R주마다 판단한다.
 RMOS/EMOS의 월수와 발주 점검주기의 주수는 별도 필드다.

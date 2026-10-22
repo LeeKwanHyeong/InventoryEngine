@@ -1,0 +1,484 @@
+{
+  "evidence_date": "2026-10-21",
+  "repository": "InventoryEngine",
+  "status": "TARGET_STRATEGY_GUARD_CSHARP_PIPELINE_VERIFIED_OFFLINE_NOT_REGISTERED",
+  "branch": "inventory_engine_dev",
+  "head": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+  "preexisting_files_checked": 620,
+  "changed_orchestration_files": [
+    "src/dsio_inventory_engine/recommend_replenishment/application/catalog_search.py",
+    "src/dsio_inventory_engine/recommend_replenishment/application/catalog_selection.py",
+    "src/dsio_inventory_engine/recommend_replenishment/application/mathematical.py",
+    "src/dsio_inventory_engine/recommend_replenishment/application/policy_search.py",
+    "src/dsio_inventory_engine/recommend_replenishment/application/policy_selection.py",
+    "src/dsio_inventory_engine/recommend_replenishment/application/run.py",
+    "src/dsio_inventory_engine/recommend_replenishment/application/selected_order_plan.py",
+    "src/dsio_inventory_engine/simulate_inventory/application/baseline.py"
+  ],
+  "changed_existing_docs": [
+    "docs/architecture/IO_CALCULATION_BOUNDARY_CONTRACT.md",
+    "docs/architecture/IO_CANONICAL_DLL_ADAPTER.md",
+    "docs/architecture/IO_DEVELOPMENT_BASELINE.md",
+    "docs/architecture/IO_LEGACY_PYTHONNET_EXPERIMENT.md",
+    "docs/architecture/IO_SELECTED_POLICY_ORDER_PLAN_CONTRACT.md"
+  ],
+  "missing_preexisting_files": [],
+  "protected_files_unchanged": 122,
+  "file_sha256": {
+    "src/dsio_inventory_engine/recommend_replenishment/application/target_execution.py": "3e433d37ca23e3e9e9ba4adbcc150e2999adae507cb6b00042a6634a5968d5ca",
+    "tests/unit/test_target_execution.py": "4d13058da0c94102ac7c830b476e826b2cd09170a20df87c9e794ec7eb1a2f76",
+    "tests/support/target_execution_fixtures.py": "d6ff7de5f30c508462f9a920a46048bafeadb3a5587d670cab5e29b842a63f13",
+    "scripts/verify_target_execution.py": "87baee6598dd9765579bfa99ea1a437d6776a60785281c6942eb50cce5f272a8",
+    "docs/architecture/IO_TARGET_GUARDED_EXECUTION.md": "6672f922bf791c2d8842e9397a2af559ad4113c7296f6f33bad75423bc50fd13",
+    "src/dsio_inventory_engine/recommend_replenishment/application/policy_search.py": "7dab9ee76090597a761e018217f639952c4afc8c06b87ba6c04c5d710bcea6db",
+    "src/dsio_inventory_engine/recommend_replenishment/application/run.py": "f569cf1ecf1b79c71a3508d4f33f72ef6ab504aa234afced67d8988d1061c6b0",
+    "src/dsio_inventory_engine/recommend_replenishment/application/selected_order_plan.py": "8d95f8d33e4e9b8f260e7912ce7b755a7667daf23edee6f3c91307af695fbe2b",
+    "src/dsio_inventory_engine/recommend_replenishment/application/mathematical.py": "83bca3239b15efe9fb7db73d4a23341e8553ec8bfcc58ba383ec5ee3eb5820aa",
+    "src/dsio_inventory_engine/recommend_replenishment/application/policy_selection.py": "f08b6458c070af51f436e2ce65c72106b3e9e935e8f08a51d8ffbb84be8777ee",
+    "src/dsio_inventory_engine/recommend_replenishment/application/catalog_selection.py": "c147ed90a7c359aceec0302630ee268c47274a12c09bffc5af10ad0bb7f58a26",
+    "src/dsio_inventory_engine/recommend_replenishment/application/catalog_search.py": "1419cf0a99d7689aa0a4c90393d3fb28c027429f87b2f70838f72bfe74703d34",
+    "src/dsio_inventory_engine/simulate_inventory/application/baseline.py": "9872d3a9d97263613eb269f95060f1ae5050c628ab01ab68b0685e620008c2e4",
+    "docs/architecture/IO_SELECTED_POLICY_ORDER_PLAN_CONTRACT.md": "87546e10f0db0ead7a571322bfc9dbe385b5477f3e7b5647acdebd8ea634bb79",
+    "docs/architecture/IO_LEGACY_PYTHONNET_EXPERIMENT.md": "c0be644e506ecd5b045c7026e6b482c40cc014c101b58da0496e07a65bb72310",
+    "docs/architecture/IO_DEVELOPMENT_BASELINE.md": "c32fe6aba9fbce9e9a1b7ddab8b69f9d77f6957430f502b9d99815c4384ec3b4",
+    "docs/architecture/IO_CANONICAL_DLL_ADAPTER.md": "5c59d159992e760344d7f5969911521fa7be699351cc9007abdf1cda90fd794c",
+    "docs/architecture/IO_CALCULATION_BOUNDARY_CONTRACT.md": "cf92329f4eb5c459eff99c7ff655af0875acce483c25f104c06ce613697ca662"
+  },
+  "dll_sha256": "9bc7b1576eb3bcd00d11fb28affb77f7b875764667f120ca54ac98faa944fe7f",
+  "regression_targets": [
+    "tests/contract/test_calculation_boundary_contract.py",
+    "tests/unit/test_legacy_pythonnet.py",
+    "tests/unit/test_legacy_benchmark.py",
+    "tests/unit/test_legacy_python_semantics.py",
+    "tests/unit/test_legacy_reference.py",
+    "tests/integration/test_legacy_python_semantics_offline.py",
+    "tests/integration/test_native_legacy_reference_offline.py",
+    "tests/integration/test_legacy_reference_offline.py",
+    "tests/contract/test_legacy_python_semantics_contract.py",
+    "tests/unit/test_replenishment.py",
+    "tests/contract/test_replenishment_contract.py",
+    "tests/unit/test_seven_axis_segmentation.py",
+    "tests/unit/test_segmentation_adapters.py",
+    "tests/contract/test_segmentation_compatibility_contract.py",
+    "tests/unit/test_policy_search.py",
+    "tests/unit/test_policy_selection.py",
+    "tests/integration/test_policy_search_offline.py",
+    "tests/integration/test_policy_selection_offline.py",
+    "tests/unit/test_candidate_catalog.py",
+    "tests/integration/test_catalog_search_offline.py",
+    "tests/unit/test_catalog_policy_selection.py",
+    "tests/integration/test_catalog_policy_selection_offline.py",
+    "tests/unit/test_selected_order_plan.py",
+    "tests/unit/test_selected_policy_order_plan_binding.py",
+    "tests/contract/test_selected_policy_order_plan_contract.py",
+    "tests/integration/test_selected_order_plan_offline.py",
+    "tests/unit/test_mathematical_policy.py",
+    "tests/contract/test_mathematical_contract.py",
+    "tests/contract/test_canonical_contract.py",
+    "tests/unit/test_development_input.py",
+    "tests/unit/test_baseline_psi.py",
+    "tests/unit/test_canonical_v2.py",
+    "tests/integration/test_baseline_cli_offline.py",
+    "tests/integration/test_mathematical_cli_offline.py",
+    "tests/contract/test_inventory_canonical_context_binding_contract.py",
+    "tests/unit/test_calculation_adapter.py",
+    "tests/unit/test_target_execution.py"
+  ],
+  "actual_native_verification": {
+    "automatic_order_allowed": false,
+    "automatic_publish_allowed": false,
+    "checks": [
+      "candidate-pipeline-ABC_V1",
+      "candidate-pipeline-ABC_XYZ_SHARED_BUDGET",
+      "candidate-pipeline-LEGACY_STYLE",
+      "candidate-pipeline-WIDE_REFERENCE",
+      "literal-periodic",
+      "literal-fixed-q",
+      "literal-moq-multiple",
+      "literal-capacity",
+      "literal-midweek-arrival",
+      "literal-two-week-review",
+      "literal-same-bucket",
+      "literal-no-feasible-moq",
+      "unchanged-fsn-REVIEW-v1",
+      "unchanged-fsn-REVIEW-v2",
+      "unchanged-fsn-BLOCK-v1",
+      "unchanged-fsn-BLOCK-v2",
+      "sde-physical-7-protection-21",
+      "separate-two-item-states",
+      "existing-mathematical-strategy",
+      "raw-137-guard-150-50-0-feedback",
+      "tamper-rejected-build",
+      "tamper-rejected-profile",
+      "tamper-rejected-permission",
+      "tamper-rejected-orders",
+      "tamper-rejected-selection",
+      "tamper-rejected-cost"
+    ],
+    "database_writes": false,
+    "dll_sha256": "9bc7b1576eb3bcd00d11fb28affb77f7b875764667f120ca54ac98faa944fe7f",
+    "native_transition_calls": 13986,
+    "pipelines": [
+      {
+        "candidates": 2,
+        "mode": "ABC_V1",
+        "order_rows": 2,
+        "orders_hash": "1f66520b14dec205fb8e4888eebd33dffe31bc368d3c977ed70550fea7967f4f",
+        "psi_hash": "9580ec08d1bc1bb3d8360b9e5dd5fca65e06fae219ee536ab33809ff0f801eef",
+        "selected": 1,
+        "selection_hash": "1dc99a92df87938682b845042f4d48f9a23ae731bf90f7ba97583736b4a9ae17",
+        "source_hash": "5e1808cb4bde77ee48feb065679065614f3513bcb72326a3882d3d59cd45fc75",
+        "transitions": {
+          "CANDIDATE_EVALUATION": 9,
+          "ORDER_PLAN_REPLAY": 21,
+          "POLICY_SELECTION": 6
+        }
+      },
+      {
+        "candidates": 32,
+        "mode": "ABC_XYZ_SHARED_BUDGET",
+        "order_rows": 2,
+        "orders_hash": "2c547e79c932d03cdb4c78152516e02a2e0e45468d33c8755c71b4da88f67677",
+        "psi_hash": "f2a929f9b88d7edcf41cbf3cf2d528aca808fa90490a894d3669c9a86dd17ccd",
+        "selected": 1,
+        "selection_hash": "0c99e01a363208970e331631c6e28789fada7e10c7fb793ada89fd51a6238634",
+        "source_hash": "0df0df26e1c824428af1181f197739639d44bdf3d0adb93e0d07e42c860606f7",
+        "transitions": {
+          "CANDIDATE_EVALUATION": 99,
+          "ORDER_PLAN_REPLAY": 201,
+          "POLICY_SELECTION": 195
+        }
+      },
+      {
+        "candidates": 32,
+        "mode": "LEGACY_STYLE",
+        "order_rows": 2,
+        "orders_hash": "dd99222861de73def1d201cdcbf1fcba6260c0437b3db3f4816e4ef754fb8378",
+        "psi_hash": "f2a929f9b88d7edcf41cbf3cf2d528aca808fa90490a894d3669c9a86dd17ccd",
+        "selected": 1,
+        "selection_hash": "d61c42ec7662a8b2e3ade7800b9c88a9616e252b301fbb28c37a1631ad86cf51",
+        "source_hash": "2de685fe7011a63c9db2b96e7db8a703f092adaa0ce7356862b49d1edd04c12b",
+        "transitions": {
+          "CANDIDATE_EVALUATION": 99,
+          "ORDER_PLAN_REPLAY": 201,
+          "POLICY_SELECTION": 195
+        }
+      },
+      {
+        "candidates": 88,
+        "mode": "WIDE_REFERENCE",
+        "order_rows": 2,
+        "orders_hash": "26ecdd14c13d92edb8d42d603892ed39829f5dcf929ac32911bdb758531da19b",
+        "psi_hash": "f2a929f9b88d7edcf41cbf3cf2d528aca808fa90490a894d3669c9a86dd17ccd",
+        "selected": 1,
+        "selection_hash": "d81610f731caedcf74cbaf7bfb66c039512326daf5119cbd6184fe502067b876",
+        "source_hash": "d79c30a3caeefcc09f280955b85b8bb1df14d56f3bf969075ee0d40231a63b03",
+        "transitions": {
+          "CANDIDATE_EVALUATION": 267,
+          "ORDER_PLAN_REPLAY": 537,
+          "POLICY_SELECTION": 531
+        }
+      },
+      {
+        "candidates": 1,
+        "mode": "ABC_V1",
+        "order_rows": 2,
+        "orders_hash": "95b68cdabfda57234afb6985fe0c2b4d5c252cc0eb020927c06a8fdf7d89379f",
+        "psi_hash": "c3268e524f3cd50c684479a763c9164a755f2bcc24766113e25efd25924e3b4b",
+        "selected": 1,
+        "selection_hash": "bbe7c5bb5c68268626a7af7963c8c8c3e789cbb1c056cdd2a61b497573595734",
+        "source_hash": "3382a04ca1be866cc3ce6535d37a0fc9e795664eaf4c894a89ac8ab8d6788817",
+        "transitions": {
+          "CANDIDATE_EVALUATION": 6,
+          "ORDER_PLAN_REPLAY": 15,
+          "POLICY_SELECTION": 3
+        }
+      },
+      {
+        "candidates": 1,
+        "mode": "ABC_V1",
+        "order_rows": 1,
+        "orders_hash": "212d057e569b659b86ca94998d7f935a2101d60c000a25a3134d7ff8424583a3",
+        "psi_hash": "8971d928dbb0d706e68308f098d1611a4974b1ed93f58850e1c9b538060da7eb",
+        "selected": 1,
+        "selection_hash": "542d6ebe23b86a4822220a47f5238af69ff37a1b100e4982763ae60ddfebefa8",
+        "source_hash": "fe58018a27114ae572ed79965274ce740725d42617dcdd935c05f4a09149e2da",
+        "transitions": {
+          "CANDIDATE_EVALUATION": 6,
+          "ORDER_PLAN_REPLAY": 15,
+          "POLICY_SELECTION": 3
+        }
+      },
+      {
+        "candidates": 1,
+        "mode": "ABC_V1",
+        "order_rows": 1,
+        "orders_hash": "856e6fd184b8df3dc075cfdea4b66cc43ab78e3766c0523a09f0d0e154f4c83b",
+        "psi_hash": "e946d4ec501acde01ea33be4fc61516641c174013626f52c5acfdfce9cf64abe",
+        "selected": 1,
+        "selection_hash": "f2df3ca1b7bae0c69a35bd5ae1f4a20ac95e8d7316972a43e961945e16024093",
+        "source_hash": "5799e57bab626be3ef89320289b90a7738d9bbc35131d5214a728347ce8a9961",
+        "transitions": {
+          "CANDIDATE_EVALUATION": 6,
+          "ORDER_PLAN_REPLAY": 15,
+          "POLICY_SELECTION": 3
+        }
+      },
+      {
+        "candidates": 1,
+        "mode": "ABC_V1",
+        "order_rows": 1,
+        "orders_hash": "0d40e184bb678c7f25a1e3702cdcc8423add54fc4338b69e7924c873c0a74752",
+        "psi_hash": "4c5e45f2941e568b12088f3cdf25583de0b962b02e44bc27ed285ceed476e42c",
+        "selected": 1,
+        "selection_hash": "1a0fea2a397b4026b5f46b41f52cc0a4431c37da08ec4cddb0869035a05a7b92",
+        "source_hash": "bb432703d33f86fab62bc04e4436927b4eb63c6ec272212ffc1e219870977e71",
+        "transitions": {
+          "CANDIDATE_EVALUATION": 6,
+          "ORDER_PLAN_REPLAY": 15,
+          "POLICY_SELECTION": 3
+        }
+      },
+      {
+        "candidates": 1,
+        "mode": "ABC_V1",
+        "order_rows": 2,
+        "orders_hash": "90df82c8dd6fa837133e6a1223f8e04f7c7b2194ba8f1ef1c52706eab6866f44",
+        "psi_hash": "5f4c7a0cc8b5f4f58e46fc172df35db412ba4a234d7617d5c3e8638da5a2251a",
+        "selected": 1,
+        "selection_hash": "47cf8bbe4709a82494592d2649e319b432088d1efd12f1f6904ab96e33b964c3",
+        "source_hash": "fb9743e3a0bef58b392251ef9084f7da12d0936c67844c95a2d50177a4d0851a",
+        "transitions": {
+          "CANDIDATE_EVALUATION": 6,
+          "ORDER_PLAN_REPLAY": 15,
+          "POLICY_SELECTION": 3
+        }
+      },
+      {
+        "candidates": 1,
+        "mode": "ABC_V1",
+        "order_rows": 1,
+        "orders_hash": "76df85aeec7a0ed0075fdee3216c4c7555ff6f586c6a4d3154619b5cf292fd54",
+        "psi_hash": "d08a8c75f33bb750b036275f0ca2da4286b852b724c3e6803eccf100d0bf3c0f",
+        "selected": 1,
+        "selection_hash": "e4da6b30810bb3a6521aa4bbe28b0c755f24d4f563af97a923f84ffbec7fc22a",
+        "source_hash": "162eeb5e94989e0b8a6c1975dacf5eda17d57e5258653e387f7039129fd502ec",
+        "transitions": {
+          "CANDIDATE_EVALUATION": 6,
+          "ORDER_PLAN_REPLAY": 15,
+          "POLICY_SELECTION": 3
+        }
+      },
+      {
+        "candidates": 1,
+        "mode": "ABC_V1",
+        "order_rows": 3,
+        "orders_hash": "a9adbab806307fa831b90e90c1343679258a539f4cd2d1f3bd35bb885d3328b8",
+        "psi_hash": "fc521774a9705e55826de98a2100c7c4f44444ddb160ae5b969f1234dd4e8f5d",
+        "selected": 1,
+        "selection_hash": "1f39d8b25127ab818224a10796ea1401ff514713d58a39a11add9551a28db570",
+        "source_hash": "f2cddc582a3864d8dfec0e344ab20d2abc154932554e0e13ed998c2b73876343",
+        "transitions": {
+          "CANDIDATE_EVALUATION": 6,
+          "ORDER_PLAN_REPLAY": 15,
+          "POLICY_SELECTION": 3
+        }
+      },
+      {
+        "candidates": 1,
+        "mode": "ABC_V1",
+        "order_rows": 0,
+        "orders_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "psi_hash": "826629126c3d3900e70c9a74ad3012e52e4ca7f5c1d3b04e5444578956167654",
+        "selected": 1,
+        "selection_hash": "827571728d0c02a4d09dd74c973ce46c5c821348d06a4867620e8476a43e8624",
+        "source_hash": "bbc76b9cadcd5418463f488a299465dfa33633e7ead61bfc834f46dd394103ea",
+        "transitions": {
+          "CANDIDATE_EVALUATION": 6,
+          "ORDER_PLAN_REPLAY": 15,
+          "POLICY_SELECTION": 3
+        }
+      },
+      {
+        "candidates": 32,
+        "mode": "LEGACY_STYLE",
+        "order_rows": 2,
+        "orders_hash": "dd99222861de73def1d201cdcbf1fcba6260c0437b3db3f4816e4ef754fb8378",
+        "psi_hash": "f2a929f9b88d7edcf41cbf3cf2d528aca808fa90490a894d3669c9a86dd17ccd",
+        "selected": 1,
+        "selection_hash": "d61c42ec7662a8b2e3ade7800b9c88a9616e252b301fbb28c37a1631ad86cf51",
+        "source_hash": "2de685fe7011a63c9db2b96e7db8a703f092adaa0ce7356862b49d1edd04c12b",
+        "transitions": {
+          "CANDIDATE_EVALUATION": 99,
+          "ORDER_PLAN_REPLAY": 201,
+          "POLICY_SELECTION": 195
+        }
+      },
+      {
+        "candidates": 32,
+        "mode": "LEGACY_STYLE",
+        "order_rows": 2,
+        "orders_hash": "22e69b4e1591fe4e104e066a47dec4ba0274db12960111134a3368affd8958d7",
+        "psi_hash": "f2a929f9b88d7edcf41cbf3cf2d528aca808fa90490a894d3669c9a86dd17ccd",
+        "selected": 1,
+        "selection_hash": "5a74a8b0d7895d083bfcebc9a605ecadf3d631db832926c3a47743d05f8cfceb",
+        "source_hash": "703849900dfd844f928a6095d7b968bff6f9282fcb1a3c1efb0db4a58a0de273",
+        "transitions": {
+          "CANDIDATE_EVALUATION": 99,
+          "ORDER_PLAN_REPLAY": 201,
+          "POLICY_SELECTION": 195
+        }
+      },
+      {
+        "candidates": 32,
+        "mode": "LEGACY_STYLE",
+        "order_rows": 0,
+        "orders_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "psi_hash": "521e1ef85fa438659ce80d363285e0655a38d241b5c15fd78cbe739a8e7b1e18",
+        "selected": 0,
+        "selection_hash": "32adf0e6e30162fb1964794112985ba7d92f4fb1eceb029a345f3f04580d99b5",
+        "source_hash": "4b20b9075c93e302a8c44bfa728e778080b0ac101e93b454eae24cd5d41ac382",
+        "transitions": {
+          "CANDIDATE_EVALUATION": 99,
+          "ORDER_PLAN_REPLAY": 198,
+          "POLICY_SELECTION": 195
+        }
+      },
+      {
+        "candidates": 32,
+        "mode": "LEGACY_STYLE",
+        "order_rows": 0,
+        "orders_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "psi_hash": "521e1ef85fa438659ce80d363285e0655a38d241b5c15fd78cbe739a8e7b1e18",
+        "selected": 0,
+        "selection_hash": "544f2a7545896aae4ef73f64630305846cc31765103c17f051add53b17f60e86",
+        "source_hash": "d4b4122596180ed6c8cf5615e87bb70e39957f4904b4d2790b81dbd539598c26",
+        "transitions": {
+          "CANDIDATE_EVALUATION": 99,
+          "ORDER_PLAN_REPLAY": 198,
+          "POLICY_SELECTION": 195
+        }
+      },
+      {
+        "candidates": 2,
+        "mode": "ABC_V1",
+        "order_rows": 2,
+        "orders_hash": "300c39cb44d44d7f87fb2f5d12145525bccaf4caeb2012cf26e545f55907e57d",
+        "psi_hash": "21adc6e0f3682b75a93d06984e464af701e7910611b2e795a3f7008310fe11fd",
+        "selected": 1,
+        "selection_hash": "225948b9b6fd06fcb3b1eb118c991df861ebf8996e1c75a37ae94de1a65d4fc8",
+        "source_hash": "61b80ded4cc3eeb2d6223bc0871a55bd39dd78dda5db333b73bf71721b62f516",
+        "transitions": {
+          "CANDIDATE_EVALUATION": 9,
+          "ORDER_PLAN_REPLAY": 21,
+          "POLICY_SELECTION": 6
+        }
+      },
+      {
+        "candidates": 4,
+        "mode": "ABC_V1",
+        "order_rows": 2,
+        "orders_hash": "a51d9386a1697a98ccaf74a6e21f4e910ea5d4bc64b259b749d30126daed65b3",
+        "psi_hash": "1d24e80aeca4fa42cfd4d22005df38bb4eeb75f41e9d2d7e4305beacd599c8c1",
+        "selected": 2,
+        "selection_hash": "0dbc093fb1dc07cf3d5185de791d7e8b7746b06dbb08576f7922804f4317c445",
+        "source_hash": "9b09664fc2046c6e456dd0f2fe725779f76c9ca804e9615f086c4b03f2b5ee8c",
+        "transitions": {
+          "CANDIDATE_EVALUATION": 18,
+          "ORDER_PLAN_REPLAY": 42,
+          "POLICY_SELECTION": 12
+        }
+      }
+    ],
+    "python_fallback": false,
+    "runtime_registered": false,
+    "status": "ACTUAL_CSHARP_TARGET_PIPELINE_VERIFIED_OFFLINE"
+  },
+  "verification_environment": {
+    "mode": "Local isolated Linux Arm64 development container",
+    "image": "sha256:a0b6ba2e267b11262a0f42d0f67ebf64f1b9b14d7c2dab38c923713142d372c0",
+    "repository_mount": "read-only",
+    "dll_mount": "read-only",
+    "network": "none",
+    "database_and_secrets_not_mounted": true,
+    "docker_socket_not_mounted": true,
+    "dll_recompiled": false,
+    "dependencies_installed": false,
+    "shared_runtime_changed": false
+  },
+  "tests": {
+    "new_unit_passed": 28,
+    "new_unit_seconds": 3.58,
+    "new_unit_included_in_related_total": true,
+    "related_passed": 736,
+    "related_subtests_passed": 158,
+    "related_seconds": 31.14,
+    "ruff_check": "PASSED",
+    "ruff_format_check": {
+      "status": "PASSED",
+      "files": 404
+    },
+    "full_repository_suite": false,
+    "coverage_measured": false,
+    "independent_review": false,
+    "unit_port_note": "Unit ReferenceKernel is a test dependency probe, not proof of C# execution.",
+    "actual_csharp_note": "Actual verification counts are from the isolated compiled-DLL run, separately from pytest."
+  },
+  "implementation": {
+    "default_python_arithmetic_preserved": true,
+    "existing_orchestration_changed": "Eight files add optional trusted numerical dependencies; default calls still use existing Python arithmetic.",
+    "shared_guard_and_ledger_reused": true,
+    "stock_formula_policy_formula_guard_rules_changed": false,
+    "global_monkeypatch_used": false,
+    "no_order_admission_enforced_before_ledger": true,
+    "only_guard_accepted_supply_consumed": true,
+    "next_observation_uses_accepted_state_and_pending_supply": true,
+    "candidate_evaluation_selection_and_order_plan_use_same_profile_and_dll": true,
+    "existing_candidate_generation_metrics_ranking_and_selected_order_plan_reused": true,
+    "baseline_candidate_and_selected_plan_recomputed_with_csharp": true,
+    "silent_python_fallback": false,
+    "legacy_replay_called": false,
+    "binding_contract": "inventory-calculation-boundary-binding/1.0.0",
+    "semantics_profile": "TARGET_GUARDED",
+    "execution_scope": "DEVELOPMENT / LOCAL_SHADOW / CALCULATION_ONLY",
+    "numerical_implementation": "inventory.psi.target_guarded.csharp/1.0.0",
+    "newly_generated_run_snapshot_or_result_ids": false,
+    "newly_generated_parent_result_hash": false,
+    "existing_ids_hash_functions_and_result_content_preserved": true,
+    "parent_calculation_binding_must_be_retained": true,
+    "result_view_is_durable_artifact": false,
+    "runtime_registration": false,
+    "result_bundle_plan_schema_changed": false
+  },
+  "safety_and_limits": {
+    "existing_fsn_review_block_preserved": true,
+    "existing_source_and_model_admission_preserved": true,
+    "sde_protection_does_not_change_physical_arrival": true,
+    "review_or_shadow_never_automatically_published_or_ordered": true,
+    "failed_dll_or_precision_or_transition_result_fails_without_fallback": true,
+    "unexpected_no_order_gate_proposal_fails_before_transition": true,
+    "mixed_or_tampered_result_fails_exact_replay": true,
+    "source_scope_build_and_profile_checked": true,
+    "synthetic_fixture_results_not_operational_data": true,
+    "ddl_or_database_writes": false,
+    "actual_orders_or_erp_integration": false,
+    "performance_claim": false,
+    "native_macos_or_windows_verification": false
+  },
+  "not_performed": [
+    "Durable storage/read/checkpoint/restart recovery of the new target View",
+    "Runtime/Run Plan/Result Bundle backend registration",
+    "Actual Platform or Demand handoff E2E",
+    "Actual PostgreSQL access/write/migration",
+    "Shared Runtime deployment, service restart, actual orders or ERP integration",
+    "ML/PPO training, operational model promotion or new model-quality evaluation",
+    "Performance/memory benchmark, full-size workload or formal robustness experiment",
+    "Git commit/push, branch change or MR"
+  ],
+  "next_work": [
+    "Persist outer calculation binding together with existing search/selection/order-plan artifacts using existing IDs/hashes",
+    "Offline Writer/Reader/Verifier: missing rows, idempotency, interrupted restart and same-profile/build recovery",
+    "Complete independent InventoryEngine verification before Platform/Demand integration",
+    "Obtain separate explicit approval before actual DB writes/migrations/shared deployment/E2E writes"
+  ]
+}

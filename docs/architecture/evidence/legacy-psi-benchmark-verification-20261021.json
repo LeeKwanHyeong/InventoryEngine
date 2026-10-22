@@ -1,0 +1,181 @@
+{
+  "as_of_date": "2026-10-21",
+  "repository": "InventoryEngine",
+  "branch": "inventory_engine_dev",
+  "head_commit": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+  "status": "BENCHMARK_COMPLETED_OUTPUTS_EQUAL_NO_OPTIMIZATION",
+  "report": "../IO_LEGACY_PSI_PERFORMANCE_BASELINE.md",
+  "protocol": "../data/legacy-psi-benchmark-protocol-v1.json",
+  "protocol_sha256": "cedebe92915ee1b78aa18998ed1826be8a2f6e2a1c09607d3de0ed81771e9904",
+  "input": "../data/legacy-psi-benchmark-input-20261021.json",
+  "input_sha256": "68e6c84e4812b0b3c8fa63757c658c91188317425f743585ff138b56471283c0",
+  "raw_measurements": "legacy-psi-benchmark-results-20261021.json",
+  "raw_measurements_sha256": "3b471c63655fd603c843ffa4c03f8cbfc5e8b33984873f455993b42ead43f3b1",
+  "preparation": "legacy-psi-benchmark-preparation-20261021.json",
+  "environment": {
+    "host_cpu": "Apple M5 Max",
+    "host_os": "macOS 27.0.1",
+    "docker_server": "29.8.0",
+    "docker_vm_architecture": "aarch64",
+    "docker_vm_cpu_count": 18,
+    "docker_vm_memory_bytes": 8317267968,
+    "container_os": "Debian GNU/Linux 12",
+    "kernel": "7.0.12-linuxkit",
+    "cpu_quota": "100000 100000",
+    "memory_max": 1073741824,
+    "worker_threads": 1,
+    "additional_swap": false,
+    "python": "3.12.15",
+    "dotnet_sdk": "8.0.426",
+    "dotnet_runtime": ".NET 8.0.32",
+    "csharp_build": "Release",
+    "tiered_compilation": "0",
+    "image_id": "sha256:260ae6d3cc08462418a1c650aa2e4a23baea84abac856431bfe34269597767e1",
+    "python_base_digest": "sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258",
+    "dotnet_base_digest": "sha256:f7e28a0a3f6f9235929ec19274fd0ddf8534e9159f99fac602ac73304f1ce99f",
+    "compiled_dll_sha256": "2aa4d4dd12c9dc13b1a6d051117c6689364df32b0fc13ce42a992b62ab4e8c32",
+    "network": "none",
+    "source_mount": "read-only",
+    "secret_db_socket_mounts": [],
+    "host_global_python_or_sdk_changed": false
+  },
+  "execution": {
+    "workloads": 2,
+    "languages": 2,
+    "fresh_processes_per_condition": 3,
+    "cold_calls_per_process": 1,
+    "warmup_calls_per_process": 3,
+    "measured_calls_per_process": 7,
+    "samples_per_condition": 21,
+    "measured_calls_total": 84,
+    "preflight_verification_calls": 4,
+    "all_written_payloads": 136,
+    "dropped_samples": 0,
+    "phase_statistic_recalculation_matches_saved_summary": true,
+    "compiled_csharp_calculation_text_changed": false,
+    "python_reference_calculation_files_changed": false
+  },
+  "equality": {
+    "files_verified": 136,
+    "rows_verified_across_all_files": 1923584,
+    "mismatches": 0,
+    "mode": "ENTIRE_BINARY_PAYLOAD_EXACT_NO_TOLERANCE",
+    "one_item": {
+      "rows_per_file": 1664,
+      "bytes_per_file": 219704,
+      "sha256": "8bec8190823c6eafd525220c6b1c2100a30ad5728d6fd1049ae518c949da0ebe",
+      "positive_order_rows": 442,
+      "positive_backlog_rows": 2
+    },
+    "sixteen_items": {
+      "rows_per_file": 26624,
+      "bytes_per_file": 3514424,
+      "sha256": "13f50b6ffcf5294cd6ebc21368bf25634d198ad8ddd37698ff9c5208b5101ec7",
+      "positive_order_rows": 6948,
+      "positive_backlog_rows": 7354
+    },
+    "original_and_extended_release_csharp_captures_equal_preserved_fixtures": true
+  },
+  "test_results": {
+    "new_tests_passed": 17,
+    "targeted_regression_passed": 442,
+    "subtests_passed": 124,
+    "targeted_seconds": 22.08,
+    "full_regression_rerun": false,
+    "ruff_check": "PASS: src tests scripts --no-cache",
+    "ruff_format": "PASS: 388 Python files",
+    "diff_check": "PASS",
+    "local_markdown_links_verified": 129,
+    "staged_source_input_and_result_hashes": "PASS",
+    "coverage_run": false,
+    "independent_agent_review_performed": false
+  },
+  "preservation": {
+    "existing_files_at_start": 597,
+    "existing_unchanged": 594,
+    "existing_document_changes": 3,
+    "existing_changed": [
+      "docs/architecture/IO_LEGACY_COMPATIBLE_PERFORMANCE_PLAN.md",
+      "docs/architecture/IO_LEGACY_PYTHON_REFERENCE_CONTRACT.md",
+      "docs/architecture/IO_DEVELOPMENT_BASELINE.md"
+    ],
+    "new_files": 12,
+    "all_existing_source_schemas_and_tests_unchanged": true,
+    "existing_improved_python_unchanged": true,
+    "reference_python_unchanged": true,
+    "existing_goldens_hashes_and_abc_xyz_results_unchanged": true,
+    "fsn_unchanged": true,
+    "operational_gates_unchanged": true,
+    "db_unchanged": true,
+    "platform_unchanged": true,
+    "public_runtime_unchanged": true,
+    "personal_environment_and_unrelated_outputs_preserved": true,
+    "optimization_performed": false,
+    "commit_or_push_performed": false
+  },
+  "measured_source_and_tool_fingerprints": [
+    {
+      "path": "docs/architecture/data/legacy-psi-benchmark-input-20261021.json",
+      "sha256": "68e6c84e4812b0b3c8fa63757c658c91188317425f743585ff138b56471283c0"
+    },
+    {
+      "path": "docs/architecture/data/legacy-psi-benchmark-protocol-v1.json",
+      "sha256": "cedebe92915ee1b78aa18998ed1826be8a2f6e2a1c09607d3de0ed81771e9904"
+    },
+    {
+      "path": "docs/architecture/evidence/legacy-psi-benchmark-preparation-20261021.json",
+      "sha256": "a1551325811fb59cdb3eabbb4c7a2d41ef6641f899d54a0b400cba5097d5754c"
+    },
+    {
+      "path": "docs/architecture/evidence/legacy-psi-benchmark-results-20261021.json",
+      "sha256": "3b471c63655fd603c843ffa4c03f8cbfc5e8b33984873f455993b42ead43f3b1"
+    },
+    {
+      "path": "scripts/benchmark_legacy_psi.py",
+      "sha256": "3a232967a456320191235de49c0fb6a34cbb5cf0e18520aa6761ce8ca67e162c"
+    },
+    {
+      "path": "scripts/run_legacy_psi_benchmark.py",
+      "sha256": "d63cad10e6454546d3e3c9389aa610cb1b94824812e967308c3ce2addcdcb0f8"
+    },
+    {
+      "path": "tests/reference/legacy_csharp/Benchmark.Dockerfile",
+      "sha256": "82812a01471d45531a9677aa2f66fbb6e333f7c2105f486c547d5d599459f89b"
+    },
+    {
+      "path": "tests/reference/legacy_csharp/Benchmark.csproj",
+      "sha256": "929925aae9562f1309f6a5a3837b88baf51d069c8648f60af3b63aa4e3730010"
+    },
+    {
+      "path": "tests/reference/legacy_csharp/BenchmarkHarness.cs",
+      "sha256": "cbf6b14009c46f23738875bedca368ab81910ccecb66d7887403a16654d73484"
+    },
+    {
+      "path": "tests/unit/test_legacy_benchmark.py",
+      "sha256": "57abac089f739ab31efaa33ce34f2293ac75e19f5ba49e2e2ac74f0f3701507e"
+    }
+  ],
+  "scope_limits": [
+    "Standalone serial extracted PSI, not production parallel DSIO or whole InventoryEngine",
+    "One item uses LT0; sixteen item workload mixes four LT settings; no linear scaling extrapolation",
+    "Fixed synthetic 32 candidate grid; segmentation/candidate generation/cost/final policy selection excluded",
+    "Binary file fsync writer only; production JSON/Parquet/outbox/DB/Receipt/directory fsync excluded",
+    "Python reference includes immutable result and finite checks absent in original mutable C#; not a pure language speed ratio",
+    "Small-sample P95 and shared-host VM conditions, not an operational SLA or dedicated physical-core experiment",
+    "Input preparation, process/container startup and build excluded from per-call total; preparation and cold body recorded separately"
+  ],
+  "local_artifacts": {
+    "root": "/private/tmp/io-psi-benchmark.mjpzTN/final",
+    "binary_payload_bytes": 253920704,
+    "binaries_preserved": true,
+    "all_containers_removed_on_exit": true,
+    "images_retained_in_local_docker_cache": true,
+    "raw_metadata_inputs_and_fingerprints_also_preserved_in_repository": true,
+    "rerun_needed_if_temporary_binary_files_are_deleted": true
+  },
+  "next_work": [
+    "Profile Python computation costs without changing business rules",
+    "Choose optimization or C# adapter scope based on the measured bottlenecks",
+    "Re-run the frozen equality and benchmark only after separately requested changes"
+  ]
+}

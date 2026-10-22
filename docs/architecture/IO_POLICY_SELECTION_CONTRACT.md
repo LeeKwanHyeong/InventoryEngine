@@ -4,6 +4,13 @@
 [정책 탐색](IO_POLICY_SEARCH_CONTRACT.md)의 실제 품목별 Simulation 결과를 소비하는
 개발 Shadow 선택기다. 운영 정책 승인·자동 게시·발주계획 생성·ERP 발주 기능은 아니다.
 
+2026-10-19 [용어·서비스 지표 대사](IO_POLICY_TERMINOLOGY_RECONCILIATION.md)로 CSL 입력과
+PSI의 수량 충족률·주차 무결품 비율을 구분했다. 아래 선정 수식·순위·Hash·Gate는 변경하지 않았다.
+
+동일 날짜 후속 [Catalog 선정·평가](IO_CATALOG_POLICY_SELECTION.md)는 별도 Offline 결과 계약이다.
+공통 비교 함수의 기본 `PC-`는 유지하고 신규 경로에서만 `OCCP-`를 명시한다.
+이 문서의 ABC PSR/PSEL 입력·출력 계약과 Hash, FSN·운영 Gate를 바꾸지 않는다.
+
 ## 1. 선택의 의미와 책임 경계
 
 `RunPolicySelectionUseCase(deployment).execute(search_result)`가 같은 Site의 품목마다

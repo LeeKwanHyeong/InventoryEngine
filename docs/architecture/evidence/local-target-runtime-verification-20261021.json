@@ -1,0 +1,370 @@
+{
+  "verification_date": "2026-10-21",
+  "scope": "EXPLICIT_LOCAL_RUNTIME_PLATFORM_RESULT_READER_OFFLINE",
+  "repositories": {
+    "InventoryEngine": {
+      "branch": "inventory_engine_dev",
+      "head": "99f2f1286d90dfe0e26025e603786a813ea51dac"
+    },
+    "dsai_platform": {
+      "branch": "codex/inventory-psi-strategy-v2",
+      "head": "0ab057b8daac8edeab036c1f7dacc36869c0aab1"
+    }
+  },
+  "unchanged": {
+    "existing_python_calculation": true,
+    "existing_domain_ids_and_result_hashes": true,
+    "original_bundle_and_outbox": true,
+    "existing_fsn_and_operational_gates": true,
+    "schemas_and_ddl": true,
+    "native_dll": true
+  },
+  "coverage": {
+    "new_engine_runtime_tests": 20,
+    "new_platform_cross_tests": 10,
+    "engine_related": {
+      "passed": 1002,
+      "subtests_passed": 210,
+      "skipped": 0,
+      "seconds": 260.99
+    },
+    "platform_related": {
+      "passed": 81,
+      "skipped": 0,
+      "warnings": 4,
+      "seconds": 16.25
+    },
+    "whole_repository_suite": false
+  },
+  "static": {
+    "engine_ruff_check": true,
+    "engine_ruff_format_files": 420,
+    "platform_changed_python_ruff": true,
+    "existing_schema_json_parse_count": 42,
+    "diff_check": true
+  },
+  "regression_targets": [
+    "tests/contract/test_calculation_boundary_contract.py",
+    "tests/unit/test_legacy_pythonnet.py",
+    "tests/unit/test_legacy_benchmark.py",
+    "tests/unit/test_legacy_python_semantics.py",
+    "tests/unit/test_legacy_reference.py",
+    "tests/integration/test_legacy_python_semantics_offline.py",
+    "tests/integration/test_native_legacy_reference_offline.py",
+    "tests/integration/test_legacy_reference_offline.py",
+    "tests/contract/test_legacy_python_semantics_contract.py",
+    "tests/unit/test_replenishment.py",
+    "tests/contract/test_replenishment_contract.py",
+    "tests/unit/test_seven_axis_segmentation.py",
+    "tests/unit/test_segmentation_adapters.py",
+    "tests/contract/test_segmentation_compatibility_contract.py",
+    "tests/unit/test_policy_search.py",
+    "tests/unit/test_policy_selection.py",
+    "tests/integration/test_policy_search_offline.py",
+    "tests/integration/test_policy_selection_offline.py",
+    "tests/unit/test_candidate_catalog.py",
+    "tests/integration/test_catalog_search_offline.py",
+    "tests/unit/test_catalog_policy_selection.py",
+    "tests/integration/test_catalog_policy_selection_offline.py",
+    "tests/unit/test_selected_order_plan.py",
+    "tests/unit/test_selected_policy_order_plan_binding.py",
+    "tests/contract/test_selected_policy_order_plan_contract.py",
+    "tests/integration/test_selected_order_plan_offline.py",
+    "tests/unit/test_mathematical_policy.py",
+    "tests/contract/test_mathematical_contract.py",
+    "tests/contract/test_canonical_contract.py",
+    "tests/unit/test_development_input.py",
+    "tests/unit/test_baseline_psi.py",
+    "tests/unit/test_canonical_v2.py",
+    "tests/integration/test_baseline_cli_offline.py",
+    "tests/integration/test_mathematical_cli_offline.py",
+    "tests/contract/test_inventory_canonical_context_binding_contract.py",
+    "tests/unit/test_calculation_adapter.py",
+    "tests/unit/test_target_execution.py",
+    "tests/unit/test_target_pipeline_artifacts.py",
+    "tests/integration/test_target_durable_offline.py",
+    "tests/unit/test_robustness_artifact_store.py",
+    "tests/integration/test_robustness_durable_offline.py",
+    "tests/unit/test_target_result_link.py",
+    "tests/integration/test_target_result_link_offline.py",
+    "tests/integration/test_dsim_projection_offline.py",
+    "tests/integration/test_dsim_projection_recovery_offline.py",
+    "tests/integration/test_source_projection_execution_offline.py",
+    "tests/integration/test_source_projection_platform_offline.py",
+    "tests/integration/test_result_evidence_offline.py",
+    "tests/integration/test_result_pipeline_offline.py",
+    "tests/integration/test_policy_analysis_run_offline.py",
+    "tests/integration/test_automatic_policy_analysis_offline.py",
+    "tests/unit/test_inventory_result_bundle.py",
+    "tests/contract/test_inventory_result_bundle_contract.py",
+    "tests/integration/test_target_runtime_execution_offline.py",
+    "tests/integration/test_target_runtime_platform_offline.py"
+  ],
+  "platform_regression_targets": [
+    "tests/unit/platform/test_inventory_target_result_execution.py",
+    "tests/unit/platform/test_inventory_runtime_input_export.py",
+    "tests/unit/platform/test_inventory_dsim_projection.py",
+    "tests/unit/platform/test_inventory_runtime_evidence.py",
+    "tests/unit/platform/test_inventory_policy_analysis.py",
+    "tests/unit/platform/test_inventory_local_source_assembly.py"
+  ],
+  "installation": {
+    "wheel_version": "0.15.0",
+    "candidate_only": true,
+    "wheel_sha256": "d76e2e4093259580c812b0e54b02a6e8a3f76f96b6dda307e5ed475d9a568f86",
+    "installed_build_hash": "3c0fe8b56c2acb10e470ba5c09fadff6b4e5aa1fb771e7d4f37e56805affd5cc",
+    "existing_environment_modified": false,
+    "factory_guard_bypassed_in_installed_test": false,
+    "platform_numerical_port": "REFERENCE_TEST_DOUBLE_NOT_CSHARP"
+  },
+  "native": {
+    "script": "scripts/verify_target_runtime.py",
+    "image": "sha256:a0b6ba2e267b11262a0f42d0f67ebf64f1b9b14d7c2dab38c923713142d372c0",
+    "dll_sha256": "9bc7b1576eb3bcd00d11fb28affb77f7b875764667f120ca54ac98faa944fe7f",
+    "network": "none",
+    "sqlite_library_sha256": "1da497e08d6343387879262c2be006e4801cb32d94f2868966747c1c5a6d1ede",
+    "sqlite_role": "TEMPORARY_ARTIFACT_STORE_NOT_DEVELOPMENT_DATABASE",
+    "cases": [
+      {
+        "mode": "ABC_XYZ_SHARED_BUDGET",
+        "interruption": null,
+        "fresh_process_verified": true,
+        "result_pointer": {
+          "projection": {
+            "artifact_reference": "artifact:inventory:10000000-0000-4000-8000-000000000001:1:dsim:manifest:7caaa752eebcf64b59a6bbe3e00d2758c3ee4c835f9f31b481374f104cafdb17",
+            "content_hash": "7caaa752eebcf64b59a6bbe3e00d2758c3ee4c835f9f31b481374f104cafdb17",
+            "projection_content_hash": "ae70d11179d719ac673f7c295972bef5d0cbd9be6ebb7862d48f4499cbb43638"
+          },
+          "sources": {
+            "bundle": {
+              "artifact_reference": "artifact:inventory:10000000-0000-4000-8000-000000000001:1:bundle",
+              "content_hash": "03893141fceb667a183d0567901a1d30e729e2edd6f9523b84dab2ea5d57e1cb"
+            },
+            "target_input": {
+              "byte_count": 54366,
+              "content_hash": "161c54f66224aab213c089beb74392b94f6bece05351f0aaa58f5c6f3f34e4fc",
+              "kind": "INPUT"
+            },
+            "target_manifest": {
+              "byte_count": 14184,
+              "content_hash": "9a1e8177ce72ee09c3edd252389b5815f8b6d3c3582e3f8e5ec04319145b8ad3",
+              "kind": "MANIFEST"
+            }
+          },
+          "target_result_link": {
+            "artifact_reference": "artifact:inventory:10000000-0000-4000-8000-000000000001:1:target-policy-result",
+            "content_hash": "cfe34c669a9f0ef35afebec8879333d6732fe3e991207dee654dca0d3a59d4f8"
+          }
+        },
+        "candidate_count": 32,
+        "selected_item_count": 1,
+        "order_count": 2,
+        "orders_content_hash": "f203d93c6abd9269b41c9d7d6e53b956043d852a41214bc9a80fb023fa4c99a2",
+        "search_content_hash": "30f19812e8ff12774acb0e7466dbe0ab50133a7cbf6fb12b5d1b65ca0ef43be4",
+        "selection_content_hash": "020b7ef5e0aa4f18bdcd4f109aeae01dae6efa6c823c187c9a06c257c94792d0",
+        "automatic_publish_allowed": false,
+        "automatic_order_allowed": false
+      },
+      {
+        "mode": "LEGACY_STYLE",
+        "interruption": null,
+        "fresh_process_verified": true,
+        "result_pointer": {
+          "projection": {
+            "artifact_reference": "artifact:inventory:10000000-0000-4000-8000-000000000001:1:dsim:manifest:2dc103c38a06e660baee93bd00db9522f2f0886815d8c0de10c0cf207173e43b",
+            "content_hash": "2dc103c38a06e660baee93bd00db9522f2f0886815d8c0de10c0cf207173e43b",
+            "projection_content_hash": "e7128c8a833d33d5bf0af57953599138d899cd167d2728f572b277f400228936"
+          },
+          "sources": {
+            "bundle": {
+              "artifact_reference": "artifact:inventory:10000000-0000-4000-8000-000000000001:1:bundle",
+              "content_hash": "03893141fceb667a183d0567901a1d30e729e2edd6f9523b84dab2ea5d57e1cb"
+            },
+            "target_input": {
+              "byte_count": 54549,
+              "content_hash": "420a79988f7fe4ba538e047f3c10a6756ff24a6e1e8b075336416b957214658e",
+              "kind": "INPUT"
+            },
+            "target_manifest": {
+              "byte_count": 14184,
+              "content_hash": "c80020b59191dd1a773af9ade320776eb562273fc936e11c31f4f9624d5c1cab",
+              "kind": "MANIFEST"
+            }
+          },
+          "target_result_link": {
+            "artifact_reference": "artifact:inventory:10000000-0000-4000-8000-000000000001:1:target-policy-result",
+            "content_hash": "68efe4838f975a8a97cb56d14dae7875dacf6e1cc6fcdae2b6e95a567372566c"
+          }
+        },
+        "candidate_count": 32,
+        "selected_item_count": 1,
+        "order_count": 2,
+        "orders_content_hash": "0a259c3f3831038ed5fc4c65c93a1e619ca48ec71ed93c03c65357a6aed9f484",
+        "search_content_hash": "2191d7365010eaaced90a6ab7eb32262941f1a7ba897a68f36653a574827dda4",
+        "selection_content_hash": "995e484ffd0dcec1ab4e7d10fd5f18025469717fdfea06877035728e779c0024",
+        "automatic_publish_allowed": false,
+        "automatic_order_allowed": false
+      },
+      {
+        "mode": "WIDE_REFERENCE",
+        "interruption": null,
+        "fresh_process_verified": true,
+        "result_pointer": {
+          "projection": {
+            "artifact_reference": "artifact:inventory:10000000-0000-4000-8000-000000000001:1:dsim:manifest:2a4dd61f0b0ef19428191529354a0449a0f6a7c6c5ed35b94ec53fc89d6c9131",
+            "content_hash": "2a4dd61f0b0ef19428191529354a0449a0f6a7c6c5ed35b94ec53fc89d6c9131",
+            "projection_content_hash": "ecace128f51d56b889bed870a1572aa8e8a355e1d34a44eaba4c261302d465f5"
+          },
+          "sources": {
+            "bundle": {
+              "artifact_reference": "artifact:inventory:10000000-0000-4000-8000-000000000001:1:bundle",
+              "content_hash": "03893141fceb667a183d0567901a1d30e729e2edd6f9523b84dab2ea5d57e1cb"
+            },
+            "target_input": {
+              "byte_count": 77552,
+              "content_hash": "151103ac38d19250ffe18bdc22e384b1017d05a2986483b5e530d31848dd10f7",
+              "kind": "INPUT"
+            },
+            "target_manifest": {
+              "byte_count": 33842,
+              "content_hash": "caf1ddb791185614fadd62408afdfdf69037d1d8a1641e47e92397f49a47c9b4",
+              "kind": "MANIFEST"
+            }
+          },
+          "target_result_link": {
+            "artifact_reference": "artifact:inventory:10000000-0000-4000-8000-000000000001:1:target-policy-result",
+            "content_hash": "2ea91070c38c05bf369398911d58cf16f67266e8ce09d1eabc184a7ef8aa49e3"
+          }
+        },
+        "candidate_count": 88,
+        "selected_item_count": 1,
+        "order_count": 2,
+        "orders_content_hash": "4ce87ecac47dafe6e6e136eeea2c9040bf199b5791d4aaa31bb820e16766ed9b",
+        "search_content_hash": "9eb312e3042aed8f7e673d51aa1d2084d05b3f05d87cf288c9a1373b5cff110b",
+        "selection_content_hash": "fb62a7db154ce0a716a66e0b007b7ba4c40b6716a5f8ec9ed2f9ed16372affc1",
+        "automatic_publish_allowed": false,
+        "automatic_order_allowed": false
+      },
+      {
+        "mode": "ABC_V1",
+        "interruption": "LINK",
+        "fresh_process_verified": true,
+        "result_pointer": {
+          "projection": {
+            "artifact_reference": "artifact:inventory:10000000-0000-4000-8000-000000000001:1:dsim:manifest:925f5bd328f18974120a498ec3549f2c8c36d5cb74309902a86dd1916097ed63",
+            "content_hash": "925f5bd328f18974120a498ec3549f2c8c36d5cb74309902a86dd1916097ed63",
+            "projection_content_hash": "091bdec2d47a9bbb0b1542cd41102ac3652baafd7b593d977840390019f09b8d"
+          },
+          "sources": {
+            "bundle": {
+              "artifact_reference": "artifact:inventory:10000000-0000-4000-8000-000000000001:1:bundle",
+              "content_hash": "03893141fceb667a183d0567901a1d30e729e2edd6f9523b84dab2ea5d57e1cb"
+            },
+            "target_input": {
+              "byte_count": 26780,
+              "content_hash": "727bd8504fd972f9f99c9fa239077381d730ee7cc079707a949026d28b19fdb3",
+              "kind": "INPUT"
+            },
+            "target_manifest": {
+              "byte_count": 3654,
+              "content_hash": "2e9a40d88082e74ccd4e0bd418460f298351bb552cf862b7a6c1c8bc9d520415",
+              "kind": "MANIFEST"
+            }
+          },
+          "target_result_link": {
+            "artifact_reference": "artifact:inventory:10000000-0000-4000-8000-000000000001:1:target-policy-result",
+            "content_hash": "dfb4918136c1be4c9a0b0428abf3a44462ac353a99df94b2a6f4bede83662e80"
+          }
+        },
+        "candidate_count": 2,
+        "selected_item_count": 1,
+        "order_count": 2,
+        "orders_content_hash": "a400387b862b221f06eb7b05f079583d9615b6b69ec3c1506514e154ff81fc1b",
+        "search_content_hash": "358ede389526fcc9bdbe4a50e9fcc5c6c62022b2c3bef1648dbc7b77971ba201",
+        "selection_content_hash": "fdcb2db02b0a7770b4fd929ae11a7bd9210dfa92f07072820892c22521f5dee2",
+        "automatic_publish_allowed": false,
+        "automatic_order_allowed": false
+      },
+      {
+        "mode": "ABC_V1",
+        "interruption": "PROJECTION",
+        "fresh_process_verified": true,
+        "result_pointer": {
+          "projection": {
+            "artifact_reference": "artifact:inventory:10000000-0000-4000-8000-000000000001:1:dsim:manifest:925f5bd328f18974120a498ec3549f2c8c36d5cb74309902a86dd1916097ed63",
+            "content_hash": "925f5bd328f18974120a498ec3549f2c8c36d5cb74309902a86dd1916097ed63",
+            "projection_content_hash": "091bdec2d47a9bbb0b1542cd41102ac3652baafd7b593d977840390019f09b8d"
+          },
+          "sources": {
+            "bundle": {
+              "artifact_reference": "artifact:inventory:10000000-0000-4000-8000-000000000001:1:bundle",
+              "content_hash": "03893141fceb667a183d0567901a1d30e729e2edd6f9523b84dab2ea5d57e1cb"
+            },
+            "target_input": {
+              "byte_count": 26780,
+              "content_hash": "727bd8504fd972f9f99c9fa239077381d730ee7cc079707a949026d28b19fdb3",
+              "kind": "INPUT"
+            },
+            "target_manifest": {
+              "byte_count": 3654,
+              "content_hash": "2e9a40d88082e74ccd4e0bd418460f298351bb552cf862b7a6c1c8bc9d520415",
+              "kind": "MANIFEST"
+            }
+          },
+          "target_result_link": {
+            "artifact_reference": "artifact:inventory:10000000-0000-4000-8000-000000000001:1:target-policy-result",
+            "content_hash": "dfb4918136c1be4c9a0b0428abf3a44462ac353a99df94b2a6f4bede83662e80"
+          }
+        },
+        "candidate_count": 2,
+        "selected_item_count": 1,
+        "order_count": 2,
+        "orders_content_hash": "a400387b862b221f06eb7b05f079583d9615b6b69ec3c1506514e154ff81fc1b",
+        "search_content_hash": "358ede389526fcc9bdbe4a50e9fcc5c6c62022b2c3bef1648dbc7b77971ba201",
+        "selection_content_hash": "fdcb2db02b0a7770b4fd929ae11a7bd9210dfa92f07072820892c22521f5dee2",
+        "automatic_publish_allowed": false,
+        "automatic_order_allowed": false
+      }
+    ]
+  },
+  "preservation": {
+    "before_file_counts": {
+      "engine": 640,
+      "platform": 474
+    },
+    "existing_engine_code_changes": [],
+    "existing_platform_code_changes": [],
+    "generated_build_metadata_changed": [
+      "src/dsio_inventory_engine.egg-info/SOURCES.txt"
+    ],
+    "deleted_files": [],
+    "code_fingerprints": {
+      "engine": {
+        "scripts/verify_target_runtime.py": "70f623fefcf6293db6121534bcf5ac1b59302dea937188445be1216627ca2ddb",
+        "src/dsio_inventory_engine/run_inventory/target_result_execution.py": "0b593f38e20c84fae07be8d07d6b3590ee04e3ee990f5650c0e6c60614010a21",
+        "tests/integration/test_target_runtime_execution_offline.py": "28e82debe4e8b026e105c90d2f9447bbbc152fe5da8d63bfdb0432aa60676ce9",
+        "tests/integration/test_target_runtime_platform_offline.py": "c33f032140526db0f14f27fd79632e84b01a6746f91db72e232285ceb1b1b001",
+        "tests/support/target_runtime_fixtures.py": "cc6327105c7aceb50618ac240e7227073fed205170c426e23ddd0ef57f3364cb"
+      },
+      "platform": {
+        "backend/platform_api/services/inventory_target_result_execution.py": "d374c8de2260e5668cdc92f43f9aafa0ecc401e96efa7a65e45dd42d3125dde4",
+        "tests/unit/platform/test_inventory_target_result_execution.py": "e14165ff11a356587120eaeb031a2c9df76a2249f399e21256ac8c07aa31fefc"
+      }
+    }
+  },
+  "boundaries": {
+    "development_database_accessed": false,
+    "database_migration_or_real_writes": false,
+    "http_server_started": false,
+    "shared_runtime_deployed": false,
+    "default_strategy_registration_changed": false,
+    "initial_source_to_target_automatic_execution_complete": false,
+    "missing_target_complete_slot_recalculated": false,
+    "real_v100_source_e2e": false,
+    "erp_orders_sent": false,
+    "committed": false,
+    "pushed": false,
+    "performance_or_memory_benchmark": false,
+    "official_robustness_experiment": false
+  }
+}

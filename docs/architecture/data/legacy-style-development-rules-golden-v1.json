@@ -1,0 +1,944 @@
+{
+  "contract_id": "legacy-style-development-rules-golden",
+  "contract_version": "1.0.0",
+  "rules_profile_hash": "a3121dfa885f8b4d2e0df54605789ad841661693b0f386329fe4fa60946ecbae",
+  "fixture_layer": "RULE_PRIMITIVES_NOT_SEALED_RUNTIME_INPUT",
+  "source_type": "SYNTHETIC_DEVELOPMENT_FIXTURE",
+  "operational_approved": false,
+  "routing_cases": [
+    {
+      "id": "R1_L1_P1",
+      "features": {
+        "rop_cover_numerator": "0.25",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 7,
+        "unit_cost_usd": "5"
+      },
+      "expected_group_id": "LS1:R1-L1-P1",
+      "expected_score": 0,
+      "expected_profile": "SMALL",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R1_L1_P2",
+      "features": {
+        "rop_cover_numerator": "0.25",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 7,
+        "unit_cost_usd": "20"
+      },
+      "expected_group_id": "LS1:R1-L1-P2",
+      "expected_score": -1,
+      "expected_profile": "SMALL",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R1_L1_P3",
+      "features": {
+        "rop_cover_numerator": "0.25",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 7,
+        "unit_cost_usd": "200"
+      },
+      "expected_group_id": "LS1:R1-L1-P3",
+      "expected_score": -2,
+      "expected_profile": "SMALL",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R1_L2_P1",
+      "features": {
+        "rop_cover_numerator": "0.25",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 21,
+        "unit_cost_usd": "5"
+      },
+      "expected_group_id": "LS1:R1-L2-P1",
+      "expected_score": 1,
+      "expected_profile": "MEDIUM",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R1_L2_P2",
+      "features": {
+        "rop_cover_numerator": "0.25",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 21,
+        "unit_cost_usd": "20"
+      },
+      "expected_group_id": "LS1:R1-L2-P2",
+      "expected_score": 0,
+      "expected_profile": "SMALL",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R1_L2_P3",
+      "features": {
+        "rop_cover_numerator": "0.25",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 21,
+        "unit_cost_usd": "200"
+      },
+      "expected_group_id": "LS1:R1-L2-P3",
+      "expected_score": -1,
+      "expected_profile": "SMALL",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R1_L3_P1",
+      "features": {
+        "rop_cover_numerator": "0.25",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 49,
+        "unit_cost_usd": "5"
+      },
+      "expected_group_id": "LS1:R1-L3-P1",
+      "expected_score": 2,
+      "expected_profile": "MEDIUM",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R1_L3_P2",
+      "features": {
+        "rop_cover_numerator": "0.25",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 49,
+        "unit_cost_usd": "20"
+      },
+      "expected_group_id": "LS1:R1-L3-P2",
+      "expected_score": 1,
+      "expected_profile": "MEDIUM",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R1_L3_P3",
+      "features": {
+        "rop_cover_numerator": "0.25",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 49,
+        "unit_cost_usd": "200"
+      },
+      "expected_group_id": "LS1:R1-L3-P3",
+      "expected_score": 0,
+      "expected_profile": "SMALL",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R2_L1_P1",
+      "features": {
+        "rop_cover_numerator": "0.75",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 7,
+        "unit_cost_usd": "5"
+      },
+      "expected_group_id": "LS1:R2-L1-P1",
+      "expected_score": 1,
+      "expected_profile": "MEDIUM",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R2_L1_P2",
+      "features": {
+        "rop_cover_numerator": "0.75",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 7,
+        "unit_cost_usd": "20"
+      },
+      "expected_group_id": "LS1:R2-L1-P2",
+      "expected_score": 0,
+      "expected_profile": "SMALL",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R2_L1_P3",
+      "features": {
+        "rop_cover_numerator": "0.75",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 7,
+        "unit_cost_usd": "200"
+      },
+      "expected_group_id": "LS1:R2-L1-P3",
+      "expected_score": -1,
+      "expected_profile": "SMALL",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R2_L2_P1",
+      "features": {
+        "rop_cover_numerator": "0.75",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 21,
+        "unit_cost_usd": "5"
+      },
+      "expected_group_id": "LS1:R2-L2-P1",
+      "expected_score": 2,
+      "expected_profile": "MEDIUM",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R2_L2_P2",
+      "features": {
+        "rop_cover_numerator": "0.75",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 21,
+        "unit_cost_usd": "20"
+      },
+      "expected_group_id": "LS1:R2-L2-P2",
+      "expected_score": 1,
+      "expected_profile": "MEDIUM",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R2_L2_P3",
+      "features": {
+        "rop_cover_numerator": "0.75",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 21,
+        "unit_cost_usd": "200"
+      },
+      "expected_group_id": "LS1:R2-L2-P3",
+      "expected_score": 0,
+      "expected_profile": "SMALL",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R2_L3_P1",
+      "features": {
+        "rop_cover_numerator": "0.75",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 49,
+        "unit_cost_usd": "5"
+      },
+      "expected_group_id": "LS1:R2-L3-P1",
+      "expected_score": 3,
+      "expected_profile": "LARGE",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R2_L3_P2",
+      "features": {
+        "rop_cover_numerator": "0.75",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 49,
+        "unit_cost_usd": "20"
+      },
+      "expected_group_id": "LS1:R2-L3-P2",
+      "expected_score": 2,
+      "expected_profile": "MEDIUM",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R2_L3_P3",
+      "features": {
+        "rop_cover_numerator": "0.75",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 49,
+        "unit_cost_usd": "200"
+      },
+      "expected_group_id": "LS1:R2-L3-P3",
+      "expected_score": 1,
+      "expected_profile": "MEDIUM",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R3_L1_P1",
+      "features": {
+        "rop_cover_numerator": "2",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 7,
+        "unit_cost_usd": "5"
+      },
+      "expected_group_id": "LS1:R3-L1-P1",
+      "expected_score": 2,
+      "expected_profile": "MEDIUM",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R3_L1_P2",
+      "features": {
+        "rop_cover_numerator": "2",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 7,
+        "unit_cost_usd": "20"
+      },
+      "expected_group_id": "LS1:R3-L1-P2",
+      "expected_score": 1,
+      "expected_profile": "MEDIUM",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R3_L1_P3",
+      "features": {
+        "rop_cover_numerator": "2",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 7,
+        "unit_cost_usd": "200"
+      },
+      "expected_group_id": "LS1:R3-L1-P3",
+      "expected_score": 0,
+      "expected_profile": "SMALL",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R3_L2_P1",
+      "features": {
+        "rop_cover_numerator": "2",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 21,
+        "unit_cost_usd": "5"
+      },
+      "expected_group_id": "LS1:R3-L2-P1",
+      "expected_score": 3,
+      "expected_profile": "LARGE",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R3_L2_P2",
+      "features": {
+        "rop_cover_numerator": "2",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 21,
+        "unit_cost_usd": "20"
+      },
+      "expected_group_id": "LS1:R3-L2-P2",
+      "expected_score": 2,
+      "expected_profile": "MEDIUM",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R3_L2_P3",
+      "features": {
+        "rop_cover_numerator": "2",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 21,
+        "unit_cost_usd": "200"
+      },
+      "expected_group_id": "LS1:R3-L2-P3",
+      "expected_score": 1,
+      "expected_profile": "MEDIUM",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R3_L3_P1",
+      "features": {
+        "rop_cover_numerator": "2",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 49,
+        "unit_cost_usd": "5"
+      },
+      "expected_group_id": "LS1:R3-L3-P1",
+      "expected_score": 4,
+      "expected_profile": "LARGE",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R3_L3_P2",
+      "features": {
+        "rop_cover_numerator": "2",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 49,
+        "unit_cost_usd": "20"
+      },
+      "expected_group_id": "LS1:R3-L3-P2",
+      "expected_score": 3,
+      "expected_profile": "LARGE",
+      "expected_candidate_count": 32
+    },
+    {
+      "id": "R3_L3_P3",
+      "features": {
+        "rop_cover_numerator": "2",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 49,
+        "unit_cost_usd": "200"
+      },
+      "expected_group_id": "LS1:R3-L3-P3",
+      "expected_score": 2,
+      "expected_profile": "MEDIUM",
+      "expected_candidate_count": 32
+    }
+  ],
+  "boundary_cases": [
+    {
+      "id": "R_BELOW_HALF",
+      "features": {
+        "rop_cover_numerator": "0.499999",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 7,
+        "unit_cost_usd": "5"
+      },
+      "expected_group_id": "LS1:R1-L1-P1",
+      "expected_profile": "SMALL"
+    },
+    {
+      "id": "R_AT_HALF",
+      "features": {
+        "rop_cover_numerator": "0.5",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 7,
+        "unit_cost_usd": "5"
+      },
+      "expected_group_id": "LS1:R2-L1-P1",
+      "expected_profile": "MEDIUM"
+    },
+    {
+      "id": "R_BELOW_ONE_HALF",
+      "features": {
+        "rop_cover_numerator": "1.499999",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 7,
+        "unit_cost_usd": "5"
+      },
+      "expected_group_id": "LS1:R2-L1-P1",
+      "expected_profile": "MEDIUM"
+    },
+    {
+      "id": "R_AT_ONE_HALF",
+      "features": {
+        "rop_cover_numerator": "1.5",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 7,
+        "unit_cost_usd": "5"
+      },
+      "expected_group_id": "LS1:R3-L1-P1",
+      "expected_profile": "MEDIUM"
+    },
+    {
+      "id": "L_BELOW_14",
+      "features": {
+        "rop_cover_numerator": "0.25",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 13,
+        "unit_cost_usd": "5"
+      },
+      "expected_group_id": "LS1:R1-L1-P1",
+      "expected_profile": "SMALL"
+    },
+    {
+      "id": "L_AT_14",
+      "features": {
+        "rop_cover_numerator": "0.25",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 14,
+        "unit_cost_usd": "5"
+      },
+      "expected_group_id": "LS1:R1-L2-P1",
+      "expected_profile": "MEDIUM"
+    },
+    {
+      "id": "L_BELOW_42",
+      "features": {
+        "rop_cover_numerator": "0.25",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 41,
+        "unit_cost_usd": "5"
+      },
+      "expected_group_id": "LS1:R1-L2-P1",
+      "expected_profile": "MEDIUM"
+    },
+    {
+      "id": "L_AT_42",
+      "features": {
+        "rop_cover_numerator": "0.25",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 42,
+        "unit_cost_usd": "5"
+      },
+      "expected_group_id": "LS1:R1-L3-P1",
+      "expected_profile": "MEDIUM"
+    },
+    {
+      "id": "P_BELOW_10",
+      "features": {
+        "rop_cover_numerator": "0.75",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 21,
+        "unit_cost_usd": "9.999999"
+      },
+      "expected_group_id": "LS1:R2-L2-P1",
+      "expected_profile": "MEDIUM"
+    },
+    {
+      "id": "P_AT_10",
+      "features": {
+        "rop_cover_numerator": "0.75",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 21,
+        "unit_cost_usd": "10"
+      },
+      "expected_group_id": "LS1:R2-L2-P2",
+      "expected_profile": "MEDIUM"
+    },
+    {
+      "id": "P_BELOW_100",
+      "features": {
+        "rop_cover_numerator": "0.75",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 21,
+        "unit_cost_usd": "99.999999"
+      },
+      "expected_group_id": "LS1:R2-L2-P2",
+      "expected_profile": "MEDIUM"
+    },
+    {
+      "id": "P_AT_100",
+      "features": {
+        "rop_cover_numerator": "0.75",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 21,
+        "unit_cost_usd": "100"
+      },
+      "expected_group_id": "LS1:R2-L2-P3",
+      "expected_profile": "SMALL"
+    },
+    {
+      "id": "ZERO_VALID_LEAD",
+      "features": {
+        "rop_cover_numerator": "0",
+        "rop_cover_denominator": "1",
+        "physical_lead_time_days": 0,
+        "unit_cost_usd": "5"
+      },
+      "expected_group_id": "LS1:R1-L1-P1",
+      "expected_profile": "SMALL"
+    },
+    {
+      "id": "R_EXACT_HALF_UNREDUCED",
+      "features": {
+        "rop_cover_numerator": "7",
+        "rop_cover_denominator": "14",
+        "physical_lead_time_days": 7,
+        "unit_cost_usd": "5"
+      },
+      "expected_group_id": "LS1:R2-L1-P1",
+      "expected_profile": "MEDIUM"
+    },
+    {
+      "id": "R_EXACT_ONE_HALF_UNREDUCED",
+      "features": {
+        "rop_cover_numerator": "21",
+        "rop_cover_denominator": "14",
+        "physical_lead_time_days": 7,
+        "unit_cost_usd": "5"
+      },
+      "expected_group_id": "LS1:R3-L1-P1",
+      "expected_profile": "MEDIUM"
+    }
+  ],
+  "reference_feature_cases": [
+    {
+      "id": "CONSTANT_LT7",
+      "history_values": [
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10"
+      ],
+      "physical_lead_time_days": 7,
+      "unit_cost_usd": "5",
+      "expected_safety_stock_qty": "0",
+      "expected_reference_rop_qty": "10",
+      "expected_coverage_fraction": "3/13",
+      "expected_group_id": "LS1:R1-L1-P1",
+      "expected_profile": "SMALL"
+    },
+    {
+      "id": "CONSTANT_LT14",
+      "history_values": [
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10"
+      ],
+      "physical_lead_time_days": 14,
+      "unit_cost_usd": "20",
+      "expected_safety_stock_qty": "0",
+      "expected_reference_rop_qty": "20",
+      "expected_coverage_fraction": "6/13",
+      "expected_group_id": "LS1:R1-L2-P2",
+      "expected_profile": "SMALL"
+    },
+    {
+      "id": "CONSTANT_LT21",
+      "history_values": [
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10"
+      ],
+      "physical_lead_time_days": 21,
+      "unit_cost_usd": "20",
+      "expected_safety_stock_qty": "0",
+      "expected_reference_rop_qty": "30",
+      "expected_coverage_fraction": "9/13",
+      "expected_group_id": "LS1:R2-L2-P2",
+      "expected_profile": "MEDIUM"
+    },
+    {
+      "id": "CONSTANT_LT49_LOW_COST",
+      "history_values": [
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10"
+      ],
+      "physical_lead_time_days": 49,
+      "unit_cost_usd": "5",
+      "expected_safety_stock_qty": "0",
+      "expected_reference_rop_qty": "70",
+      "expected_coverage_fraction": "21/13",
+      "expected_group_id": "LS1:R3-L3-P1",
+      "expected_profile": "LARGE"
+    },
+    {
+      "id": "CONSTANT_LT49_HIGH_COST",
+      "history_values": [
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10"
+      ],
+      "physical_lead_time_days": 49,
+      "unit_cost_usd": "200",
+      "expected_safety_stock_qty": "0",
+      "expected_reference_rop_qty": "70",
+      "expected_coverage_fraction": "21/13",
+      "expected_group_id": "LS1:R3-L3-P3",
+      "expected_profile": "MEDIUM"
+    },
+    {
+      "id": "ZERO_VALID_PHYSICAL_LEAD",
+      "history_values": [
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10",
+        "10"
+      ],
+      "physical_lead_time_days": 0,
+      "unit_cost_usd": "20",
+      "expected_safety_stock_qty": "0",
+      "expected_reference_rop_qty": "0",
+      "expected_coverage_fraction": "0/1",
+      "expected_group_id": "LS1:R1-L1-P2",
+      "expected_profile": "SMALL"
+    },
+    {
+      "id": "POPULATION_STDDEV_TWO",
+      "history_values": [
+        "8",
+        "8",
+        "8",
+        "8",
+        "8",
+        "8",
+        "8",
+        "8",
+        "8",
+        "8",
+        "8",
+        "8",
+        "8",
+        "12",
+        "12",
+        "12",
+        "12",
+        "12",
+        "12",
+        "12",
+        "12",
+        "12",
+        "12",
+        "12",
+        "12",
+        "12"
+      ],
+      "physical_lead_time_days": 14,
+      "unit_cost_usd": "20",
+      "expected_safety_stock_qty": "5",
+      "expected_reference_rop_qty": "25",
+      "expected_coverage_fraction": "15/26",
+      "expected_group_id": "LS1:R2-L2-P2",
+      "expected_profile": "MEDIUM"
+    }
+  ],
+  "negative_cases": [
+    {
+      "id": "MISSING_PRICE",
+      "expected_status": "UNCLASSIFIED",
+      "expected_group_id": null,
+      "expected_candidate_range": null,
+      "expected_primary_reason": "LS_MISSING_REQUIRED_FACTOR",
+      "baseline_preserved": true,
+      "operational_gate_unchanged": true
+    },
+    {
+      "id": "MISSING_LEAD_TIME",
+      "expected_status": "UNCLASSIFIED",
+      "expected_group_id": null,
+      "expected_candidate_range": null,
+      "expected_primary_reason": "LS_MISSING_REQUIRED_FACTOR",
+      "baseline_preserved": true,
+      "operational_gate_unchanged": true
+    },
+    {
+      "id": "ONE_MISSING_HISTORY_WEEK",
+      "expected_status": "UNCLASSIFIED",
+      "expected_group_id": null,
+      "expected_candidate_range": null,
+      "expected_primary_reason": "LS_HISTORY_INCOMPLETE",
+      "baseline_preserved": true,
+      "operational_gate_unchanged": true
+    },
+    {
+      "id": "UNKNOWN_SOURCE",
+      "expected_status": "UNCLASSIFIED",
+      "expected_group_id": null,
+      "expected_candidate_range": null,
+      "expected_primary_reason": "LS_SOURCE_UNVERIFIED",
+      "baseline_preserved": true,
+      "operational_gate_unchanged": true
+    },
+    {
+      "id": "UNSUPPORTED_UOM",
+      "expected_status": "UNCLASSIFIED",
+      "expected_group_id": null,
+      "expected_candidate_range": null,
+      "expected_primary_reason": "LS_UNSUPPORTED_UOM",
+      "baseline_preserved": true,
+      "operational_gate_unchanged": true
+    },
+    {
+      "id": "JPY_NOT_AUTOMATIC_USD",
+      "expected_status": "UNCLASSIFIED",
+      "expected_group_id": null,
+      "expected_candidate_range": null,
+      "expected_primary_reason": "LS_CURRENCY_MISMATCH",
+      "baseline_preserved": true,
+      "operational_gate_unchanged": true
+    },
+    {
+      "id": "PRICE_AGE_92_DAYS",
+      "expected_status": "UNCLASSIFIED",
+      "expected_group_id": null,
+      "expected_candidate_range": null,
+      "expected_primary_reason": "LS_FUTURE_OR_STALE_FEATURE",
+      "baseline_preserved": true,
+      "operational_gate_unchanged": true
+    },
+    {
+      "id": "PRICE_IN_FUTURE",
+      "expected_status": "UNCLASSIFIED",
+      "expected_group_id": null,
+      "expected_candidate_range": null,
+      "expected_primary_reason": "LS_FUTURE_OR_STALE_FEATURE",
+      "baseline_preserved": true,
+      "operational_gate_unchanged": true
+    },
+    {
+      "id": "ZERO_PRICE_IS_NOT_FREE_DEFAULT",
+      "expected_status": "UNCLASSIFIED",
+      "expected_group_id": null,
+      "expected_candidate_range": null,
+      "expected_primary_reason": "LS_NON_POSITIVE_UNIT_COST",
+      "baseline_preserved": true,
+      "operational_gate_unchanged": true
+    },
+    {
+      "id": "ZERO_MEAN_NO_FORECAST_RESCUE",
+      "expected_status": "UNCLASSIFIED",
+      "expected_group_id": null,
+      "expected_candidate_range": null,
+      "expected_primary_reason": "LS_ZERO_MEAN_DEMAND",
+      "baseline_preserved": true,
+      "operational_gate_unchanged": true
+    },
+    {
+      "id": "NON_FINITE_OR_NEGATIVE_FEATURE",
+      "expected_status": "UNCLASSIFIED",
+      "expected_group_id": null,
+      "expected_candidate_range": null,
+      "expected_primary_reason": "LS_INVALID_FEATURE_VALUE",
+      "baseline_preserved": true,
+      "operational_gate_unchanged": true
+    },
+    {
+      "id": "REFERENCE_ROP_NOT_AVAILABLE",
+      "expected_status": "UNCLASSIFIED",
+      "expected_group_id": null,
+      "expected_candidate_range": null,
+      "expected_primary_reason": "LS_REFERENCE_ROP_UNAVAILABLE",
+      "baseline_preserved": true,
+      "operational_gate_unchanged": true
+    }
+  ],
+  "gate_cases": [
+    {
+      "id": "ASSIGNED_BUT_FSN_BLOCK",
+      "group_assignment": "ASSIGNED",
+      "existing_order_action": "BLOCK",
+      "expected_order_action": "BLOCK",
+      "automatic_publish_allowed": false,
+      "automatic_order_allowed": false
+    },
+    {
+      "id": "ASSIGNED_BUT_REVIEW",
+      "group_assignment": "ASSIGNED",
+      "existing_order_action": "REVIEW",
+      "expected_order_action": "REVIEW",
+      "automatic_publish_allowed": false,
+      "automatic_order_allowed": false
+    },
+    {
+      "id": "PREVIOUS_THREE_UNCLASSIFIED_NOT_RESCUED",
+      "group_assignment": "UNCLASSIFIED",
+      "existing_order_action": "BLOCK",
+      "expected_order_action": "BLOCK",
+      "automatic_publish_allowed": false,
+      "automatic_order_allowed": false
+    }
+  ],
+  "expected_profile_candidate_counts": {
+    "SMALL": 32,
+    "MEDIUM": 32,
+    "LARGE": 32
+  },
+  "expected_unique_reference_candidates": 88,
+  "expected_pairwise_overlaps": {
+    "SMALL_MEDIUM": 4,
+    "MEDIUM_LARGE": 4,
+    "SMALL_LARGE": 0
+  },
+  "expected_observation_work_13_weeks_8_items": 64064
+}

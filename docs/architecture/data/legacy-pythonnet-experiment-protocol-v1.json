@@ -1,0 +1,32 @@
+{
+  "contract_version": "1.0.0",
+  "status": "FROZEN_BEFORE_MEASUREMENT",
+  "scope": "OFFLINE_DIAGNOSTIC_ONLY_NO_RUNTIME_REGISTRATION",
+  "input_sha256": "68e6c84e4812b0b3c8fa63757c658c91188317425f743585ff138b56471283c0",
+  "base_image_id": "sha256:260ae6d3cc08462418a1c650aa2e4a23baea84abac856431bfe34269597767e1",
+  "requirements": {"pythonnet": "3.0.5", "clr_loader": "0.2.8", "cffi": "1.17.1", "pycparser": "2.22"},
+  "workloads": [
+    {"items": 1, "candidates": 32, "weeks": 52, "rows": 1664, "expected_payload_sha256": "8bec8190823c6eafd525220c6b1c2100a30ad5728d6fd1049ae518c949da0ebe"},
+    {"items": 16, "candidates": 32, "weeks": 52, "rows": 26624, "expected_payload_sha256": "13f50b6ffcf5294cd6ebc21368bf25634d198ad8ddd37698ff9c5208b5101ec7"}
+  ],
+  "modes": ["csharp_direct", "pythonnet", "python_reference"],
+  "launches": 3,
+  "cold_calls": 1,
+  "warmup_calls": 3,
+  "measured_calls": 7,
+  "cpu_quota": 1,
+  "memory_bytes": 1073741824,
+  "measurement": {
+    "total_includes": ["input_copy_and_hash_guard", "json_parse_and_prepare", "compute", "binary_serialization", "output_copy", "payload_binding_and_hash"],
+    "store": "EXCLUSIVE_FILE_WRITE_FSYNC_SEPARATE",
+    "loading": "SEPARATE_NOT_INCLUDED_IN_STEADY_CALL",
+    "memory": "PROCESS_PEAK_RSS_INCLUDES_RUNTIME_AND_PREPARATION",
+    "equality": "ALL_ROWS_ALL_BINARY_FIELDS_ALL_COLD_WARMUP_MEASURED_FILES_EXACT",
+    "native_loop_unchanged": true,
+    "parallel_workers": 1,
+    "speedup_target": null,
+    "abort_on_mismatch": true
+  },
+  "interruptions": ["PRE_CANCELLED_TOKEN", "TIMER_CANCEL_BETWEEN_ITEM_CANDIDATES", "SIGTERM_WORKER", "HARD_TIMEOUT_KILL_WORKER", "SIGKILL_WORKER", "FRESH_WORKER_SAME_RESULT"],
+  "unchanged": ["EXISTING_PYTHON_IMPLEMENTATIONS", "FSN", "OPERATIONAL_GATES", "DB", "PUBLIC_RUNTIME"]
+}

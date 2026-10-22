@@ -1,0 +1,224 @@
+{
+  "evidence_date": "2026-10-21",
+  "repository": "InventoryEngine",
+  "status": "FORMAL_DLL_AND_CANONICAL_ADAPTER_OFFLINE_VERIFIED_NOT_REGISTERED",
+  "branch": "inventory_engine_dev",
+  "head": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+  "preexisting_files_checked": 607,
+  "changed_preexisting_docs_only": [
+    "docs/architecture/IO_CALCULATION_BOUNDARY_CONTRACT.md",
+    "docs/architecture/IO_DEVELOPMENT_BASELINE.md",
+    "docs/architecture/IO_LEGACY_PYTHONNET_EXPERIMENT.md",
+    "docs/architecture/IO_SELECTED_POLICY_ORDER_PLAN_CONTRACT.md"
+  ],
+  "missing_preexisting_files": [],
+  "file_sha256": {
+    "src/dsio_inventory_engine/infrastructure/calculation_pythonnet.py": "fcb6edde487f5d9b6c182478cdaa0e017ade8a360b30c5fc554e31bd52c93c74",
+    "src/dsio_inventory_engine/prepare_inventory/application/calculation_adapter.py": "b5f7e1c3907975752a19252f75830d4a786c65e06339bc0f9b11b93c83778894",
+    "tests/unit/test_calculation_adapter.py": "5a1060bccf6d6f40f06f259763c36fc0ead96af6869bcda8961e1753aadad4ec",
+    "tests/support/calculation_adapter_fixtures.py": "7ac15ce1bea459f5d9c04e7e2765b680df9686b4bb92cda9037b5a3a05bea974",
+    "scripts/verify_calculation_dll.py": "5a46f4ef480136c249e88b91dbb52c3f01268185097c99133730d1d14b737dd9",
+    "scripts/prepare_calculation_dll.py": "0e3618e40964f85c75dec5838617cac0bb6ed58e52a64201c5d9cfbd7f690142",
+    "docs/architecture/IO_CANONICAL_DLL_ADAPTER.md": "e3e72d7ba2f08433ca585d3c8ef56b0659db5148dbd5ef09fafe89e60a5753dd",
+    "native/Inventory.Calculation/TargetTransition.cs": "2c2603fd824db73dddb2fa28605dad90a0a2d64bf2bf31fad847b2c1738ea1b3",
+    "native/Inventory.Calculation/LegacyBatch.cs": "9a58f024c5f0cbe721ca5f08268804b7be0cc966cb69f645fb072280730997ac",
+    "native/Inventory.Calculation/README.md": "d43a8daf28648b5e789c112a8cd08d6a0a3c87b9025ad45647036e3559499eb3",
+    "native/Inventory.Calculation/Inventory.Calculation.csproj": "a0c0af7ff9e1c6af584c17f907426f5dc864d14c5bc1ebdfa20a30c891a71ecb",
+    "native/Inventory.Calculation/Wire.cs": "188128b8ba7e385678ff8e605ba567f4026c23b58171f83dae24c3e0904275c7",
+    "docs/architecture/IO_CALCULATION_BOUNDARY_CONTRACT.md": "b9921a8ea72ce6195a9b4b5bc292d637c607b91b265795632883543a001cc071",
+    "docs/architecture/IO_SELECTED_POLICY_ORDER_PLAN_CONTRACT.md": "46b25469c0ab413a15906bee7ddf806e6f271950881b20c33eceaf0726397358",
+    "docs/architecture/IO_LEGACY_PYTHONNET_EXPERIMENT.md": "5df67dd193c71b2d6eb26859d582d1eb91a978a8b7f8ce2b0e769d86eebc8093",
+    "docs/architecture/IO_DEVELOPMENT_BASELINE.md": "0f014dff5ef3f724388873e25431d61a08acd02dad77c52c4dfb2530f6d09a4a"
+  },
+  "original_source_files": [
+    {
+      "path": "DataMart/BufferPSIObject.cs",
+      "sha256": "40148084fcf5ef3770714c8d01ccb348cafee34e1cdda085df09afc679762fa2"
+    },
+    {
+      "path": "DataMart/OptimizerProcess.cs",
+      "sha256": "f6bb8c931e52d4bd655bd99d54e99b0a924cc51e8d13f4142b59896bda60015e"
+    },
+    {
+      "path": "Entities/Definition.cs",
+      "sha256": "71412b073b3d9a26b900c16ae9768db1e79b4f2022a1734b5026e1f2d0223194"
+    },
+    {
+      "path": "Entities/InboundEntity.cs",
+      "sha256": "f1eefe3ede84dd22ac257b13a2807ee6d6430420458a6c26c1da66fa5b4a2166"
+    },
+    {
+      "path": "Entities/OptimizerEntity.cs",
+      "sha256": "fe38db6bb96879db69018e9624e78be6ce946161865cba44f3d093064cbd2939"
+    },
+    {
+      "path": "Entities/PlanEntity.cs",
+      "sha256": "92dccc29cbbf346baeb9fb812755776299658b9f3d04259c817c612f4b8ae2f3"
+    },
+    {
+      "path": "RootIO/Program.cs",
+      "sha256": "a12fd732ec162fd08dd195e13b35fa2cbe286d9879977a08d879f8cf8fd93b9b"
+    }
+  ],
+  "original_fragment_count": 21,
+  "compiled_facade_matches_repository": true,
+  "regression_targets": [
+    "tests/contract/test_calculation_boundary_contract.py",
+    "tests/unit/test_legacy_pythonnet.py",
+    "tests/unit/test_legacy_benchmark.py",
+    "tests/unit/test_legacy_python_semantics.py",
+    "tests/unit/test_legacy_reference.py",
+    "tests/integration/test_legacy_python_semantics_offline.py",
+    "tests/integration/test_native_legacy_reference_offline.py",
+    "tests/integration/test_legacy_reference_offline.py",
+    "tests/contract/test_legacy_python_semantics_contract.py",
+    "tests/unit/test_replenishment.py",
+    "tests/contract/test_replenishment_contract.py",
+    "tests/unit/test_seven_axis_segmentation.py",
+    "tests/unit/test_segmentation_adapters.py",
+    "tests/contract/test_segmentation_compatibility_contract.py",
+    "tests/unit/test_policy_search.py",
+    "tests/unit/test_policy_selection.py",
+    "tests/integration/test_policy_search_offline.py",
+    "tests/integration/test_policy_selection_offline.py",
+    "tests/unit/test_candidate_catalog.py",
+    "tests/integration/test_catalog_search_offline.py",
+    "tests/unit/test_catalog_policy_selection.py",
+    "tests/integration/test_catalog_policy_selection_offline.py",
+    "tests/unit/test_selected_order_plan.py",
+    "tests/unit/test_selected_policy_order_plan_binding.py",
+    "tests/contract/test_selected_policy_order_plan_contract.py",
+    "tests/integration/test_selected_order_plan_offline.py",
+    "tests/unit/test_mathematical_policy.py",
+    "tests/contract/test_mathematical_contract.py",
+    "tests/contract/test_canonical_contract.py",
+    "tests/unit/test_development_input.py",
+    "tests/unit/test_baseline_psi.py",
+    "tests/unit/test_canonical_v2.py",
+    "tests/integration/test_baseline_cli_offline.py",
+    "tests/integration/test_mathematical_cli_offline.py",
+    "tests/contract/test_inventory_canonical_context_binding_contract.py",
+    "tests/unit/test_calculation_adapter.py"
+  ],
+  "actual_native_verification": {
+    "additional_generic_horizon_lengths": [
+      1,
+      53
+    ],
+    "baseline_hashes": [
+      "c89c4979719d7286f40bd64553f8b62374c51c3ff2e5f69447777b5c8ca706e7",
+      "4b02dbab58d2f6215935e5f9bbcd1b4e3642380009ad348e6210ff56e61e25f1",
+      "4b75fae47e567f09bbef7dc437d9674c204b94d061934603fa67b5a8d72d5bc1",
+      "ed5ef000c4da43cf4fe2e20abe6f10c007d92ebf0f6fa46f8f79c1f9d8fd1e43",
+      "16d4751501eaf96f3fce7018adf010603eeef1cd75ebeb897add256c3187f572",
+      "078cef86ca0cb8e41e1fd1ce5f2022815ca2dfcee4ecd0aeed23860bf28c60f1",
+      "637cc90a68a3468402b258ccae6865fa0d67d0d7e3130a31f7e01c64d8b71fbb"
+    ],
+    "canonical_versions": [
+      "1.0.0",
+      "2.0.0",
+      "2.1.0"
+    ],
+    "counts": {
+      "canonical_legacy_rows": 1638,
+      "canonical_target_rows": 72,
+      "raw_legacy_cases": 27,
+      "raw_legacy_rows": 81,
+      "rejections": 15,
+      "target_transition_cases": 125
+    },
+    "database_writes": false,
+    "dll_sha256": "9bc7b1576eb3bcd00d11fb28affb77f7b875764667f120ca54ac98faa944fe7f",
+    "legacy_capture": "tests/fixtures/native_legacy_replay_vectors_output.json",
+    "recommended_target_strategy_guard_wiring": "NOT_IMPLEMENTED",
+    "runtime_registration": false,
+    "status": "ACTUAL_DLL_OFFLINE_VERIFIED_NOT_REGISTERED"
+  },
+  "build": {
+    "configuration": "Release",
+    "platform": "Linux Arm64",
+    "target_framework": "net8.0",
+    "sdk_image": "mcr.microsoft.com/dotnet/sdk@sha256:f7e28a0a3f6f9235929ec19274fd0ddf8534e9159f99fac602ac73304f1ce99f",
+    "pythonnet_image": "sha256:a0b6ba2e267b11262a0f42d0f67ebf64f1b9b14d7c2dab38c923713142d372c0",
+    "dll_sha256": "9bc7b1576eb3bcd00d11fb28affb77f7b875764667f120ca54ac98faa944fe7f",
+    "errors": 0,
+    "warnings": [
+      {
+        "code": "CS8632",
+        "origin": "Pinned original DTO nullable annotation",
+        "count": 1,
+        "modified_to_suppress": false
+      }
+    ],
+    "original_arithmetic_rewritten": false,
+    "original_fragments_read_only": true,
+    "nuget_external_sources": false,
+    "database_access": false,
+    "network": "none",
+    "repository_mount": "read-only during build/actual execution",
+    "dependencies_installed_on_host": false,
+    "reproducibility": "Source hashes and staged facade files verified; a second independent rebuild hash comparison was not performed."
+  },
+  "unit_and_related_regression": {
+    "new_unit_passed": 50,
+    "new_unit_included_in_related_total": true,
+    "related_passed": 708,
+    "related_subtests_passed": 158,
+    "related_elapsed_seconds": 27.38,
+    "full_repository_suite": false,
+    "final_new_unit_rerun_passed": 50,
+    "final_new_unit_elapsed_seconds": 0.16,
+    "ruff_check": "PASSED",
+    "ruff_format_check": {
+      "status": "PASSED",
+      "files": 400
+    },
+    "coverage_measured": false,
+    "independent_review": false
+  },
+  "contracts": {
+    "existing_run_snapshot_binding_ids_reused": true,
+    "existing_canonical_and_result_bundle_contracts_unchanged": true,
+    "existing_baseline_psi_rows_and_hash_semantics_reused": true,
+    "additional_execution_or_snapshot_id_generation": false,
+    "legacy_parameter_reference_and_hash_verified": true,
+    "canonical_projection_validated_before_dll": true,
+    "legacy_and_target_meanings_separate": true,
+    "implicit_backend_or_policy_fallback": false,
+    "target_precision": "Exact fixed six decimal places; integer part <=34 digits; every intermediate must fit same bound. Explicit failure, not rounding.",
+    "legacy_precision": "Original binary64 and intermediate Lot decimal path; reject decimal-to-binary64 roundtrip digit loss, non-finite inputs/results and unsupported runtime overflow.",
+    "legacy_periods": "Original first-match inclusive BaseMonth intervals; require supplied per-bucket coverage.",
+    "target_periods": "Existing Canonical policy validation unchanged, including [from,to).",
+    "source_inventory_supply": "Available stock only; confirmed included supplies aggregated once per item/bucket; initial replay AccPO equals those included supplies; exclusions remain in Prepared.",
+    "raw_dll_vectors": "Direct numerical vectors do not claim Canonical admission. Product Canonical adapter validates full source binding and expected rows.",
+    "target_primitive_authorization": "No strategy or Guard approval; caller is responsible for accepted-action supply. No operational registration.",
+    "expected_candidate_coverage": "Exact sealed parameter list and all Canonical items; external Catalog candidate-set reconciliation is deferred to execution integration."
+  },
+  "preserved": {
+    "all_preexisting_calculation_source_schema_test_script_files": true,
+    "existing_improved_and_legacy_python": true,
+    "existing_experimental_pythonnet_adapter_and_dll_sources": true,
+    "existing_fsn_configuration_and_operational_gates": true,
+    "existing_golden_and_historical_evidence": true,
+    "personal_reports_environment_and_temporary_outputs": true,
+    "database_platform_and_shared_runtime": true
+  },
+  "not_performed": [
+    "Operational Source Producer/Catalog integration",
+    "Recommended target strategy/Guard/accepted-order-ledger execution wiring",
+    "Candidate selection/order-plan backend replacement",
+    "Run Plan/Runtime backend registration",
+    "Artifact storage/publication/recovery wiring",
+    "Actual database access/write/migration, forecast run or actual orders",
+    "Shared Runtime deployment or restart",
+    "Native macOS/Windows CLR verification",
+    "New performance benchmark, large production workload or holdout experiment",
+    "Git commit/push or branch changes"
+  ],
+  "next_work": [
+    "Connect existing strategies and Guard to accepted supply before target transition and subsequent observations",
+    "Keep candidate simulation, selection and order planning on identical input/profile/build",
+    "Reuse artifact Writer/Reader/Verifier for independent IO storage/read/recovery before Platform/Demand E2E"
+  ],
+  "approval_boundary": "Actual database writes/migrations and shared Runtime deployment require separate explicit approval."
+}

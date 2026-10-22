@@ -1,0 +1,268 @@
+{
+  "contract_id": "inventory-policy-terminology-source-reconciliation",
+  "contract_version": "1.0.0",
+  "as_of_date": "2026-10-19",
+  "verification_mode": "STATIC_LOCAL_SOURCE_AND_OFFLINE_REGRESSION_ONLY",
+  "repository": "InventoryEngine",
+  "branch": "inventory_engine_dev",
+  "head_commit": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+  "includes_preexisting_uncommitted_code": true,
+  "legacy_formula_equivalence_verified": false,
+  "deployed_legacy_version_verified": false,
+  "sources": [
+    {
+      "source_id": "ROP_PY",
+      "path": "/Users/igwanhyeong/PycharmProjects/Rop/RSC/ROP_SYS.py",
+      "sha256": "5e07301a6ceb9daee3faf9cc4c0b82b0ee852510d9ceeea3885d3208274195c6",
+      "evidence_type": "CODE_CONFIRMED",
+      "anchors": [
+        {"start_line": 333, "end_line": 355, "contains": "GROUP_CD='SERVICE_LEVEL'"},
+        {"start_line": 373, "end_line": 407, "contains": "number_of_iterations=10000"},
+        {"start_line": 395, "end_line": 407, "contains": "'LT_QTY'       : rop_median"}
+      ]
+    },
+    {
+      "source_id": "ROP_R",
+      "path": "/Users/igwanhyeong/PycharmProjects/Rop/RSC/ROP_SYS.R",
+      "sha256": "8913b1c6de95c2ada71b0fca6f7b93cd9522897e72516a4ca7868991edcf933a",
+      "evidence_type": "CODE_CONFIRMED",
+      "anchors": [
+        {"start_line": 215, "end_line": 280, "contains": "set.seed(0)"},
+        {"start_line": 255, "end_line": 259, "contains": "sub_result_fn[sub_result_fn < 0] = 0"}
+      ]
+    },
+    {
+      "source_id": "BUFFER_SQL",
+      "path": "/Users/igwanhyeong/.codex/attachments/8b006222-c895-49cd-89b9-4df2fc691c68/pasted-text.txt",
+      "sha256": "748c35c34de39237186f0ba3b584cc1d389c1d7bc935cb9d4ed6f522545fc59f",
+      "evidence_type": "CODE_CONFIRMED",
+      "anchors": [
+        {"start_line": 158, "end_line": 169, "contains": "AS MULTIPLY_LOT_SIZE"},
+        {"start_line": 158, "end_line": 169, "contains": "ROUND(B.M24_DMD_QTY / 24, 0)"}
+      ]
+    },
+    {
+      "source_id": "STOCK_SQL",
+      "path": "/Users/igwanhyeong/.codex/attachments/6083f637-1eba-4bba-871e-eb356dafeeb1/pasted-text.txt",
+      "sha256": "1b40a7df53f59064eb6d58625ee0b827e6aa7bd6e8a974ea7ab1737db90031b1",
+      "evidence_type": "CODE_CONFIRMED",
+      "anchors": [
+        {"start_line": 65, "end_line": 105, "contains": "COALESCE(B.MAX_QTY, 0)"}
+      ]
+    },
+    {
+      "source_id": "PART_DDL",
+      "path": "/Users/igwanhyeong/PycharmProjects/dsai-platform/artifacts/dbmg-dsai-pivot-prompt3-20260704T142700Z/schema_only.sql",
+      "sha256": "f68fe7710f8a4ea4ea5c16d6cf02bec1756e66291bb53bcd636ad6540a695e14",
+      "evidence_type": "DDL_CONFIRMED",
+      "anchors": [
+        {"start_line": 8577, "end_line": 8590, "contains": "rmos numeric(15,3)"},
+        {"start_line": 8955, "end_line": 9007, "contains": "EOQ 수량"}
+      ]
+    },
+    {
+      "source_id": "SAFETY_STOCK_USER_TEXT",
+      "path": null,
+      "sha256": null,
+      "source_kind": "USER_PASTED_SQL_IN_CURRENT_CONVERSATION",
+      "evidence_type": "CODE_CONFIRMED",
+      "confirmed_expressions": [
+        "COALESCE(RMOS, 0) + COALESCE(EMOS, 0) AS MOS",
+        "COALESCE(A.LOT_MAX_QTY, 0) AS MAX_LV",
+        "COALESCE(A.ROP_QTY, 0) AS ROP_QTY",
+        "COALESCE(B.MA03_DMD_QTY, DMD_AVG_QTY) AS MA_DMD_QTY"
+      ],
+      "limit": "SQL text mapping only; no independently hashed file, upstream formula or runtime lineage"
+    },
+    {
+      "source_id": "BUSINESS_TRANSCRIPT",
+      "path": null,
+      "sha256": null,
+      "source_kind": "USER_PROVIDED_TRANSCRIPT_AND_AS_IS_IMAGE",
+      "evidence_type": "BUSINESS_DESCRIBED",
+      "limit": "Original M4A not replayed; quantity midpoint is not proof of Legacy RMOS/EMOS generation"
+    },
+    {
+      "source_id": "MATH_POLICY",
+      "path": "src/dsio_inventory_engine/recommend_replenishment/application/math_policy.py",
+      "sha256": "ab70ea5f8d7e768a9c05728edf093fcded90903892836559c55a3f66f43c43c7",
+      "evidence_type": "PYTHON_CODE_CONFIRMED",
+      "formula_authority": "DEVELOPMENT_ASSUMPTION",
+      "anchors": [
+        {"start_line": 46, "end_line": 100, "contains": "SEQUENTIAL_UOM_CEILING"},
+        {"start_line": 46, "end_line": 100, "contains": "NormalDist().inv_cdf"}
+      ]
+    },
+    {
+      "source_id": "POLICY_SEARCH",
+      "path": "src/dsio_inventory_engine/recommend_replenishment/application/policy_search.py",
+      "sha256": "de6e452b2f6d787f923e0d03225a0c5600625baf9c36e0c4893355835c81b56a",
+      "evidence_type": "PYTHON_CODE_CONFIRMED",
+      "formula_authority": "DEVELOPMENT_ASSUMPTION",
+      "anchors": [
+        {"start_line": 77, "end_line": 141, "contains": "Decimal(52) / Decimal(12)"},
+        {"start_line": 158, "end_line": 233, "contains": "stockout_free_active_bucket_ratio"},
+        {"start_line": 415, "end_line": 438, "contains": "ZERO_HISTORICAL_MEAN_DEMAND"},
+        {"start_line": 490, "end_line": 519, "contains": "MONTHLY_COVER_SEARCH_V1_NOT_LEGACY_EOQ"},
+        {"start_line": 490, "end_line": 519, "contains": "quantity_text((target - rop) / monthly)"}
+      ]
+    },
+    {
+      "source_id": "OBSERVATION",
+      "path": "src/dsio_inventory_engine/recommend_replenishment/application/observation.py",
+      "sha256": "a5a9413ce3587dbcb2d2ee22de60abe434908f0f4cf49df26c40a94fd905126c",
+      "evidence_type": "PYTHON_CODE_CONFIRMED",
+      "anchors": [
+        {"start_line": 26, "end_line": 34, "contains": "- backorder_qty"},
+        {"start_line": 48, "end_line": 58, "contains": "available_qty + reserved_qty"}
+      ]
+    },
+    {
+      "source_id": "ACTION_GUARD",
+      "path": "src/dsio_inventory_engine/recommend_replenishment/application/guard.py",
+      "sha256": "f9029f9e759d6452458bd014c96880b34a78d97fceb7430f64509db2660cc784",
+      "evidence_type": "PYTHON_CODE_CONFIRMED",
+      "anchors": [
+        {"start_line": 14, "end_line": 22, "contains": "timedelta(days=lead_time_days)"},
+        {"start_line": 74, "end_line": 90, "contains": "requested - position"},
+        {"start_line": 120, "end_line": 149, "contains": "max(moq, raw)"}
+      ]
+    },
+    {
+      "source_id": "PSI_STEP",
+      "path": "src/dsio_inventory_engine/simulate_inventory/application/step.py",
+      "sha256": "67aeb85f9a485087ec134950ad646ef1c46df3886f91589c81cc156debae6b32",
+      "evidence_type": "PYTHON_CODE_CONFIRMED",
+      "anchors": [
+        {"start_line": 39, "end_line": 72, "contains": "fulfilled_bo = min(available, backlog)"},
+        {"start_line": 39, "end_line": 72, "contains": "\"on_hand_eoh_qty\": eoh + reserved"}
+      ]
+    },
+    {
+      "source_id": "BUNDLE_METRICS",
+      "path": "src/dsio_inventory_engine/run_inventory/result_artifacts.py",
+      "sha256": "ec05d2550740748dfaa27e29cd5b96152ef8ef459b5e1b3959913e027418b7bc",
+      "evidence_type": "PYTHON_CODE_CONFIRMED",
+      "anchors": [
+        {"start_line": 884, "end_line": 924, "contains": "fulfilled += fulfilled_confirmed + fulfilled_forecast"},
+        {"start_line": 2278, "end_line": 2284, "contains": "rounding=ROUND_HALF_EVEN"},
+        {"start_line": 45, "end_line": 55, "contains": "_SERVICE_QUANTUM = Decimal(\"0.000001\")"}
+      ]
+    },
+    {
+      "source_id": "POLICY_SELECTION",
+      "path": "src/dsio_inventory_engine/recommend_replenishment/application/policy_selection.py",
+      "sha256": "ee4418727a00b13bfb7705e6ceb175d622ec1208eab7ce6bda560e984d3469d6",
+      "evidence_type": "PYTHON_CODE_CONFIRMED",
+      "anchors": [
+        {"start_line": 315, "end_line": 355, "contains": "FILL_RATE_BELOW_MINIMUM"},
+        {"start_line": 315, "end_line": 355, "contains": "ENDING_BACKORDER_REMAINS"}
+      ]
+    },
+    {
+      "source_id": "POLICY_SEARCH_CONTRACT_CODE",
+      "path": "src/dsio_inventory_engine/inventory_contracts/policy_search.py",
+      "sha256": "d1b537590c01e000840bdfdb35b4d3402381d04b135e19ab79e4b7e85fcbf5bc",
+      "evidence_type": "PYTHON_CODE_CONFIRMED",
+      "anchors": [
+        {"start_line": 87, "end_line": 104, "contains": "\"0.5\", \"0.9999\""},
+        {"start_line": 185, "end_line": 200, "contains": "\"minimum_fill_rate\""}
+      ]
+    },
+    {
+      "source_id": "REPLENISHMENT_LOOP",
+      "path": "src/dsio_inventory_engine/recommend_replenishment/application/run.py",
+      "sha256": "dc14e1d1d2c678687d6d4b25b11552c3b277c377843a0b0bbec95e54fc94d451",
+      "evidence_type": "PYTHON_CODE_CONFIRMED",
+      "anchors": [
+        {"start_line": 265, "end_line": 365, "contains": "build_observation("},
+        {"start_line": 265, "end_line": 365, "contains": "advance_bucket("}
+      ]
+    }
+  ],
+  "development_definitions_not_legacy_rules": [
+    "monthly demand = historical weekly mean * 52 / 12",
+    "normal safety stock, sequential UOM ceiling and ROP floor",
+    "requested EMOS covers base Q, never Q/2 by implicit reinterpretation",
+    "effective EMOS = (final S - final ROP) / monthly demand",
+    "policy Position midpoint MOS differs from observed average on-hand MOS",
+    "inventory Position excludes reserved quantity while on-hand includes it",
+    "current-demand quantity fill excludes fulfillment of opening backorders",
+    "active-bucket shortage-free ratio is not replenishment-cycle service probability",
+    "fixed per-item order cost is a development cost assumption, not joint shipment EOQ proof"
+  ],
+  "unverified": [
+    "Legacy RMOS/EMOS full names, units, upstream generation and monthly conversion",
+    "SP_PLN_ROP_MNTHLY, SP_DSIO_ROP_UPD, SP_PLN_SEGMTN_PART_MST bodies",
+    "actual Legacy factor bins, candidate ranges, stock-policy order branches and deployed lineage",
+    "Legacy EOQ and joint order cost allocation, objective, ties and eligibility",
+    "Legacy F_RATE formula, numerator, denominator and monetary versus quantity basis",
+    "PO lead-time variability implementation beyond the available fixed STOCK_LT Rop code"
+  ],
+  "verification": {
+    "status": "PASSED_LOCAL_VALIDATION",
+    "source_hashes_and_anchors": {
+      "hashed_file_count": 14,
+      "verified_anchor_count": 33,
+      "user_text_sources_without_file_hash": 2
+    },
+    "regression": {
+      "test_environment": "existing dsai-platform/backend/.venv; InventoryEngine working tree on PYTHONPATH",
+      "environment_note": "InventoryEngine .venv has no pytest; no dependencies installed or environments modified",
+      "passed": 311,
+      "subtests_passed": 204,
+      "full_suite_rerun": false,
+      "test_files": [
+        "tests/unit/test_policy_search.py",
+        "tests/unit/test_policy_selection.py",
+        "tests/unit/test_policy_sensitivity.py",
+        "tests/unit/test_mathematical_policy.py",
+        "tests/unit/test_baseline_psi.py",
+        "tests/contract/test_mathematical_contract.py",
+        "tests/contract/test_segmentation_compatibility_contract.py",
+        "tests/integration/test_policy_search_offline.py",
+        "tests/integration/test_policy_selection_offline.py",
+        "tests/integration/test_policy_sensitivity_offline.py",
+        "tests/integration/test_catalog_search_offline.py",
+        "tests/unit/test_result_artifacts.py",
+        "tests/unit/test_inventory_result_bundle.py",
+        "tests/unit/test_replenishment.py",
+        "tests/contract/test_inventory_result_bundle_contract.py",
+        "tests/contract/test_replenishment_contract.py",
+        "tests/integration/test_psi_orchestrator_offline.py"
+      ],
+      "unit_and_service_in_memory_checks_passed": [
+        "monthly_conversion",
+        "requested_emos_is_base_q_cover",
+        "max_mos_is_not_midpoint_mos",
+        "periodic_spread_can_differ_from_base_q",
+        "old_backorder_is_not_current_fill",
+        "zero_backorder_does_not_imply_shortage_free",
+        "observed_on_hand_includes_reserved",
+        "no_current_demand_remains_unavailable"
+      ]
+    },
+    "documentation_links": {
+      "markdown_file_count": 5,
+      "verified_local_link_occurrences": 72
+    },
+    "diff_check_passed": true,
+    "protected_source_test_schema_file_count": 337,
+    "protected_source_test_schema_unchanged": true,
+    "personal_report_sha256": "3d0f5e9bb762b590beef00a65b39b2578b0b281f07fd1f5a2630261dfcb4835e",
+    "personal_report_unchanged": true
+  },
+  "side_effects": {
+    "legacy_program_executed": false,
+    "engine_code_changed_in_this_audit": false,
+    "test_or_schema_changed_in_this_audit": false,
+    "fsn_configuration_changed": false,
+    "operational_gate_changed": false,
+    "database_connected": false,
+    "database_changed": false,
+    "runtime_started_or_deployed": false,
+    "actual_order_issued": false,
+    "committed": false,
+    "pushed": false
+  }
+}

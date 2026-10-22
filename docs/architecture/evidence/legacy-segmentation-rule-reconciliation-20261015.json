@@ -1,0 +1,95 @@
+{
+  "contract_id": "legacy-segmentation-local-source-reconciliation",
+  "contract_version": "1.0.0",
+  "as_of_date": "2026-10-15",
+  "verification_mode": "STATIC_LOCAL_SOURCE_ONLY",
+  "legacy_segmentation_equivalence_verified": false,
+  "deployed_legacy_version_verified": false,
+  "sources": [
+    {
+      "source_id": "ROP_PY",
+      "path": "/Users/igwanhyeong/PycharmProjects/Rop/RSC/ROP_SYS.py",
+      "sha256": "5e07301a6ceb9daee3faf9cc4c0b82b0ee852510d9ceeea3885d3208274195c6",
+      "evidence_type": "CODE_CONFIRMED",
+      "anchors": [
+        {"start_line": 184, "end_line": 218, "contains": "SP_PLN_SEGMTN_PART_MST"},
+        {"start_line": 333, "end_line": 355, "contains": "GROUP_CD='SERVICE_LEVEL'"},
+        {"start_line": 387, "end_line": 407, "contains": "number_of_iterations=10000"},
+        {"start_line": 395, "end_line": 407, "contains": "'SFST_QTY'"}
+      ]
+    },
+    {
+      "source_id": "ROP_R",
+      "path": "/Users/igwanhyeong/PycharmProjects/Rop/RSC/ROP_SYS.R",
+      "sha256": "8913b1c6de95c2ada71b0fca6f7b93cd9522897e72516a4ca7868991edcf933a",
+      "evidence_type": "CODE_CONFIRMED",
+      "anchors": [
+        {"start_line": 23, "end_line": 71, "contains": "ROP_CAL_PERIOD_FROM"},
+        {"start_line": 240, "end_line": 259, "contains": "set.seed(0)"},
+        {"start_line": 255, "end_line": 259, "contains": "sub_result_fn[sub_result_fn < 0] = 0"}
+      ]
+    },
+    {
+      "source_id": "BUFFER_SQL",
+      "path": "/Users/igwanhyeong/.codex/attachments/8b006222-c895-49cd-89b9-4df2fc691c68/pasted-text.txt",
+      "sha256": "748c35c34de39237186f0ba3b584cc1d389c1d7bc935cb9d4ed6f522545fc59f",
+      "evidence_type": "CODE_CONFIRMED",
+      "anchors": [
+        {"start_line": 95, "end_line": 109, "contains": "A.SEGMTN_ID  = V.SEGMTN_ID"},
+        {"start_line": 158, "end_line": 168, "contains": "C.PO_POLICY_CD"},
+        {"start_line": 226, "end_line": 236, "contains": "B.APPY_PO_POLICY_CD"}
+      ]
+    },
+    {
+      "source_id": "STOCK_SQL",
+      "path": "/Users/igwanhyeong/.codex/attachments/6083f637-1eba-4bba-871e-eb356dafeeb1/pasted-text.txt",
+      "sha256": "1b40a7df53f59064eb6d58625ee0b827e6aa7bd6e8a974ea7ab1737db90031b1",
+      "evidence_type": "CODE_CONFIRMED",
+      "anchors": [
+        {"start_line": 65, "end_line": 105, "contains": "COALESCE(B.MAX_QTY, 0)"},
+        {"start_line": 77, "end_line": 88, "contains": "B.SEGMT_ID   NOT LIKE ''%9%''"}
+      ]
+    },
+    {
+      "source_id": "PART_DDL",
+      "path": "/Users/igwanhyeong/PycharmProjects/dsai-platform/artifacts/dbmg-dsai-pivot-prompt3-20260704T142700Z/schema_only.sql",
+      "sha256": "f68fe7710f8a4ea4ea5c16d6cf02bec1756e66291bb53bcd636ad6540a695e14",
+      "evidence_type": "DDL_CONFIRMED",
+      "anchors": [
+        {"start_line": 8540, "end_line": 8602, "contains": "rmos numeric(15,3)"},
+        {"start_line": 8856, "end_line": 8874, "contains": "수요 빈도"}
+      ]
+    }
+  ],
+  "unverified": [
+    "SP_PLN_SEGMTN_PART_MST body and factor boundaries",
+    "SP_PLN_ROP_MNTHLY and SP_DSIO_ROP_UPD bodies",
+    "active factor list and factor source definitions",
+    "boundary inclusivity, overlap, null and tie handling",
+    "actual SERVICE_LEVEL code values",
+    "RMOS/EMOS units, meanings, start/end/step and candidate combination rules",
+    "cost allocation, objective, service eligibility, tie and unselected rules",
+    "actual STOCK_POLICY-to-order engine branches",
+    "authoritative deployed Python/R and PostgreSQL lineage"
+  ],
+  "development_decisions_not_legacy_rules": [
+    "D1 factor sources",
+    "D2 factor bins",
+    "D3 combined groups and item exceptions",
+    "D4 explicit candidate ranges",
+    "D5 candidate budget and comparison rules",
+    "D6 ROP feature producer",
+    "D7 missing factor and zero-mean treatment"
+  ],
+  "side_effects": {
+    "legacy_program_executed": false,
+    "database_connected": false,
+    "database_changed": false,
+    "fsn_configuration_changed": false,
+    "operational_gate_changed": false,
+    "engine_code_changed_in_this_audit": false,
+    "runtime_deployed": false,
+    "committed": false,
+    "pushed": false
+  }
+}

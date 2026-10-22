@@ -1,0 +1,242 @@
+{
+  "project_name": "InventoryEngine Legacy C# reconciliation",
+  "as_of_date": "2026-10-20",
+  "description": "확보한 C#의 재현 기준과 Python 목표 규칙을 구분한 뒤 발주 계획 저장을 재개한다. 문서 계획이며 Run 계약이나 승인 설정이 아니다.",
+  "repository": {
+    "name": "InventoryEngine",
+    "branch": "inventory_engine_dev",
+    "head_commit": "99f2f1286d90dfe0e26025e603786a813ea51dac"
+  },
+  "current_baseline": {
+    "status": "완료",
+    "work": "C# 확보·정적 대사·문서 정정",
+    "numeric_equivalence_verified": false,
+    "native_csharp_execution": false
+  },
+  "architecture_decisions": [
+    {
+      "decision": "Offline Legacy 재현 기준과 현재 Python 목표 계산을 구분하도록 권장",
+      "status": "권장안·후속 계약 확정 필요",
+      "rationale": "결과가 달라지는 규칙과 기존 안전 계약을 동시에 보존",
+      "alternatives_considered": [
+        "현재 Python을 Legacy와 같다고 표시",
+        "C# 동작을 모두 목표 Python에 덮어쓰기"
+      ]
+    }
+  ],
+  "constraints": [
+    "FSN 설정·운영 Gate·DB·공용 Runtime 미변경",
+    "기존 ID/Hash·Artifact 이력 보존; 계산 의미가 달라지면 기존 구현 Version 몰래 재사용 금지",
+    "원본 DB 진입점 실행·라이선스 우회 금지",
+    "자원 추가 고도화·대규모 본실험 보류",
+    "실제 Migration·DB Write·공용 Runtime 배포·ERP는 이번 실행 승인 없음",
+    "현재 작업은 문서만 변경; Commit/Push 수행하지 않음"
+  ],
+  "tasks": [
+    {
+      "id": "semantics",
+      "agent": "architecture",
+      "title": "원본 재현과 목표 개선의 계산 계약·Golden을 고정한다",
+      "description": "발주 시점·정책식·BaseMonth·납기·서비스·선정 단위를 구분한다.",
+      "status": "다음 작업",
+      "priority": 1,
+      "dependencies": [],
+      "estimated_complexity": "medium",
+      "target": "InventoryEngine 계약·테스트 명세",
+      "scope": [
+        "docs/architecture/"
+      ],
+      "acceptance_criteria": [
+        "각 규칙에 C# 원문과 Python 동작·유지/재현/판단 필요 상태가 있다",
+        "수작업 기대값을 C# 실행 결과라고 표시하지 않는다",
+        "LEGACY_STYLE 후보 Adapter와 PSI 재현을 분리한다",
+        "기존 FSN/운영 Gate·자동 게시 권한은 유지한다"
+      ],
+      "artifacts_expected": [
+        "비교 의미·허용 차이 명세",
+        "작은 Golden 명세"
+      ]
+    },
+    {
+      "id": "reference-harness",
+      "agent": "backend",
+      "title": "DB 없는 C# 원본 참조 실행을 준비한다",
+      "description": "원문 메서드와 DTO만 추적 가능한 최소 Harness로 격리하고 도구 준비 상태를 확인한다.",
+      "status": "다음 작업",
+      "priority": 2,
+      "dependencies": [
+        "semantics"
+      ],
+      "estimated_complexity": "medium",
+      "target": "C# 원본·InventoryEngine Offline 검증",
+      "scope": [
+        "tests/",
+        "docs/architecture/"
+      ],
+      "parallel_with": [
+        "metric-lineage"
+      ],
+      "acceptance_criteria": [
+        ".NET 도구 준비가 확인되며 설치/실행 범위를 명시한다",
+        "원본 프로그램의 DB 전후처리·라이선스 진입점을 실행하거나 우회하지 않는다",
+        "동결한 C# 본문과 Harness 차이를 기록한다",
+        "실제 C# 결과를 얻으며 Python 복제로 자기 검증하지 않는다"
+      ],
+      "artifacts_expected": [
+        "격리된 비교 Harness",
+        "C# 원본 기대 결과·출처"
+      ]
+    },
+    {
+      "id": "metric-lineage",
+      "agent": "backend",
+      "title": "서비스 집계와 그룹에서 품목으로 전개되는 근거를 확인한다",
+      "description": "기존 파일에서 SVC_LV 생성식·정책 모수·그룹 전개를 읽기 전용으로 조사한다.",
+      "status": "다음 작업",
+      "priority": 2,
+      "dependencies": [
+        "semantics"
+      ],
+      "estimated_complexity": "medium",
+      "target": "Legacy C#/SQL·InventoryEngine 문서",
+      "scope": [
+        "docs/architecture/"
+      ],
+      "parallel_with": [
+        "reference-harness"
+      ],
+      "acceptance_criteria": [
+        "SVC_LV 분모·단위·반올림과 단순 DemandAllocationRate를 구분한다",
+        "SEGMT_ID=품목 모드 여부와 승인 정책 전개를 근거로 표시한다",
+        "확인하지 못한 항목은 명시하고 개발 가정으로 운영 의미를 확정하지 않는다",
+        "DB 변경 없이 정리한다"
+      ],
+      "artifacts_expected": [
+        "서비스/선정 Source 대사 보완"
+      ]
+    },
+    {
+      "id": "differential-golden",
+      "agent": "qa",
+      "title": "동일 입력의 PSI·주문·선정 차이를 분류한다",
+      "description": "C# 참조 결과와 현재 Python을 같은 Calendar·정책값으로 비교한다. 생성식 미확인 지표는 검증 범위에서 구분한다.",
+      "status": "다음 작업",
+      "priority": 3,
+      "dependencies": [
+        "reference-harness",
+        "metric-lineage"
+      ],
+      "estimated_complexity": "medium",
+      "target": "InventoryEngine Offline 검증",
+      "scope": [
+        "tests/",
+        "docs/architecture/"
+      ],
+      "acceptance_criteria": [
+        "BOH·입고·할당·BO·EOH·PO·주문 날짜·MOS를 비교한다",
+        "일치 실패와 승인된 개선·미확인 차이를 분리한다",
+        "Lot 경계·LT0·주중/기간 밖 도착·월 경계·미선정을 포함한다",
+        "비교용 계산에서 운영 Gate나 DB 권한을 올리지 않는다"
+      ],
+      "artifacts_expected": [
+        "원본 비교 결과",
+        "미해결 차이 목록"
+      ]
+    },
+    {
+      "id": "target-alignment",
+      "agent": "backend",
+      "title": "승인한 목표 규칙만 구현하고 기존 회귀를 확인한다",
+      "description": "비교 이후 필요한 변경만 적용하며 수정이 불필요하면 기존 계산 유지 근거를 남긴다.",
+      "status": "다음 작업",
+      "priority": 4,
+      "dependencies": [
+        "differential-golden"
+      ],
+      "estimated_complexity": "medium",
+      "target": "InventoryEngine inventory_engine_dev",
+      "scope": [
+        "src/dsio_inventory_engine/",
+        "schemas/",
+        "tests/",
+        "docs/architecture/"
+      ],
+      "acceptance_criteria": [
+        "결과 변경 범위와 기존 구현/Config Version 갱신 여부가 명확하다",
+        "과거 Artifact·Hash를 고치지 않는다",
+        "기존 ABC/XYZ·FSN·REVIEW/BLOCK 회귀가 유지된다",
+        "새 차이 시험과 기존 Python Golden이 함께 검증된다"
+      ],
+      "artifacts_expected": [
+        "필요한 최소 구현 또는 현행 유지 판단",
+        "회귀 결과"
+      ]
+    },
+    {
+      "id": "order-plan-durable",
+      "agent": "backend",
+      "title": "발주 계획 저장·조회·복구와 독립 IO 검증을 재개한다",
+      "description": "계산 의미가 닫힌 후 기존 Writer·Reference·Receipt를 활용한다. Platform API/화면은 독립 IO 검증 이후 연결한다.",
+      "status": "보류",
+      "priority": 5,
+      "dependencies": [
+        "target-alignment"
+      ],
+      "estimated_complexity": "medium",
+      "target": "InventoryEngine → dsai-platform Backend/Frontend",
+      "scope": [
+        "src/dsio_inventory_engine/infrastructure/",
+        "tests/",
+        "docs/architecture/"
+      ],
+      "acceptance_criteria": [
+        "동일 결과 멱등 처리·다른 Hash 충돌·누락·중단 복구를 검증한다",
+        "완료된 선정 정책 실행 Adapter를 다시 구현하지 않는다",
+        "API 계약 뒤 Backend/Frontend 병렬 여부를 판단한다",
+        "실제 DB 적재 없이 Offline 독립 검증을 먼저 완료한다"
+      ],
+      "artifacts_expected": [
+        "영속 Artifact·조회/복구 검증"
+      ]
+    },
+    {
+      "id": "development-write-e2e",
+      "agent": "qa",
+      "title": "승인된 대상에서만 DB 적재와 독립·연결 E2E를 진행한다",
+      "description": "기존 개발 DB·Runtime 상태를 다시 확인하고 적용 대상·쓰기 범위를 별도로 승인받는다.",
+      "status": "승인 필요",
+      "priority": 6,
+      "dependencies": [
+        "order-plan-durable"
+      ],
+      "estimated_complexity": "medium",
+      "target": "개발 PostgreSQL·확정 Runtime·dsai-platform·InventoryEngine",
+      "scope": [],
+      "acceptance_criteria": [
+        "대상 테이블·Migration·Runtime과 승인 범위가 명확하다",
+        "적재 건수·Hash·Plan/Site/Run 조회·실패 복구를 대조한다",
+        "IO 독립 검증 후 Demand 연결을 검증한다",
+        "실제 발주·ERP 연계는 별도 후속으로 유지한다"
+      ],
+      "artifacts_expected": [
+        "승인된 개발 E2E 증적"
+      ]
+    }
+  ],
+  "api_contracts": [],
+  "testing_strategy": {
+    "this_task": "문서 링크·Source 지문/원문 위치·계획 의존관계·기존 파일 미변경 확인만 수행",
+    "unit_tests": "후속 Golden에서 수량·날짜·누락·경계값",
+    "integration_tests": "DB 없는 C# 참조 결과와 Python 비교",
+    "e2e_tests": "독립 IO 완료·명시적 승인 후 수행",
+    "performance_tests": "추가 자원 고도화·대규모 실험 보류"
+  },
+  "commit_push_boundary": {
+    "performed": false,
+    "inventory_repository": "InventoryEngine",
+    "inventory_branch": "inventory_engine_dev",
+    "platform_repository": "dsai-platform",
+    "platform_branch": "후속 변경 시작 전 재확인",
+    "requires_separate_user_request": true
+  }
+}

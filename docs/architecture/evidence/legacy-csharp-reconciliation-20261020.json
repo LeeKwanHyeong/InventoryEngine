@@ -1,0 +1,472 @@
+{
+  "as_of_date": "2026-10-20",
+  "scope": "STATIC_LOCAL_CSHARP_PYTHON_RECONCILIATION_AND_DOCUMENTATION_ONLY",
+  "repository": {
+    "name": "InventoryEngine",
+    "branch": "inventory_engine_dev",
+    "head_commit": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+    "includes_preexisting_uncommitted_code": true
+  },
+  "legacy_source_acquired": true,
+  "native_csharp_executed": false,
+  "dotnet_available": false,
+  "production_deployment_identity_verified": false,
+  "legacy_numeric_equivalence_verified": false,
+  "archive_cs_files_excluding_obj": 49,
+  "archive_equal_core_files": [
+    "RootIO/RootIO/Program.cs",
+    "RootIO/DataMart/BufferPSIObject.cs",
+    "RootIO/Entities/PlanEntity.cs",
+    "RootIO/DataMart/OptimizerProcess.cs"
+  ],
+  "sources": [
+    {
+      "path": "/Users/igwanhyeong/NSPM 2/SupplyEngine/DSIO_postgresql_20250908.zip",
+      "sha256": "5021a5414ea90649903e487e659a5a1b1a02282af5ed2f03a1f252a238623885",
+      "anchors": [],
+      "classification": "PROVIDED_ARCHIVE"
+    },
+    {
+      "path": "/Users/igwanhyeong/NSPM 2/SupplyEngine/DSIO_postgresql_20250908/RootIO/RootIO/Program.cs",
+      "sha256": "a12fd732ec162fd08dd195e13b35fa2cbe286d9879977a08d879f8cf8fd93b9b",
+      "anchors": [
+        {
+          "start_line": 114,
+          "end_line": 146,
+          "contains": "#if PSI"
+        },
+        {
+          "start_line": 234,
+          "end_line": 269,
+          "contains": "b.BaseMonth = new DateTime"
+        },
+        {
+          "start_line": 274,
+          "end_line": 299,
+          "contains": "dataMart.salesOrder.DataList"
+        },
+        {
+          "start_line": 669,
+          "end_line": 718,
+          "contains": "bpo"
+        },
+        {
+          "start_line": 790,
+          "end_line": 791,
+          "contains": "BA59-04709A@V101"
+        },
+        {
+          "start_line": 807,
+          "end_line": 875,
+          "contains": "m.EOH + m.AccPurchaseOrder - m.AccBackOrder < m.ROP"
+        },
+        {
+          "start_line": 878,
+          "end_line": 948,
+          "contains": "switch (bpo.StockPolicy)"
+        },
+        {
+          "start_line": 965,
+          "end_line": 998,
+          "contains": "OptimizerProcess"
+        }
+      ],
+      "classification": "PROVIDED_LEGACY_SOURCE"
+    },
+    {
+      "path": "/Users/igwanhyeong/NSPM 2/SupplyEngine/DSIO_postgresql_20250908/RootIO/DataMart/BufferPSIObject.cs",
+      "sha256": "40148084fcf5ef3770714c8d01ccb348cafee34e1cdda085df09afc679762fa2",
+      "anchors": [
+        {
+          "start_line": 46,
+          "end_line": 53,
+          "contains": "mp.Demand = so[j].QTY;"
+        },
+        {
+          "start_line": 72,
+          "end_line": 90,
+          "contains": "mp.Bucket.BaseMonth"
+        },
+        {
+          "start_line": 110,
+          "end_line": 119,
+          "contains": "mp.DueIn += pDuein;"
+        }
+      ],
+      "classification": "PROVIDED_LEGACY_SOURCE"
+    },
+    {
+      "path": "/Users/igwanhyeong/NSPM 2/SupplyEngine/DSIO_postgresql_20250908/RootIO/Entities/PlanEntity.cs",
+      "sha256": "92dccc29cbbf346baeb9fb812755776299658b9f3d04259c817c612f4b8ae2f3",
+      "anchors": [
+        {
+          "start_line": 260,
+          "end_line": 295,
+          "contains": "inc = val - MinLotSize;"
+        }
+      ],
+      "classification": "PROVIDED_LEGACY_SOURCE"
+    },
+    {
+      "path": "/Users/igwanhyeong/NSPM 2/SupplyEngine/DSIO_postgresql_20250908/RootIO/DataMart/OptimizerProcess.cs",
+      "sha256": "f6bb8c931e52d4bd655bd99d54e99b0a924cc51e8d13f4142b59896bda60015e",
+      "anchors": [
+        {
+          "start_line": 172,
+          "end_line": 263,
+          "contains": "this.SelectGroupDmRateTop(optimizerData)"
+        },
+        {
+          "start_line": 335,
+          "end_line": 379,
+          "contains": "DicDmdAmountSum"
+        },
+        {
+          "start_line": 531,
+          "end_line": 636,
+          "contains": "targetSnrio.INDV_TARGET_FLAG_FORCE = \"Y\";"
+        },
+        {
+          "start_line": 570,
+          "end_line": 599,
+          "contains": "s.FILL_RATE < _fixedCondition.Const03_MaximumInvAmt"
+        },
+        {
+          "start_line": 746,
+          "end_line": 752,
+          "contains": "W_FILL_RATE"
+        },
+        {
+          "start_line": 861,
+          "end_line": 1017,
+          "contains": "groupRst.SNRIO_ID = selectedSnrio;"
+        }
+      ],
+      "classification": "PROVIDED_LEGACY_SOURCE"
+    },
+    {
+      "path": "/Users/igwanhyeong/NSPM 2/SupplyEngine/DSIO_postgresql_20250908/RootIO/Entities/InboundClass.cs",
+      "sha256": "66aaa1f8cc7a1745cf81199ce1aea91f9d517ea5500ba1245789f3b050c6338d",
+      "anchors": [
+        {
+          "start_line": 272,
+          "end_line": 289,
+          "contains": "result.QTY = 0;"
+        },
+        {
+          "start_line": 293,
+          "end_line": 301,
+          "contains": "x.USABLE_DTTM >= pStartDate"
+        }
+      ],
+      "classification": "PROVIDED_LEGACY_SOURCE"
+    },
+    {
+      "path": "/Users/igwanhyeong/NSPM 2/SupplyEngine/DSIO_postgresql_20250908/RootIO/Entities/Definition.cs",
+      "sha256": "71412b073b3d9a26b900c16ae9768db1e79b4f2022a1734b5026e1f2d0223194",
+      "anchors": [
+        {
+          "start_line": 28,
+          "end_line": 35,
+          "contains": "TimeUOM = 28800"
+        },
+        {
+          "start_line": 189,
+          "end_line": 192,
+          "contains": "(int)(LeadTime / Definition.TimeUOM)"
+        }
+      ],
+      "classification": "PROVIDED_LEGACY_SOURCE"
+    },
+    {
+      "path": "/Users/igwanhyeong/NSPM 2/SupplyEngine/DSIO_postgresql_20250908/RootIO/RootIO/RootIO.csproj",
+      "sha256": "8bef3612633b503496bd2f78d78057f18d18c90e4218491e464cbf2ee9d51456",
+      "anchors": [
+        {
+          "start_line": 1,
+          "end_line": 18,
+          "contains": "net8.0"
+        },
+        {
+          "start_line": 10,
+          "end_line": 18,
+          "contains": "PSI;PROD"
+        }
+      ],
+      "classification": "PROVIDED_LEGACY_SOURCE"
+    },
+    {
+      "path": "/Users/igwanhyeong/NSPM 2/SupplyEngine/DSIO_postgresql_20250908/RootIO/RootIO/Config/Query.xml",
+      "sha256": "fe0373690a49a3a9b3b31aec634bcbbcc6f50fff6e5d83f30584d26efc79811f",
+      "anchors": [
+        {
+          "start_line": 46,
+          "end_line": 55,
+          "contains": "ORDER BY\tPRIORITY"
+        },
+        {
+          "start_line": 197,
+          "end_line": 209,
+          "contains": "ORDER BY\tSTOCK_ID"
+        },
+        {
+          "start_line": 333,
+          "end_line": 343,
+          "contains": "SVC_LV AS FILL_RATE"
+        }
+      ],
+      "classification": "PROVIDED_LEGACY_SOURCE"
+    },
+    {
+      "path": "/Users/igwanhyeong/NSPM 2/SupplyEngine/DSIO_postgresql_20250908/RootIO/RootIO/Config_optmizer/Query.xml",
+      "sha256": "fe0373690a49a3a9b3b31aec634bcbbcc6f50fff6e5d83f30584d26efc79811f",
+      "anchors": [
+        {
+          "start_line": 46,
+          "end_line": 55,
+          "contains": "ORDER BY\tPRIORITY"
+        },
+        {
+          "start_line": 197,
+          "end_line": 209,
+          "contains": "ORDER BY\tSTOCK_ID"
+        },
+        {
+          "start_line": 333,
+          "end_line": 343,
+          "contains": "SVC_LV AS FILL_RATE"
+        }
+      ],
+      "classification": "PROVIDED_LEGACY_SOURCE"
+    },
+    {
+      "path": "/Users/igwanhyeong/NSPM 2/SupplyEngine/DSIO_postgresql_20250908/RootIO/DataMart/ExportPostgreSQL.cs",
+      "sha256": "e5cb88b8811a6d734607c329bfde94acb2715b9761f9cef49c8b576e761502c5",
+      "anchors": [
+        {
+          "start_line": 8,
+          "end_line": 48,
+          "contains": "COPY TB_PLN_SIMUL_RST"
+        },
+        {
+          "start_line": 62,
+          "end_line": 83,
+          "contains": "writer.Write((decimal)p.PurchaseOrder)"
+        }
+      ],
+      "classification": "PROVIDED_LEGACY_SOURCE"
+    },
+    {
+      "path": "src/dsio_inventory_engine/recommend_replenishment/application/run.py",
+      "sha256": "dc14e1d1d2c678687d6d4b25b11552c3b277c377843a0b0bbec95e54fc94d451",
+      "anchors": [
+        {
+          "start_line": 295,
+          "end_line": 316,
+          "contains": "observation = build_observation("
+        },
+        {
+          "start_line": 317,
+          "end_line": 369,
+          "contains": "state, quantities = advance_bucket("
+        }
+      ],
+      "classification": "CURRENT_PYTHON_SOURCE"
+    },
+    {
+      "path": "src/dsio_inventory_engine/recommend_replenishment/application/guard.py",
+      "sha256": "f9029f9e759d6452458bd014c96880b34a78d97fceb7430f64509db2660cc784",
+      "anchors": [
+        {
+          "start_line": 9,
+          "end_line": 21,
+          "contains": "b[\"start_date\"] >= due"
+        },
+        {
+          "start_line": 118,
+          "end_line": 141,
+          "contains": "ARRIVAL_OUTSIDE_PLAN_HORIZON"
+        }
+      ],
+      "classification": "CURRENT_PYTHON_SOURCE"
+    },
+    {
+      "path": "src/dsio_inventory_engine/recommend_replenishment/application/policy_search.py",
+      "sha256": "de6e452b2f6d787f923e0d03225a0c5600625baf9c36e0c4893355835c81b56a",
+      "anchors": [
+        {
+          "start_line": 67,
+          "end_line": 155,
+          "contains": "position <= rop"
+        },
+        {
+          "start_line": 158,
+          "end_line": 231,
+          "contains": "current_demand_fill_rate"
+        }
+      ],
+      "classification": "CURRENT_PYTHON_SOURCE"
+    },
+    {
+      "path": "src/dsio_inventory_engine/recommend_replenishment/application/policy_selection.py",
+      "sha256": "6bf9ddcd53382ae12e300ea0625c93af14b1103475acfd3bfbd5556d64f547e6",
+      "anchors": [
+        {
+          "start_line": 84,
+          "end_line": 102,
+          "contains": "ranking_key"
+        },
+        {
+          "start_line": 368,
+          "end_line": 405,
+          "contains": "NOT_SELECTED"
+        }
+      ],
+      "classification": "CURRENT_PYTHON_SOURCE"
+    },
+    {
+      "path": "src/dsio_inventory_engine/recommend_replenishment/application/selected_order_plan.py",
+      "sha256": "d84e6476fdee5df128da877f79eb3685d7c1bb8f1fc68792bf7207222bfbae16",
+      "anchors": [],
+      "classification": "CURRENT_PYTHON_SOURCE"
+    },
+    {
+      "path": "src/dsio_inventory_engine/simulate_inventory/application/step.py",
+      "sha256": "67aeb85f9a485087ec134950ad646ef1c46df3886f91589c81cc156debae6b32",
+      "anchors": [
+        {
+          "start_line": 16,
+          "end_line": 76,
+          "contains": "forecast_shortage_qty"
+        }
+      ],
+      "classification": "CURRENT_PYTHON_SOURCE"
+    },
+    {
+      "path": "src/dsio_inventory_engine/inventory_contracts/result_bundle.py",
+      "sha256": "5f924f1d3400dd3cdde2856b68c550b6a77a89ac0b9e2c482fc30a7172687e1a",
+      "anchors": [
+        {
+          "start_line": 55,
+          "end_line": 56,
+          "contains": "inventory.psi.weekly_roll_forward"
+        },
+        {
+          "start_line": 298,
+          "end_line": 306,
+          "contains": "choice(PSI_SIMULATOR_IMPLEMENTATION_VERSION)"
+        }
+      ],
+      "classification": "CURRENT_PYTHON_SOURCE"
+    },
+    {
+      "path": "src/dsio_inventory_engine/prepare_inventory/application/inventory_input.py",
+      "sha256": "d557233f18f17d74a6e3f36223b970cec751e18958c8e4a0b123b6ad54b760c0",
+      "anchors": [
+        {
+          "start_line": 129,
+          "end_line": 177,
+          "contains": "SAME_BUCKET_CONSUMPTION"
+        },
+        {
+          "start_line": 179,
+          "end_line": 260,
+          "contains": "CONFIRMED"
+        }
+      ],
+      "classification": "CURRENT_PYTHON_SOURCE"
+    }
+  ],
+  "confirmed_differences": [
+    {
+      "topic": "ORDER_TIMING",
+      "legacy": "After current receipt, previous BO and current demand; due date still based on bucket start",
+      "python": "Observe and order before current bucket roll-forward"
+    },
+    {
+      "topic": "POLICY_DISPATCH",
+      "legacy": "Shared post-demand Position<ROP; Lot(OUTL-Position). StockPolicy switch changes ExpMOS",
+      "python": "ROP_FIXED_Q or PERIODIC_ORDER_UP_TO; configurable review calendar"
+    },
+    {
+      "topic": "FORECAST_SHORTAGE",
+      "legacy": "Single Demand shortage accumulated as BO",
+      "python": "Customer BO carried; forecast shortage separately retained, not carried"
+    },
+    {
+      "topic": "MONTH_POLICY",
+      "legacy": "First matching inclusive BaseMonth policy",
+      "python": "Exactly one half-open policy at bucket start"
+    },
+    {
+      "topic": "LOT",
+      "legacy": "Min/Max-offset lattice; Max not hard cap",
+      "python": "Absolute multiple with MOQ, approved limit and physical cap"
+    },
+    {
+      "topic": "ARRIVAL",
+      "legacy": "Containing bucket; int(lead/28800); no matching bucket leaves no due-in assignment",
+      "python": "First bucket start at or after due; outside-horizon recommendation rejected"
+    },
+    {
+      "topic": "SELECTION_GRAIN",
+      "legacy": "SEGMT_ID and SNRIO_ID aggregate with DMD_AMT weights",
+      "python": "Per-item PSI replay; service feasibility and cost/inventory/order count ranking"
+    },
+    {
+      "topic": "NO_FEASIBLE_SCENARIO",
+      "legacy": "ApplyFixedCondition can force INDV_TARGET_FLAG_FORCE",
+      "python": "NOT_SELECTED with reasons"
+    },
+    {
+      "topic": "METRIC_SOURCE",
+      "legacy": "Query aliases SVC_LV as FILL_RATE; upstream aggregate formula unverified",
+      "python": "Compute current-demand unit fill rate from PSI"
+    }
+  ],
+  "unknowns": [
+    "Identity of actual deployed Legacy binary and active settings",
+    "Authoritative generation of TB_PLN_SIMUL_SUM_SEG.SVC_LV and group-to-item policy expansion",
+    "Source RMOS/EMOS generation by policy and aggregation uniqueness upstream of TB_ENG inputs",
+    "FN_GET_SEC_TIME_UOM body and PO lead-time history activation",
+    "Native behavior of short LT writing into an already-processed bucket and numeric edge cases"
+  ],
+  "proposed_manual_cases_executed_as_native_csharp": false,
+  "historical_python_tests": {
+    "passed": 404,
+    "subtests_passed": 186,
+    "rerun_in_this_task": false,
+    "legacy_equivalence_evidence": false
+  },
+  "preserved_boundaries": {
+    "calculation_code_unchanged": true,
+    "schemas_unchanged": true,
+    "goldens_unchanged": true,
+    "existing_id_and_hash_contract_unchanged": true,
+    "fsn_unchanged": true,
+    "operational_gate_unchanged": true,
+    "db_unchanged": true,
+    "platform_unchanged": true,
+    "runtime_unchanged": true,
+    "commit_or_push_performed": false
+  },
+  "documents": [
+    "IO_LEGACY_CSHARP_PYTHON_RECONCILIATION.md",
+    "IO_DEVELOPMENT_BASELINE.md",
+    "IO_SELECTED_POLICY_ORDER_PLAN_CONTRACT.md"
+  ],
+  "next_plan": "data/legacy-csharp-reconciliation-plan-v1.json",
+  "documentation_validation": {
+    "source_hashes_verified": 19,
+    "source_anchors_verified": 45,
+    "plan_tasks_verified": 7,
+    "local_markdown_links_verified": 109,
+    "existing_files_at_start": 565,
+    "approved_existing_documents_changed": 2,
+    "other_existing_files_unchanged": 563,
+    "new_documentation_files": 3,
+    "oma_docs_cli_available": false,
+    "external_urls_checked": false,
+    "independent_agent_review_performed": false
+  }
+}

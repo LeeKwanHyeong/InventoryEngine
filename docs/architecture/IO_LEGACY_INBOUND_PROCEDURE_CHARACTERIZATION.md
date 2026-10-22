@@ -14,6 +14,10 @@
 
 이 문서의 `확인`은 제공된 SQL 본문에서 직접 읽은 사실을 뜻한다. Target Key는 DDL 확인 전까지 `후보`로 기록하며 구현 계약으로 확정하지 않는다.
 
+2026-10-15 후속 [Segmentation·정책 후보 규칙 대사](IO_LEGACY_SEGMENTATION_RULE_RECONCILIATION.md)에서
+로컬 Rop Python/R과 Inbound의 소비 경로를 구분했다. 서비스수준별 재표본추출 ROP는 코드로 확인했지만,
+그룹 경계·RMOS/EMOS 후보 생성 및 실제 주문 엔진 분기는 원본 미확보다. Legacy를 실행하거나 DB를 조회하지 않았다.
+
 ---
 
 ## 2. 전체 호출 순서

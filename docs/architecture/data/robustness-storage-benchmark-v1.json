@@ -1,0 +1,49 @@
+{
+  "acceptance": "ALL_CANDIDATES_AND_PSI_ROWS_MATCH_NO_LOSS_OR_ROUNDING_CHANGE",
+  "automatic_order_allowed": false,
+  "automatic_publish_allowed": false,
+  "contract_id": "inventory-robustness-storage-benchmark",
+  "contract_version": "1.0.0",
+  "database_writes": false,
+  "gate": "REVIEW",
+  "hash_equivalence": "RESULT_AND_RESTORED_OBJECT_BYTES_IDENTICAL_STORAGE_MANIFEST_MAY_DIFFER",
+  "isolation": "FRESH_PROCESS_AND_EMPTY_PRIVATE_DIRECTORY_PER_CASE_NOT_COLD_OS_CACHE",
+  "max_experiment_raw_bytes": 20000000000,
+  "max_invocation_seconds": 3600,
+  "max_object_raw_bytes": 128000000,
+  "max_object_stored_bytes": 128000000,
+  "memory": "ABSOLUTE_PROCESS_RUSAGE_PEAK_RSS_BYTES_CUMULATIVE_NOT_PHASE_ALLOCATION",
+  "modes": {
+    "ABC_XYZ_SHARED_BUDGET": 32,
+    "LEGACY_STYLE": 32,
+    "WIDE_REFERENCE": 88
+  },
+  "official_paths_generated": false,
+  "operational_policy_approved": false,
+  "path_id": "HAND-CATALOG-PATH",
+  "phases": [
+    "PREPARATION",
+    "COMPUTE",
+    "PUBLICATION_REPLAY",
+    "PERSIST_EXCLUDING_REPLAY",
+    "READ_INTEGRITY",
+    "REVALIDATE_EXCLUDING_STORAGE"
+  ],
+  "physical_budget": "ALL_FILES_INCLUDING_COMPRESSION_METADATA_AND_TEMPORARY_FILES",
+  "profile_id": "PRICE_BASE",
+  "raw_budget": "RAW_BYTES_ONCE_PER_PHYSICAL_OBJECT_PLUS_RAW_SLOTS_ACROSS_ALL_TRIAL_DIRECTORIES",
+  "repetitions": 3,
+  "scope": "MANUAL_DEVELOPMENT_STORAGE_ONLY_NOT_OFFICIAL_ROBUSTNESS_STUDY",
+  "seed": 71,
+  "speed_claim": "THREE_REPETITIONS_PER_MODE_AND_VARIANT_REQUIRED_REPORT_EVERY_PHASE_MEDIAN",
+  "split": "NOMINAL",
+  "timing": "PERF_COUNTER_NS_WALL_TIME_NO_SUM_OF_OVERLAPPING_PHASES",
+  "variant_order": "JSON_FIRST_ON_ODD_REPETITIONS_GZIP_FIRST_ON_EVEN",
+  "variants": [
+    "JSON_V1",
+    "GZIP_V2"
+  ],
+  "w0": "2055-01-04",
+  "weeks": 65,
+  "workers": 1
+}

@@ -1,0 +1,1027 @@
+{
+  "contract_id": "inventory-robustness-storage-compression-verification",
+  "contract_version": "1.0.0",
+  "date": "2026-10-20",
+  "status": "LOCAL_STORAGE_COMPARISON_AND_V2_CODEC_VERIFIED_NOT_OFFICIAL_STUDY",
+  "repository": "InventoryEngine",
+  "branch": "inventory_engine_dev",
+  "base_commit": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+  "protocol_hash": "a3e35fcf23915e87823883ea8c1f09448b245ae7ea1fffa8c77482bab0433280",
+  "rules_profile_hash": "a3121dfa885f8b4d2e0df54605789ad841661693b0f386329fe4fa60946ecbae",
+  "benchmark_spec_hash": "f96f089823d5c747b5cb09da516fa87ef4b0d7460f2d5033c28c44d68a11f06f",
+  "source_manifest_hash": "54ea62606113faeed3cab43b6870c4df748f7110ff1b42c17c2d5ab295974637",
+  "source_file_count": 375,
+  "scope": "MANUAL_2055_ONE_ITEM_ONE_SUPPLIED_PATH_COMPLETE_32_32_88_CATALOGS_LOCAL_REVIEW_ONLY",
+  "implemented": [
+    "Explicit opt-in Gzip level-1 storage V2; existing V1 Writer and default Runtime unchanged",
+    "Closed physical reference with logical content hash, raw byte hash/length, stored byte hash/length and pinned codec/version",
+    "V1 unchanged reads and V1/V2 mixed recovery; no overwrite, deletion or implicit corruption fallback",
+    "Bounded decompression before JSON parsing with physical hash, raw hash, frame CRC, truncation and trailing/member checks",
+    "Append-only publication and same-hash idempotence reuse existing valid physical gzip bytes without recompressing",
+    "Original Catalog, Guard, causal PSI, cost scorecards and actual replay verification preserved",
+    "Frozen 18-case fresh-process serial comparison, source pinning and raw budget accounting independent of compression"
+  ],
+  "not_implemented_or_performed": [
+    "Shared-input reference normalization, repeated preparation/serialization reuse or fast-read/replay separation",
+    "Whole-result streaming, Parquet conversion, per-phase allocation profiling or transient scratch-disk peak measurement",
+    "Global production raw-budget reservation, deadline cancellation, crash-temporary retention or cleanup",
+    "Official 2037/2044 path generation, full Split Bank orchestration or the main robustness comparison",
+    "V100/P12 admission resolution, actual Source authority approval, ML/PPO training or model promotion",
+    "DB access/writes, migrations, Platform changes, installation or shared Runtime deployment",
+    "FSN or operational Gate changes, actual orders, commit, push or branch changes"
+  ],
+  "benchmark": {
+    "summary": {
+      "case_count": 18,
+      "mathematical_strategy_speedup_claim": false,
+      "physical_bytes_all_trials": 777116865,
+      "raw_budget_bytes_all_trials": 1444148292,
+      "root_metadata_bytes_before_complete": 119311,
+      "spec_hash": "f96f089823d5c747b5cb09da516fa87ef4b0d7460f2d5033c28c44d68a11f06f",
+      "status": "COMPLETE_COMPARISON",
+      "summaries": [
+        {
+          "mode": "ABC_XYZ_SHARED_BUDGET",
+          "peak_process_rss_bytes_max": 894107648,
+          "phase_wall_ns_median": {
+            "COMPUTE": 4419201292,
+            "PERSIST_EXCLUDING_REPLAY": 1633090166,
+            "PREPARATION": 107963583,
+            "PUBLICATION_REPLAY": 4984527625,
+            "READ_INTEGRITY": 1216300500,
+            "REVALIDATE_EXCLUDING_STORAGE": 5162003668
+          },
+          "physical_bytes": 50804802,
+          "raw_budget_bytes": 50804802,
+          "repetitions": 3,
+          "variant": "JSON_V1"
+        },
+        {
+          "mode": "ABC_XYZ_SHARED_BUDGET",
+          "peak_process_rss_bytes_max": 1986215936,
+          "phase_wall_ns_median": {
+            "COMPUTE": 4393244875,
+            "PERSIST_EXCLUDING_REPLAY": 1782250958,
+            "PREPARATION": 107987625,
+            "PUBLICATION_REPLAY": 5047973625,
+            "READ_INTEGRITY": 1260232667,
+            "REVALIDATE_EXCLUDING_STORAGE": 5121335375
+          },
+          "physical_bytes": 3883875,
+          "raw_budget_bytes": 50807147,
+          "repetitions": 3,
+          "variant": "GZIP_V2"
+        },
+        {
+          "mode": "LEGACY_STYLE",
+          "peak_process_rss_bytes_max": 931102720,
+          "phase_wall_ns_median": {
+            "COMPUTE": 4387610708,
+            "PERSIST_EXCLUDING_REPLAY": 1687078251,
+            "PREPARATION": 111014334,
+            "PUBLICATION_REPLAY": 5155480083,
+            "READ_INTEGRITY": 1264995875,
+            "REVALIDATE_EXCLUDING_STORAGE": 5071660335
+          },
+          "physical_bytes": 50801177,
+          "raw_budget_bytes": 50801177,
+          "repetitions": 3,
+          "variant": "JSON_V1"
+        },
+        {
+          "mode": "LEGACY_STYLE",
+          "peak_process_rss_bytes_max": 899694592,
+          "phase_wall_ns_median": {
+            "COMPUTE": 4364457209,
+            "PERSIST_EXCLUDING_REPLAY": 1772271625,
+            "PREPARATION": 108161792,
+            "PUBLICATION_REPLAY": 5072770125,
+            "READ_INTEGRITY": 1243618083,
+            "REVALIDATE_EXCLUDING_STORAGE": 5036390418
+          },
+          "physical_bytes": 3883998,
+          "raw_budget_bytes": 50803522,
+          "repetitions": 3,
+          "variant": "GZIP_V2"
+        },
+        {
+          "mode": "WIDE_REFERENCE",
+          "peak_process_rss_bytes_max": 1684783104,
+          "phase_wall_ns_median": {
+            "COMPUTE": 12498627334,
+            "PERSIST_EXCLUDING_REPLAY": 4778521999,
+            "PREPARATION": 119994000,
+            "PUBLICATION_REPLAY": 14303515208,
+            "READ_INTEGRITY": 3604213750,
+            "REVALIDATE_EXCLUDING_STORAGE": 13943149586
+          },
+          "physical_bytes": 139080711,
+          "raw_budget_bytes": 139080711,
+          "repetitions": 3,
+          "variant": "JSON_V1"
+        },
+        {
+          "mode": "WIDE_REFERENCE",
+          "peak_process_rss_bytes_max": 1524940800,
+          "phase_wall_ns_median": {
+            "COMPUTE": 12054808917,
+            "PERSIST_EXCLUDING_REPLAY": 4926311916,
+            "PREPARATION": 121378625,
+            "PUBLICATION_REPLAY": 13688761458,
+            "READ_INTEGRITY": 3537649375,
+            "REVALIDATE_EXCLUDING_STORAGE": 13730657289
+          },
+          "physical_bytes": 10584392,
+          "raw_budget_bytes": 139085405,
+          "repetitions": 3,
+          "variant": "GZIP_V2"
+        }
+      ]
+    },
+    "source_manifest_hash": "54ea62606113faeed3cab43b6870c4df748f7110ff1b42c17c2d5ab295974637",
+    "local_artifact_root": "/private/tmp/inventory-storage-benchmark-20261020.34t1pf",
+    "retention": "LOCAL_TEMPORARY_APPEND_ONLY_RESULTS_NOT_A_CENTRAL_ARCHIVE_OR_COMMITTED_RAW_ARTIFACT",
+    "runtime": {
+      "machine": "arm64",
+      "os": "Darwin",
+      "python": "3.12.10",
+      "zlib": "1.2.12"
+    },
+    "raw_budget_including_all_metadata": 1444270123,
+    "physical_bytes_including_all_metadata": 777238696,
+    "file_count": 230,
+    "largest_raw_object_bytes": 24502038,
+    "largest_stored_object_bytes": 24502038,
+    "report_file_sha256": {
+      "complete-benchmark.json": "feb1b761278bc40692c9f9e9aaf548168061cddf3d22acf2b784142f341505a6",
+      "pinned-benchmark.json": "0e9bad4f16edd8aaab6f9e91f7fe2d3d7d3e157a3eef100b27a00d1a642fcd0d",
+      "trial-01.json": "023d83a9759a29cc5ce7f5968ecf0a54e0195a09035f027849fd86e0a08cb3ba",
+      "trial-02.json": "efdb8b803772c86c9442e62c03bb0150e1a6703f601cfc404ed5099aeffa9151",
+      "trial-03.json": "d6bfcde827c70d2012058da170f63343473c07bb9aedb29e5f92a048dadb264a",
+      "trial-04.json": "0a2405bf77d5022fc7ef028185aa340a45ffa02c00d14b1eebf900717cb2f179",
+      "trial-05.json": "132cfc77e69c6c1506450f296066440e9f1a4266973dd737370a3a07cbad154a",
+      "trial-06.json": "3b9943ffaa46fcaf71e05e2fa8d0bc4144f23efab1ac2d99cd321a1f5901d2c9",
+      "trial-07.json": "cab61da0662218018dc5d47deb065746561fd75a67f5fc1b4df8bf6aeb521358",
+      "trial-08.json": "afc6e991e093a8fca5a459729e6bd14a7057bef445eaf93130d0c821b07f7397",
+      "trial-09.json": "f33f9b6a66f486b7bcf4d28b39f8cc8c45001dfbd143b1b433cca5fe3d8fc615",
+      "trial-10.json": "ed24fa2384fea4e0be4b219649f569857bcaba68dcf9d1e871503b1eefa95101",
+      "trial-11.json": "df3014b6442b8243054d32fc94abadeba5c3dcccca47d7b92b1c63fd978fbb8b",
+      "trial-12.json": "5342c178e92e601d9ce9647b53a3aedf22d98a5f9666e720925ac81fc332154f",
+      "trial-13.json": "745bd111876e3df0288ab44f9b508ded9a3a95e3e63d3cc80e05223c8684d1f5",
+      "trial-14.json": "2e05ec5b3ba56d8285d8ae5dcf4035ed1d4e1ebd88c2d9550ad8d22d25a8482c",
+      "trial-15.json": "b70ce4e67769e590d4577e3ef24d238237645741563b766ceb4eb9c26a8b6574",
+      "trial-16.json": "3c86c74f6073759590d206d0ecf734eb63968040b77a4b817f5399958bb490b1",
+      "trial-17.json": "1adbe82fab70b68b5054bdfd723b9093149af406ef2173231ded55fb13dbcb12",
+      "trial-18.json": "be2d671b2684025e569918d1425e0dd41bb307bd974ed844bbb19301cd0fb9fc"
+    },
+    "trials": [
+      {
+        "assembly_hash": "6bbde359490565523077b1a279e957f9c1f9f800cd925652083c32fb7b3f0a48",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 32,
+        "complete_catalog_hash": "fb33440fb596a2c8c6665d8e0ec5243e3e231ca5242e7871aba061bf482e7c8e",
+        "database_writes": false,
+        "leaf_hashes": [
+          "88237efd98164b3845d78faeffc4fc1d997be6834e537ca0938e7050503a8928",
+          "4fbfebceefe347ef89617d3372a06f5a12e5e71024b7125009489f58a4dc5a7e"
+        ],
+        "mode": "ABC_XYZ_SHARED_BUDGET",
+        "official_paths_generated": false,
+        "parent_classification_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "peak_process_rss_bytes": 894107648,
+        "phase_wall_ns": {
+          "COMPUTE": 4419201292,
+          "PERSIST_EXCLUDING_REPLAY": 1633090166,
+          "PREPARATION": 107337125,
+          "PUBLICATION_REPLAY": 4984527625,
+          "READ_INTEGRITY": 1216300500,
+          "REVALIDATE_EXCLUDING_STORAGE": 5165123251
+        },
+        "physical_bytes": 50804802,
+        "psi_row_count": 2080,
+        "raw_budget_bytes": 50804802,
+        "read_including_replay_ns": 6131225167,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "repetition": 1,
+        "result_hash": "a04d8830ff370b3717dff144042abfcc9a4d6d882a4b10d60f415de851277ee7",
+        "runtime": {
+          "machine": "arm64",
+          "os": "Darwin",
+          "python": "3.12.10",
+          "zlib": "1.2.12"
+        },
+        "source_hash": "54ea62606113faeed3cab43b6870c4df748f7110ff1b42c17c2d5ab295974637",
+        "spec_hash": "f96f089823d5c747b5cb09da516fa87ef4b0d7460f2d5033c28c44d68a11f06f",
+        "status": "VERIFIED",
+        "variant": "JSON_V1",
+        "write_including_replay_ns": 6617617791
+      },
+      {
+        "assembly_hash": "6bbde359490565523077b1a279e957f9c1f9f800cd925652083c32fb7b3f0a48",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 32,
+        "complete_catalog_hash": "fb33440fb596a2c8c6665d8e0ec5243e3e231ca5242e7871aba061bf482e7c8e",
+        "database_writes": false,
+        "leaf_hashes": [
+          "88237efd98164b3845d78faeffc4fc1d997be6834e537ca0938e7050503a8928",
+          "4fbfebceefe347ef89617d3372a06f5a12e5e71024b7125009489f58a4dc5a7e"
+        ],
+        "mode": "ABC_XYZ_SHARED_BUDGET",
+        "official_paths_generated": false,
+        "parent_classification_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "peak_process_rss_bytes": 1986215936,
+        "phase_wall_ns": {
+          "COMPUTE": 4382476250,
+          "PERSIST_EXCLUDING_REPLAY": 1782250958,
+          "PREPARATION": 115850042,
+          "PUBLICATION_REPLAY": 5047973625,
+          "READ_INTEGRITY": 1271590125,
+          "REVALIDATE_EXCLUDING_STORAGE": 5121335375
+        },
+        "physical_bytes": 3883875,
+        "psi_row_count": 2080,
+        "raw_budget_bytes": 50807147,
+        "read_including_replay_ns": 6096021042,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "repetition": 1,
+        "result_hash": "a04d8830ff370b3717dff144042abfcc9a4d6d882a4b10d60f415de851277ee7",
+        "runtime": {
+          "machine": "arm64",
+          "os": "Darwin",
+          "python": "3.12.10",
+          "zlib": "1.2.12"
+        },
+        "source_hash": "54ea62606113faeed3cab43b6870c4df748f7110ff1b42c17c2d5ab295974637",
+        "spec_hash": "f96f089823d5c747b5cb09da516fa87ef4b0d7460f2d5033c28c44d68a11f06f",
+        "status": "VERIFIED",
+        "variant": "GZIP_V2",
+        "write_including_replay_ns": 6830224583
+      },
+      {
+        "assembly_hash": "62461078a19a6d78cd0a42a9f4508d4698c349099b9c0108b60c196f8f20879b",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 32,
+        "complete_catalog_hash": "3694c6772d64508178eddd78f4ee8edaf03659dd37aa5b2ff8872fd6ce12a8d6",
+        "database_writes": false,
+        "leaf_hashes": [
+          "9e08935911b5c26d81a9117fcb4cd0bcf4503a59aa5aede68ac35072a54ec025",
+          "f752dc7a247360e59592ad1e04dc058e39cf43baec3b82543ca74277a57dc4d1"
+        ],
+        "mode": "LEGACY_STYLE",
+        "official_paths_generated": false,
+        "parent_classification_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "peak_process_rss_bytes": 754057216,
+        "phase_wall_ns": {
+          "COMPUTE": 4546031041,
+          "PERSIST_EXCLUDING_REPLAY": 1688666708,
+          "PREPARATION": 111014334,
+          "PUBLICATION_REPLAY": 5155480083,
+          "READ_INTEGRITY": 1269914542,
+          "REVALIDATE_EXCLUDING_STORAGE": 5071660335
+        },
+        "physical_bytes": 50801177,
+        "psi_row_count": 2080,
+        "raw_budget_bytes": 50801177,
+        "read_including_replay_ns": 6009545125,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "repetition": 1,
+        "result_hash": "fbd77610f2019fb44b68dbf12a3667dbe6f31238e2d428909355bc7e7f1c67c6",
+        "runtime": {
+          "machine": "arm64",
+          "os": "Darwin",
+          "python": "3.12.10",
+          "zlib": "1.2.12"
+        },
+        "source_hash": "54ea62606113faeed3cab43b6870c4df748f7110ff1b42c17c2d5ab295974637",
+        "spec_hash": "f96f089823d5c747b5cb09da516fa87ef4b0d7460f2d5033c28c44d68a11f06f",
+        "status": "VERIFIED",
+        "variant": "JSON_V1",
+        "write_including_replay_ns": 6844146791
+      },
+      {
+        "assembly_hash": "62461078a19a6d78cd0a42a9f4508d4698c349099b9c0108b60c196f8f20879b",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 32,
+        "complete_catalog_hash": "3694c6772d64508178eddd78f4ee8edaf03659dd37aa5b2ff8872fd6ce12a8d6",
+        "database_writes": false,
+        "leaf_hashes": [
+          "9e08935911b5c26d81a9117fcb4cd0bcf4503a59aa5aede68ac35072a54ec025",
+          "f752dc7a247360e59592ad1e04dc058e39cf43baec3b82543ca74277a57dc4d1"
+        ],
+        "mode": "LEGACY_STYLE",
+        "official_paths_generated": false,
+        "parent_classification_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "peak_process_rss_bytes": 712671232,
+        "phase_wall_ns": {
+          "COMPUTE": 4364457209,
+          "PERSIST_EXCLUDING_REPLAY": 1772271625,
+          "PREPARATION": 106609250,
+          "PUBLICATION_REPLAY": 5072770125,
+          "READ_INTEGRITY": 1259167666,
+          "REVALIDATE_EXCLUDING_STORAGE": 5047267917
+        },
+        "physical_bytes": 3883998,
+        "psi_row_count": 2080,
+        "raw_budget_bytes": 50803522,
+        "read_including_replay_ns": 6006140875,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "repetition": 1,
+        "result_hash": "fbd77610f2019fb44b68dbf12a3667dbe6f31238e2d428909355bc7e7f1c67c6",
+        "runtime": {
+          "machine": "arm64",
+          "os": "Darwin",
+          "python": "3.12.10",
+          "zlib": "1.2.12"
+        },
+        "source_hash": "54ea62606113faeed3cab43b6870c4df748f7110ff1b42c17c2d5ab295974637",
+        "spec_hash": "f96f089823d5c747b5cb09da516fa87ef4b0d7460f2d5033c28c44d68a11f06f",
+        "status": "VERIFIED",
+        "variant": "GZIP_V2",
+        "write_including_replay_ns": 6845041750
+      },
+      {
+        "assembly_hash": "6b7089606d182eaca0b7bc433058897171e68c7d64ab3b26b74061f86158af7c",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 88,
+        "complete_catalog_hash": "ccb91d2cee8661e929fe33867b1468b1ac229af2f126ce1e73c91e730c615c67",
+        "database_writes": false,
+        "leaf_hashes": [
+          "a3afd059cdff53034b83bb0f552b4654f0fec68f59fc5e67d792b173535badb4",
+          "c94e428b5a7148701f5010396f754bb6951c7d6e22151b101756aa186590e6aa",
+          "030e8d21867e88b4dc48855184f72e8de1da581ed993538172a788a71bacd9de",
+          "66a478ef7a636a301ac905cc8e6ea2cd2155c621c5069f7421ef65f2612a74d9",
+          "db274d21e434cee9c0938c2b7f9194e7245a558b61ab1e62a28cee70c14a118f",
+          "ea77413abe25a5d1e552209cfd9a068abf56e9537fc544fee237987c707d355c"
+        ],
+        "mode": "WIDE_REFERENCE",
+        "official_paths_generated": false,
+        "parent_classification_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "peak_process_rss_bytes": 1536704512,
+        "phase_wall_ns": {
+          "COMPUTE": 12498627334,
+          "PERSIST_EXCLUDING_REPLAY": 4707178750,
+          "PREPARATION": 119994000,
+          "PUBLICATION_REPLAY": 14303515208,
+          "READ_INTEGRITY": 3604213750,
+          "REVALIDATE_EXCLUDING_STORAGE": 14342413253
+        },
+        "physical_bytes": 139080711,
+        "psi_row_count": 5720,
+        "raw_budget_bytes": 139080711,
+        "read_including_replay_ns": 17134743584,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "repetition": 1,
+        "result_hash": "0c2a92d7fdd6d835a665d3c2bf1a4865b0fe797e0851e0a9268750fbfa31759b",
+        "runtime": {
+          "machine": "arm64",
+          "os": "Darwin",
+          "python": "3.12.10",
+          "zlib": "1.2.12"
+        },
+        "source_hash": "54ea62606113faeed3cab43b6870c4df748f7110ff1b42c17c2d5ab295974637",
+        "spec_hash": "f96f089823d5c747b5cb09da516fa87ef4b0d7460f2d5033c28c44d68a11f06f",
+        "status": "VERIFIED",
+        "variant": "JSON_V1",
+        "write_including_replay_ns": 19010693958
+      },
+      {
+        "assembly_hash": "6b7089606d182eaca0b7bc433058897171e68c7d64ab3b26b74061f86158af7c",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 88,
+        "complete_catalog_hash": "ccb91d2cee8661e929fe33867b1468b1ac229af2f126ce1e73c91e730c615c67",
+        "database_writes": false,
+        "leaf_hashes": [
+          "a3afd059cdff53034b83bb0f552b4654f0fec68f59fc5e67d792b173535badb4",
+          "c94e428b5a7148701f5010396f754bb6951c7d6e22151b101756aa186590e6aa",
+          "030e8d21867e88b4dc48855184f72e8de1da581ed993538172a788a71bacd9de",
+          "66a478ef7a636a301ac905cc8e6ea2cd2155c621c5069f7421ef65f2612a74d9",
+          "db274d21e434cee9c0938c2b7f9194e7245a558b61ab1e62a28cee70c14a118f",
+          "ea77413abe25a5d1e552209cfd9a068abf56e9537fc544fee237987c707d355c"
+        ],
+        "mode": "WIDE_REFERENCE",
+        "official_paths_generated": false,
+        "parent_classification_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "peak_process_rss_bytes": 1524269056,
+        "phase_wall_ns": {
+          "COMPUTE": 12381477000,
+          "PERSIST_EXCLUDING_REPLAY": 4906815000,
+          "PREPARATION": 161220583,
+          "PUBLICATION_REPLAY": 13688761458,
+          "READ_INTEGRITY": 3537649375,
+          "REVALIDATE_EXCLUDING_STORAGE": 13730657289
+        },
+        "physical_bytes": 10584392,
+        "psi_row_count": 5720,
+        "raw_budget_bytes": 139085405,
+        "read_including_replay_ns": 16457615375,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "repetition": 1,
+        "result_hash": "0c2a92d7fdd6d835a665d3c2bf1a4865b0fe797e0851e0a9268750fbfa31759b",
+        "runtime": {
+          "machine": "arm64",
+          "os": "Darwin",
+          "python": "3.12.10",
+          "zlib": "1.2.12"
+        },
+        "source_hash": "54ea62606113faeed3cab43b6870c4df748f7110ff1b42c17c2d5ab295974637",
+        "spec_hash": "f96f089823d5c747b5cb09da516fa87ef4b0d7460f2d5033c28c44d68a11f06f",
+        "status": "VERIFIED",
+        "variant": "GZIP_V2",
+        "write_including_replay_ns": 18595576458
+      },
+      {
+        "assembly_hash": "6bbde359490565523077b1a279e957f9c1f9f800cd925652083c32fb7b3f0a48",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 32,
+        "complete_catalog_hash": "fb33440fb596a2c8c6665d8e0ec5243e3e231ca5242e7871aba061bf482e7c8e",
+        "database_writes": false,
+        "leaf_hashes": [
+          "88237efd98164b3845d78faeffc4fc1d997be6834e537ca0938e7050503a8928",
+          "4fbfebceefe347ef89617d3372a06f5a12e5e71024b7125009489f58a4dc5a7e"
+        ],
+        "mode": "ABC_XYZ_SHARED_BUDGET",
+        "official_paths_generated": false,
+        "parent_classification_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "peak_process_rss_bytes": 771653632,
+        "phase_wall_ns": {
+          "COMPUTE": 4393244875,
+          "PERSIST_EXCLUDING_REPLAY": 1810577167,
+          "PREPARATION": 107925834,
+          "PUBLICATION_REPLAY": 5101378667,
+          "READ_INTEGRITY": 1260232667,
+          "REVALIDATE_EXCLUDING_STORAGE": 5163286707
+        },
+        "physical_bytes": 3883875,
+        "psi_row_count": 2080,
+        "raw_budget_bytes": 50807147,
+        "read_including_replay_ns": 6142459583,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "repetition": 2,
+        "result_hash": "a04d8830ff370b3717dff144042abfcc9a4d6d882a4b10d60f415de851277ee7",
+        "runtime": {
+          "machine": "arm64",
+          "os": "Darwin",
+          "python": "3.12.10",
+          "zlib": "1.2.12"
+        },
+        "source_hash": "54ea62606113faeed3cab43b6870c4df748f7110ff1b42c17c2d5ab295974637",
+        "spec_hash": "f96f089823d5c747b5cb09da516fa87ef4b0d7460f2d5033c28c44d68a11f06f",
+        "status": "VERIFIED",
+        "variant": "GZIP_V2",
+        "write_including_replay_ns": 6911955834
+      },
+      {
+        "assembly_hash": "6bbde359490565523077b1a279e957f9c1f9f800cd925652083c32fb7b3f0a48",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 32,
+        "complete_catalog_hash": "fb33440fb596a2c8c6665d8e0ec5243e3e231ca5242e7871aba061bf482e7c8e",
+        "database_writes": false,
+        "leaf_hashes": [
+          "88237efd98164b3845d78faeffc4fc1d997be6834e537ca0938e7050503a8928",
+          "4fbfebceefe347ef89617d3372a06f5a12e5e71024b7125009489f58a4dc5a7e"
+        ],
+        "mode": "ABC_XYZ_SHARED_BUDGET",
+        "official_paths_generated": false,
+        "parent_classification_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "peak_process_rss_bytes": 711458816,
+        "phase_wall_ns": {
+          "COMPUTE": 4472464791,
+          "PERSIST_EXCLUDING_REPLAY": 1663165374,
+          "PREPARATION": 117858833,
+          "PUBLICATION_REPLAY": 5209621334,
+          "READ_INTEGRITY": 1229766125,
+          "REVALIDATE_EXCLUDING_STORAGE": 5162003668
+        },
+        "physical_bytes": 50804802,
+        "psi_row_count": 2080,
+        "raw_budget_bytes": 50804802,
+        "read_including_replay_ns": 6137969208,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "repetition": 2,
+        "result_hash": "a04d8830ff370b3717dff144042abfcc9a4d6d882a4b10d60f415de851277ee7",
+        "runtime": {
+          "machine": "arm64",
+          "os": "Darwin",
+          "python": "3.12.10",
+          "zlib": "1.2.12"
+        },
+        "source_hash": "54ea62606113faeed3cab43b6870c4df748f7110ff1b42c17c2d5ab295974637",
+        "spec_hash": "f96f089823d5c747b5cb09da516fa87ef4b0d7460f2d5033c28c44d68a11f06f",
+        "status": "VERIFIED",
+        "variant": "JSON_V1",
+        "write_including_replay_ns": 6872786708
+      },
+      {
+        "assembly_hash": "62461078a19a6d78cd0a42a9f4508d4698c349099b9c0108b60c196f8f20879b",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 32,
+        "complete_catalog_hash": "3694c6772d64508178eddd78f4ee8edaf03659dd37aa5b2ff8872fd6ce12a8d6",
+        "database_writes": false,
+        "leaf_hashes": [
+          "9e08935911b5c26d81a9117fcb4cd0bcf4503a59aa5aede68ac35072a54ec025",
+          "f752dc7a247360e59592ad1e04dc058e39cf43baec3b82543ca74277a57dc4d1"
+        ],
+        "mode": "LEGACY_STYLE",
+        "official_paths_generated": false,
+        "parent_classification_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "peak_process_rss_bytes": 899694592,
+        "phase_wall_ns": {
+          "COMPUTE": 4425875125,
+          "PERSIST_EXCLUDING_REPLAY": 1796037292,
+          "PREPARATION": 108161792,
+          "PUBLICATION_REPLAY": 5141944500,
+          "READ_INTEGRITY": 1243618083,
+          "REVALIDATE_EXCLUDING_STORAGE": 5036390418
+        },
+        "physical_bytes": 3883998,
+        "psi_row_count": 2080,
+        "raw_budget_bytes": 50803522,
+        "read_including_replay_ns": 6009078500,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "repetition": 2,
+        "result_hash": "fbd77610f2019fb44b68dbf12a3667dbe6f31238e2d428909355bc7e7f1c67c6",
+        "runtime": {
+          "machine": "arm64",
+          "os": "Darwin",
+          "python": "3.12.10",
+          "zlib": "1.2.12"
+        },
+        "source_hash": "54ea62606113faeed3cab43b6870c4df748f7110ff1b42c17c2d5ab295974637",
+        "spec_hash": "f96f089823d5c747b5cb09da516fa87ef4b0d7460f2d5033c28c44d68a11f06f",
+        "status": "VERIFIED",
+        "variant": "GZIP_V2",
+        "write_including_replay_ns": 6937981792
+      },
+      {
+        "assembly_hash": "62461078a19a6d78cd0a42a9f4508d4698c349099b9c0108b60c196f8f20879b",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 32,
+        "complete_catalog_hash": "3694c6772d64508178eddd78f4ee8edaf03659dd37aa5b2ff8872fd6ce12a8d6",
+        "database_writes": false,
+        "leaf_hashes": [
+          "9e08935911b5c26d81a9117fcb4cd0bcf4503a59aa5aede68ac35072a54ec025",
+          "f752dc7a247360e59592ad1e04dc058e39cf43baec3b82543ca74277a57dc4d1"
+        ],
+        "mode": "LEGACY_STYLE",
+        "official_paths_generated": false,
+        "parent_classification_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "peak_process_rss_bytes": 723419136,
+        "phase_wall_ns": {
+          "COMPUTE": 4387610708,
+          "PERSIST_EXCLUDING_REPLAY": 1675189208,
+          "PREPARATION": 118838459,
+          "PUBLICATION_REPLAY": 5216688167,
+          "READ_INTEGRITY": 1264995875,
+          "REVALIDATE_EXCLUDING_STORAGE": 5097607668
+        },
+        "physical_bytes": 50801177,
+        "psi_row_count": 2080,
+        "raw_budget_bytes": 50801177,
+        "read_including_replay_ns": 6042677375,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "repetition": 2,
+        "result_hash": "fbd77610f2019fb44b68dbf12a3667dbe6f31238e2d428909355bc7e7f1c67c6",
+        "runtime": {
+          "machine": "arm64",
+          "os": "Darwin",
+          "python": "3.12.10",
+          "zlib": "1.2.12"
+        },
+        "source_hash": "54ea62606113faeed3cab43b6870c4df748f7110ff1b42c17c2d5ab295974637",
+        "spec_hash": "f96f089823d5c747b5cb09da516fa87ef4b0d7460f2d5033c28c44d68a11f06f",
+        "status": "VERIFIED",
+        "variant": "JSON_V1",
+        "write_including_replay_ns": 6891877375
+      },
+      {
+        "assembly_hash": "6b7089606d182eaca0b7bc433058897171e68c7d64ab3b26b74061f86158af7c",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 88,
+        "complete_catalog_hash": "ccb91d2cee8661e929fe33867b1468b1ac229af2f126ce1e73c91e730c615c67",
+        "database_writes": false,
+        "leaf_hashes": [
+          "a3afd059cdff53034b83bb0f552b4654f0fec68f59fc5e67d792b173535badb4",
+          "c94e428b5a7148701f5010396f754bb6951c7d6e22151b101756aa186590e6aa",
+          "030e8d21867e88b4dc48855184f72e8de1da581ed993538172a788a71bacd9de",
+          "66a478ef7a636a301ac905cc8e6ea2cd2155c621c5069f7421ef65f2612a74d9",
+          "db274d21e434cee9c0938c2b7f9194e7245a558b61ab1e62a28cee70c14a118f",
+          "ea77413abe25a5d1e552209cfd9a068abf56e9537fc544fee237987c707d355c"
+        ],
+        "mode": "WIDE_REFERENCE",
+        "official_paths_generated": false,
+        "parent_classification_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "peak_process_rss_bytes": 1520140288,
+        "phase_wall_ns": {
+          "COMPUTE": 12027745541,
+          "PERSIST_EXCLUDING_REPLAY": 4926311916,
+          "PREPARATION": 121378625,
+          "PUBLICATION_REPLAY": 14029215625,
+          "READ_INTEGRITY": 3696091666,
+          "REVALIDATE_EXCLUDING_STORAGE": 14224020415
+        },
+        "physical_bytes": 10584392,
+        "psi_row_count": 5720,
+        "raw_budget_bytes": 139085405,
+        "read_including_replay_ns": 17073185416,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "repetition": 2,
+        "result_hash": "0c2a92d7fdd6d835a665d3c2bf1a4865b0fe797e0851e0a9268750fbfa31759b",
+        "runtime": {
+          "machine": "arm64",
+          "os": "Darwin",
+          "python": "3.12.10",
+          "zlib": "1.2.12"
+        },
+        "source_hash": "54ea62606113faeed3cab43b6870c4df748f7110ff1b42c17c2d5ab295974637",
+        "spec_hash": "f96f089823d5c747b5cb09da516fa87ef4b0d7460f2d5033c28c44d68a11f06f",
+        "status": "VERIFIED",
+        "variant": "GZIP_V2",
+        "write_including_replay_ns": 18955527541
+      },
+      {
+        "assembly_hash": "6b7089606d182eaca0b7bc433058897171e68c7d64ab3b26b74061f86158af7c",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 88,
+        "complete_catalog_hash": "ccb91d2cee8661e929fe33867b1468b1ac229af2f126ce1e73c91e730c615c67",
+        "database_writes": false,
+        "leaf_hashes": [
+          "a3afd059cdff53034b83bb0f552b4654f0fec68f59fc5e67d792b173535badb4",
+          "c94e428b5a7148701f5010396f754bb6951c7d6e22151b101756aa186590e6aa",
+          "030e8d21867e88b4dc48855184f72e8de1da581ed993538172a788a71bacd9de",
+          "66a478ef7a636a301ac905cc8e6ea2cd2155c621c5069f7421ef65f2612a74d9",
+          "db274d21e434cee9c0938c2b7f9194e7245a558b61ab1e62a28cee70c14a118f",
+          "ea77413abe25a5d1e552209cfd9a068abf56e9537fc544fee237987c707d355c"
+        ],
+        "mode": "WIDE_REFERENCE",
+        "official_paths_generated": false,
+        "parent_classification_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "peak_process_rss_bytes": 1533378560,
+        "phase_wall_ns": {
+          "COMPUTE": 12585273833,
+          "PERSIST_EXCLUDING_REPLAY": 4857875375,
+          "PREPARATION": 123482625,
+          "PUBLICATION_REPLAY": 14340291000,
+          "READ_INTEGRITY": 3451675375,
+          "REVALIDATE_EXCLUDING_STORAGE": 13599542583
+        },
+        "physical_bytes": 139080711,
+        "psi_row_count": 5720,
+        "raw_budget_bytes": 139080711,
+        "read_including_replay_ns": 16172325750,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "repetition": 2,
+        "result_hash": "0c2a92d7fdd6d835a665d3c2bf1a4865b0fe797e0851e0a9268750fbfa31759b",
+        "runtime": {
+          "machine": "arm64",
+          "os": "Darwin",
+          "python": "3.12.10",
+          "zlib": "1.2.12"
+        },
+        "source_hash": "54ea62606113faeed3cab43b6870c4df748f7110ff1b42c17c2d5ab295974637",
+        "spec_hash": "f96f089823d5c747b5cb09da516fa87ef4b0d7460f2d5033c28c44d68a11f06f",
+        "status": "VERIFIED",
+        "variant": "JSON_V1",
+        "write_including_replay_ns": 19198166375
+      },
+      {
+        "assembly_hash": "6bbde359490565523077b1a279e957f9c1f9f800cd925652083c32fb7b3f0a48",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 32,
+        "complete_catalog_hash": "fb33440fb596a2c8c6665d8e0ec5243e3e231ca5242e7871aba061bf482e7c8e",
+        "database_writes": false,
+        "leaf_hashes": [
+          "88237efd98164b3845d78faeffc4fc1d997be6834e537ca0938e7050503a8928",
+          "4fbfebceefe347ef89617d3372a06f5a12e5e71024b7125009489f58a4dc5a7e"
+        ],
+        "mode": "ABC_XYZ_SHARED_BUDGET",
+        "official_paths_generated": false,
+        "parent_classification_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "peak_process_rss_bytes": 711196672,
+        "phase_wall_ns": {
+          "COMPUTE": 4230952125,
+          "PERSIST_EXCLUDING_REPLAY": 1617868750,
+          "PREPARATION": 107963583,
+          "PUBLICATION_REPLAY": 4894316375,
+          "READ_INTEGRITY": 1199650333,
+          "REVALIDATE_EXCLUDING_STORAGE": 4958712876
+        },
+        "physical_bytes": 50804802,
+        "psi_row_count": 2080,
+        "raw_budget_bytes": 50804802,
+        "read_including_replay_ns": 5875883125,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "repetition": 3,
+        "result_hash": "a04d8830ff370b3717dff144042abfcc9a4d6d882a4b10d60f415de851277ee7",
+        "runtime": {
+          "machine": "arm64",
+          "os": "Darwin",
+          "python": "3.12.10",
+          "zlib": "1.2.12"
+        },
+        "source_hash": "54ea62606113faeed3cab43b6870c4df748f7110ff1b42c17c2d5ab295974637",
+        "spec_hash": "f96f089823d5c747b5cb09da516fa87ef4b0d7460f2d5033c28c44d68a11f06f",
+        "status": "VERIFIED",
+        "variant": "JSON_V1",
+        "write_including_replay_ns": 6512185125
+      },
+      {
+        "assembly_hash": "6bbde359490565523077b1a279e957f9c1f9f800cd925652083c32fb7b3f0a48",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 32,
+        "complete_catalog_hash": "fb33440fb596a2c8c6665d8e0ec5243e3e231ca5242e7871aba061bf482e7c8e",
+        "database_writes": false,
+        "leaf_hashes": [
+          "88237efd98164b3845d78faeffc4fc1d997be6834e537ca0938e7050503a8928",
+          "4fbfebceefe347ef89617d3372a06f5a12e5e71024b7125009489f58a4dc5a7e"
+        ],
+        "mode": "ABC_XYZ_SHARED_BUDGET",
+        "official_paths_generated": false,
+        "parent_classification_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "peak_process_rss_bytes": 711131136,
+        "phase_wall_ns": {
+          "COMPUTE": 4401690000,
+          "PERSIST_EXCLUDING_REPLAY": 1737417167,
+          "PREPARATION": 107987625,
+          "PUBLICATION_REPLAY": 4955309542,
+          "READ_INTEGRITY": 1247890334,
+          "REVALIDATE_EXCLUDING_STORAGE": 5057228709
+        },
+        "physical_bytes": 3883875,
+        "psi_row_count": 2080,
+        "raw_budget_bytes": 50807147,
+        "read_including_replay_ns": 6024100042,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "repetition": 3,
+        "result_hash": "a04d8830ff370b3717dff144042abfcc9a4d6d882a4b10d60f415de851277ee7",
+        "runtime": {
+          "machine": "arm64",
+          "os": "Darwin",
+          "python": "3.12.10",
+          "zlib": "1.2.12"
+        },
+        "source_hash": "54ea62606113faeed3cab43b6870c4df748f7110ff1b42c17c2d5ab295974637",
+        "spec_hash": "f96f089823d5c747b5cb09da516fa87ef4b0d7460f2d5033c28c44d68a11f06f",
+        "status": "VERIFIED",
+        "variant": "GZIP_V2",
+        "write_including_replay_ns": 6692726709
+      },
+      {
+        "assembly_hash": "62461078a19a6d78cd0a42a9f4508d4698c349099b9c0108b60c196f8f20879b",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 32,
+        "complete_catalog_hash": "3694c6772d64508178eddd78f4ee8edaf03659dd37aa5b2ff8872fd6ce12a8d6",
+        "database_writes": false,
+        "leaf_hashes": [
+          "9e08935911b5c26d81a9117fcb4cd0bcf4503a59aa5aede68ac35072a54ec025",
+          "f752dc7a247360e59592ad1e04dc058e39cf43baec3b82543ca74277a57dc4d1"
+        ],
+        "mode": "LEGACY_STYLE",
+        "official_paths_generated": false,
+        "parent_classification_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "peak_process_rss_bytes": 931102720,
+        "phase_wall_ns": {
+          "COMPUTE": 4293618791,
+          "PERSIST_EXCLUDING_REPLAY": 1687078251,
+          "PREPARATION": 107691125,
+          "PUBLICATION_REPLAY": 5025846041,
+          "READ_INTEGRITY": 1231197708,
+          "REVALIDATE_EXCLUDING_STORAGE": 4908202708
+        },
+        "physical_bytes": 50801177,
+        "psi_row_count": 2080,
+        "raw_budget_bytes": 50801177,
+        "read_including_replay_ns": 5796316625,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "repetition": 3,
+        "result_hash": "fbd77610f2019fb44b68dbf12a3667dbe6f31238e2d428909355bc7e7f1c67c6",
+        "runtime": {
+          "machine": "arm64",
+          "os": "Darwin",
+          "python": "3.12.10",
+          "zlib": "1.2.12"
+        },
+        "source_hash": "54ea62606113faeed3cab43b6870c4df748f7110ff1b42c17c2d5ab295974637",
+        "spec_hash": "f96f089823d5c747b5cb09da516fa87ef4b0d7460f2d5033c28c44d68a11f06f",
+        "status": "VERIFIED",
+        "variant": "JSON_V1",
+        "write_including_replay_ns": 6712924292
+      },
+      {
+        "assembly_hash": "62461078a19a6d78cd0a42a9f4508d4698c349099b9c0108b60c196f8f20879b",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 32,
+        "complete_catalog_hash": "3694c6772d64508178eddd78f4ee8edaf03659dd37aa5b2ff8872fd6ce12a8d6",
+        "database_writes": false,
+        "leaf_hashes": [
+          "9e08935911b5c26d81a9117fcb4cd0bcf4503a59aa5aede68ac35072a54ec025",
+          "f752dc7a247360e59592ad1e04dc058e39cf43baec3b82543ca74277a57dc4d1"
+        ],
+        "mode": "LEGACY_STYLE",
+        "official_paths_generated": false,
+        "parent_classification_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "peak_process_rss_bytes": 716603392,
+        "phase_wall_ns": {
+          "COMPUTE": 4256591500,
+          "PERSIST_EXCLUDING_REPLAY": 1750279625,
+          "PREPARATION": 109044042,
+          "PUBLICATION_REPLAY": 4929272125,
+          "READ_INTEGRITY": 1238996834,
+          "REVALIDATE_EXCLUDING_STORAGE": 4932718709
+        },
+        "physical_bytes": 3883998,
+        "psi_row_count": 2080,
+        "raw_budget_bytes": 50803522,
+        "read_including_replay_ns": 5861801000,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "repetition": 3,
+        "result_hash": "fbd77610f2019fb44b68dbf12a3667dbe6f31238e2d428909355bc7e7f1c67c6",
+        "runtime": {
+          "machine": "arm64",
+          "os": "Darwin",
+          "python": "3.12.10",
+          "zlib": "1.2.12"
+        },
+        "source_hash": "54ea62606113faeed3cab43b6870c4df748f7110ff1b42c17c2d5ab295974637",
+        "spec_hash": "f96f089823d5c747b5cb09da516fa87ef4b0d7460f2d5033c28c44d68a11f06f",
+        "status": "VERIFIED",
+        "variant": "GZIP_V2",
+        "write_including_replay_ns": 6679551750
+      },
+      {
+        "assembly_hash": "6b7089606d182eaca0b7bc433058897171e68c7d64ab3b26b74061f86158af7c",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 88,
+        "complete_catalog_hash": "ccb91d2cee8661e929fe33867b1468b1ac229af2f126ce1e73c91e730c615c67",
+        "database_writes": false,
+        "leaf_hashes": [
+          "a3afd059cdff53034b83bb0f552b4654f0fec68f59fc5e67d792b173535badb4",
+          "c94e428b5a7148701f5010396f754bb6951c7d6e22151b101756aa186590e6aa",
+          "030e8d21867e88b4dc48855184f72e8de1da581ed993538172a788a71bacd9de",
+          "66a478ef7a636a301ac905cc8e6ea2cd2155c621c5069f7421ef65f2612a74d9",
+          "db274d21e434cee9c0938c2b7f9194e7245a558b61ab1e62a28cee70c14a118f",
+          "ea77413abe25a5d1e552209cfd9a068abf56e9537fc544fee237987c707d355c"
+        ],
+        "mode": "WIDE_REFERENCE",
+        "official_paths_generated": false,
+        "parent_classification_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "peak_process_rss_bytes": 1684783104,
+        "phase_wall_ns": {
+          "COMPUTE": 12173884458,
+          "PERSIST_EXCLUDING_REPLAY": 4778521999,
+          "PREPARATION": 117672625,
+          "PUBLICATION_REPLAY": 14245663209,
+          "READ_INTEGRITY": 3670578625,
+          "REVALIDATE_EXCLUDING_STORAGE": 13943149586
+        },
+        "physical_bytes": 139080711,
+        "psi_row_count": 5720,
+        "raw_budget_bytes": 139080711,
+        "read_including_replay_ns": 16640409292,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "repetition": 3,
+        "result_hash": "0c2a92d7fdd6d835a665d3c2bf1a4865b0fe797e0851e0a9268750fbfa31759b",
+        "runtime": {
+          "machine": "arm64",
+          "os": "Darwin",
+          "python": "3.12.10",
+          "zlib": "1.2.12"
+        },
+        "source_hash": "54ea62606113faeed3cab43b6870c4df748f7110ff1b42c17c2d5ab295974637",
+        "spec_hash": "f96f089823d5c747b5cb09da516fa87ef4b0d7460f2d5033c28c44d68a11f06f",
+        "status": "VERIFIED",
+        "variant": "JSON_V1",
+        "write_including_replay_ns": 19024185208
+      },
+      {
+        "assembly_hash": "6b7089606d182eaca0b7bc433058897171e68c7d64ab3b26b74061f86158af7c",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 88,
+        "complete_catalog_hash": "ccb91d2cee8661e929fe33867b1468b1ac229af2f126ce1e73c91e730c615c67",
+        "database_writes": false,
+        "leaf_hashes": [
+          "a3afd059cdff53034b83bb0f552b4654f0fec68f59fc5e67d792b173535badb4",
+          "c94e428b5a7148701f5010396f754bb6951c7d6e22151b101756aa186590e6aa",
+          "030e8d21867e88b4dc48855184f72e8de1da581ed993538172a788a71bacd9de",
+          "66a478ef7a636a301ac905cc8e6ea2cd2155c621c5069f7421ef65f2612a74d9",
+          "db274d21e434cee9c0938c2b7f9194e7245a558b61ab1e62a28cee70c14a118f",
+          "ea77413abe25a5d1e552209cfd9a068abf56e9537fc544fee237987c707d355c"
+        ],
+        "mode": "WIDE_REFERENCE",
+        "official_paths_generated": false,
+        "parent_classification_hash": "cbf7b0e445a232a610fbb9ceb2a625cfc7738f8ac1a62e25797bd2553d2d725f",
+        "peak_process_rss_bytes": 1524940800,
+        "phase_wall_ns": {
+          "COMPUTE": 12054808917,
+          "PERSIST_EXCLUDING_REPLAY": 4961179542,
+          "PREPARATION": 119457125,
+          "PUBLICATION_REPLAY": 13626881542,
+          "READ_INTEGRITY": 3420807500,
+          "REVALIDATE_EXCLUDING_STORAGE": 13554476079
+        },
+        "physical_bytes": 10584392,
+        "psi_row_count": 5720,
+        "raw_budget_bytes": 139085405,
+        "read_including_replay_ns": 16196187208,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "repetition": 3,
+        "result_hash": "0c2a92d7fdd6d835a665d3c2bf1a4865b0fe797e0851e0a9268750fbfa31759b",
+        "runtime": {
+          "machine": "arm64",
+          "os": "Darwin",
+          "python": "3.12.10",
+          "zlib": "1.2.12"
+        },
+        "source_hash": "54ea62606113faeed3cab43b6870c4df748f7110ff1b42c17c2d5ab295974637",
+        "spec_hash": "f96f089823d5c747b5cb09da516fa87ef4b0d7460f2d5033c28c44d68a11f06f",
+        "status": "VERIFIED",
+        "variant": "GZIP_V2",
+        "write_including_replay_ns": 18588061084
+      }
+    ],
+    "interpretation": {
+      "storage_reduction_percent_range": [
+        92.35451178621315,
+        92.38974842456767
+      ],
+      "persistence_median_increase_percent_range": [
+        3.092795576350338,
+        9.133653187401535
+      ],
+      "speedup_or_consistent_memory_reduction_claim": false,
+      "memory_outlier_retained": "ABC_XYZ GZIP_V2 repetition 1 peak RSS 1986215936 bytes; cause not established, not excluded or replaced",
+      "timing": "Six separate phase medians; read includes byte-equivalence checks, repository access excluded from replay; no overlapping phase totals",
+      "cache": "Fresh process and private directory, not cold OS cache",
+      "scope_limit": "No extrapolated approval of full official path-bank time, memory or raw-storage capacity"
+    }
+  },
+  "verification": {
+    "added_unit_tests": 48,
+    "added_contract_tests": 4,
+    "added_offline_integration_tests": 10,
+    "added_tests_total": 62,
+    "focused_unit_and_contract": {
+      "passed": 52
+    },
+    "focused_actual_codec_offline": {
+      "passed": 10,
+      "duration_seconds": 111.99
+    },
+    "ruff": "PASS",
+    "format_files": 330,
+    "existing_json_schemas_valid": 37,
+    "coverage_measured": false,
+    "bandit_executed": false,
+    "mypy_executed": false,
+    "independent_agent_review": false,
+    "doc_reference_verification": "Deterministic local Markdown link existence checks; external URLs not checked",
+    "local_doc_links_valid": 100,
+    "final_source_pin_revalidated": true,
+    "all_18_reports_revalidated_against_evidence": true,
+    "full_suite": {
+      "passed": 1527,
+      "skipped": 9,
+      "warnings": 3,
+      "subtests_passed": 669,
+      "duration_seconds": 529.72
+    },
+    "full_suite_command": "python -m pytest -q -p no:cacheprovider tests/unit tests/contract tests/integration/*offline.py",
+    "added_tests_status": "ALL_62_PASS_IN_FULL_SUITE"
+  },
+  "implementation_file_sha256": {
+    "src/dsio_inventory_engine/inventory_contracts/robustness_storage.py": "b4cffa3f0b5c3ae0c01e696a0fa9ff80e4bcdd352d72f1c71880a4916d468f1d",
+    "src/dsio_inventory_engine/infrastructure/robustness_compression.py": "86df2187c907b6d0b82731ed9a2cf064159827b84ea2bf5fa8f38b95e2999f6e",
+    "tests/unit/test_robustness_storage_benchmark.py": "0ce34f532b744d058149c1c0255909c8fa3d3b10be6dc4e38325b5753b73f177",
+    "tests/unit/test_robustness_compression.py": "f852d993542e0db91034e8b08ae0e89b284714c4c008af6f856ed04648719608",
+    "tests/contract/test_robustness_storage_contract.py": "4d16dec283712e672096a58f46d2682e02f30b9c5c18207e9878197bf9472f5d",
+    "tests/integration/test_robustness_compression_offline.py": "bab4487ab9e46cd1b9d90aca14b1f483addcaa856d67527c11968cbe6e22329b",
+    "scripts/benchmark_robustness_storage.py": "648d2ff896b79e787f7f99da5171f6b516a94a70787d0ef949cef8ddcb5d0f0b",
+    "docs/architecture/data/robustness-storage-benchmark-v1.json": "e0a8f0393b1215a9571174d0d817564831acbcf6adc7a3b342033b65fccb8a77"
+  },
+  "preservation": {
+    "original_count": 473,
+    "unchanged_count": 471,
+    "changed": [
+      "docs/architecture/IO_CATALOG_ROBUSTNESS_CONTRACT.md",
+      "docs/architecture/IO_DEVELOPMENT_BASELINE.md"
+    ],
+    "personal_report_hash": "3d0f5e9bb762b590beef00a65b39b2578b0b281f07fd1f5a2630261dfcb4835e"
+  }
+}

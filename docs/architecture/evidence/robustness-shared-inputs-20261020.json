@@ -1,0 +1,481 @@
+{
+  "contract_id": "inventory-robustness-shared-input-storage-verification",
+  "contract_version": "1.0.0",
+  "date": "2026-10-20",
+  "status": "LOCAL_V3_REFERENCE_STORAGE_VERIFIED_NOT_OFFICIAL_STUDY",
+  "repository": "InventoryEngine",
+  "branch": "inventory_engine_dev",
+  "base_commit": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+  "protocol_hash": "a3e35fcf23915e87823883ea8c1f09448b245ae7ea1fffa8c77482bab0433280",
+  "rules_profile_hash": "a3121dfa885f8b4d2e0df54605789ad841661693b0f386329fe4fa60946ecbae",
+  "scope": "ONE_MANUAL_2055_ITEM_PATH_PER_MODE_COMPLETE_32_32_88_CATALOGS_REVIEW_OR_BLOCK_ONLY",
+  "storage_contract": {
+    "storage_version": "3.0.0",
+    "layout": "SHARED_INPUTS_V1",
+    "shared_fields": [
+      "parent_classification",
+      "calendar",
+      "forecast",
+      "future_demand"
+    ],
+    "minimum_value_bytes": 512,
+    "maximum_references_per_document": 4096,
+    "maximum_path_depth": 64,
+    "maximum_raw_and_restored_document_bytes": 128000000,
+    "maximum_experiment_raw_storage_bytes": 20000000000,
+    "maximum_invocation_seconds": 3600,
+    "global_resource_reservation_or_cancellation_implemented": false,
+    "shared_value_dependencies": "FLAT_PLAIN_VALUES_NOT_RECURSIVE_REFERENCES",
+    "compatibility": "NEW_READER_ACCEPTS_V1_V2_V3_EXISTING_FILES_AND_COMPLETE_RECEIPTS_UNCHANGED_OLD_READERS_DO_NOT_ACCEPT_V3",
+    "hash_equivalence": "ORIGINAL_CANONICAL_JSON_UTF8_PLUS_LF_AND_CALCULATION_RESULT_HASH_UNCHANGED_PHYSICAL_MANIFEST_RECEIPT_MAY_DIFFER",
+    "raw_budget": "SUM_UNIQUE_UNCOMPRESSED_PHYSICAL_WRAPPERS_LAYOUTS_OBJECTS_SLOTS_AND_REPORT_METADATA_NOT_A_COMPRESSION_DISCOUNT",
+    "expanded_logical_bytes_reported_separately": true
+  },
+  "implemented": [
+    "Optional Repository with shared immutable parent classification/Calendar/Forecast values, no change to default Writer/Runtime",
+    "Exact canonical logical document reconstruction before original hash and actual Catalog/Guard/PSI replay",
+    "Separate closed path table and null placeholders; data resembling references is not interpreted",
+    "Input dependencies published before document/checkpoint and COMPLETE; idempotent content-addressed sharing across documents",
+    "Bounded fan-out size prediction before loading dependencies, path/count/depth checks and independent mutable values per restored position",
+    "Physical SHA/length, gzip frame/CRC, raw wrapper SHA/length and shared value SHA/length validation; no fallback after corruption",
+    "V1/V2 unchanged complete-run reads and partial checkpoint recovery with mixed V1/V2/V3 references",
+    "Original all-failed candidate denominators, REVIEW and FSN BLOCK publication/order restrictions retained",
+    "Actual process exit after first V3 leaf checkpoint and retry after an orphan shared file publication verified"
+  ],
+  "not_implemented_or_performed": [
+    "Repeated preparation/serialization reuse, summary-read/replay separation, whole-result streaming or Parquet conversion",
+    "Speedup/memory verdict, new three-repetition timing benchmark, peak scratch-disk measurement or 20GB global quota enforcement",
+    "Official path generation, complete Split bank orchestration or the main robustness experiment",
+    "DB access/writes/migrations, Platform change, installation, public Runtime deployment, actual order or model promotion",
+    "FSN setting or operational Gate changes, commit, push, branch change or personal report modification"
+  ],
+  "sizing": {
+    "scope": "THREE_MANUAL_PAIRED_V2_V3_SIZE_VERIFICATIONS_NO_TIME_OR_MEMORY_VERDICT",
+    "local_artifact_root": "/private/tmp/inventory-shared-input-verification-20261020.MTTdm6",
+    "retention": "LOCAL_TEMPORARY_NOT_CENTRAL_ARCHIVE_NOT_COMMITTED_RAW_FILES",
+    "source_hash": "e713463d7d8037fac485f3def97da33af8b872ace6b07ea0089a9316af1d845c",
+    "source_file_count": 382,
+    "summary": {
+      "modes": [
+        "ABC_XYZ_SHARED_BUDGET",
+        "LEGACY_STYLE",
+        "WIDE_REFERENCE"
+      ],
+      "performance_speed_claim": false,
+      "source_hash": "e713463d7d8037fac485f3def97da33af8b872ace6b07ea0089a9316af1d845c",
+      "status": "VERIFIED",
+      "unique_raw_storage_bytes": 346708675
+    },
+    "reports": [
+      {
+        "assembly_hash": "6bbde359490565523077b1a279e957f9c1f9f800cd925652083c32fb7b3f0a48",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 32,
+        "database_writes": false,
+        "expanded_original_input_header_leaf_bytes": 50793584,
+        "mode": "ABC_XYZ_SHARED_BUDGET",
+        "official_paths_generated": false,
+        "performance_speed_claim": false,
+        "psi_row_count": 2080,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "receipts": {
+          "GZIP_V2": {
+            "automatic_order_allowed": false,
+            "automatic_publish_allowed": false,
+            "content_hash": "0d6a76d221ffe2683d10c67e534bda4a6bbcde27a6fdf9c1ac4a33773ee96579",
+            "contract_id": "inventory-robustness-durable-receipt",
+            "contract_version": "1.0.0",
+            "database_writes": false,
+            "durable_local_artifact": true,
+            "execution_id": "HAND",
+            "input_reference": {
+              "byte_count": 213455,
+              "codec_version": "RFC1952-DEFLATE-V1",
+              "compression_level": 1,
+              "content_hash": "7d840cf097fb53eab1dbff90d4e7c2ad96172c408450276491b6949290ce2032",
+              "contract_id": "inventory-robustness-durable-input",
+              "encoding": "GZIP",
+              "raw_sha256": "d75733a601c6a1a39acb70c05b346a3ac2206e8c31debec029b0d924017bcdba",
+              "storage_version": "2.0.0",
+              "stored_byte_count": 35173,
+              "stored_sha256": "93f66883db7abe6d6c41fa74f999180eb90f871ac395c4b9d7a60058b312dbcb"
+            },
+            "manifest_reference": {
+              "byte_count": 10011,
+              "codec_version": "RFC1952-DEFLATE-V1",
+              "compression_level": 1,
+              "content_hash": "561ffcca8f08a8e32ddcb63b8e4474881aade97751046e8515f4c300abc9737d",
+              "contract_id": "inventory-robustness-durable-manifest",
+              "encoding": "GZIP",
+              "raw_sha256": "8eadc44fe79d1b57477d8774a07648edea9a2a4fb759341f17e1491f7a33aedf",
+              "storage_version": "2.0.0",
+              "stored_byte_count": 4179,
+              "stored_sha256": "9ac56db23ccc5e3301008585478b5df0d6bc55e4fd254a5ca630baa0e28f9893"
+            },
+            "official_paths_generated": false,
+            "operational_policy_approved": false,
+            "protocol_hash": "a3e35fcf23915e87823883ea8c1f09448b245ae7ea1fffa8c77482bab0433280",
+            "result_hash": "a04d8830ff370b3717dff144042abfcc9a4d6d882a4b10d60f415de851277ee7",
+            "status": "COMPLETE"
+          },
+          "SHARED_V3": {
+            "automatic_order_allowed": false,
+            "automatic_publish_allowed": false,
+            "content_hash": "9bfef4c371430e22cd1ef9590469af3444ed49c5c7b590981a3675dae64c29c0",
+            "contract_id": "inventory-robustness-durable-receipt",
+            "contract_version": "1.0.0",
+            "database_writes": false,
+            "durable_local_artifact": true,
+            "execution_id": "HAND",
+            "input_reference": {
+              "byte_count": 213455,
+              "codec_version": "RFC1952-DEFLATE-V1",
+              "compression_level": 1,
+              "content_hash": "7d840cf097fb53eab1dbff90d4e7c2ad96172c408450276491b6949290ce2032",
+              "contract_id": "inventory-robustness-durable-input",
+              "encoding": "GZIP",
+              "layout": "SHARED_INPUTS_V1",
+              "manifest_byte_count": 154550,
+              "raw_sha256": "d75733a601c6a1a39acb70c05b346a3ac2206e8c31debec029b0d924017bcdba",
+              "storage_version": "3.0.0",
+              "stored_byte_count": 28564,
+              "stored_sha256": "3261990ef79d3cbbfee19b22c58355d5ceb9c9c6e01d8d8051aaf21d14054b0a"
+            },
+            "manifest_reference": {
+              "byte_count": 10242,
+              "codec_version": "RFC1952-DEFLATE-V1",
+              "compression_level": 1,
+              "content_hash": "1b34f4c4c293ba864fd06eda31acd651b8b21b572c7e1bc8670a336cfdbabbe7",
+              "contract_id": "inventory-robustness-durable-manifest",
+              "encoding": "GZIP",
+              "layout": "SHARED_INPUTS_V1",
+              "manifest_byte_count": 10354,
+              "raw_sha256": "8c6cf30fc4711d6bec5ac25d077c345414b905bbaa9f59aed9304b87a9964908",
+              "storage_version": "3.0.0",
+              "stored_byte_count": 4270,
+              "stored_sha256": "8c8c7f4a9757ab35978e3fc7a8db69ac352b25eeee5688160ddd12c3c380d6b4"
+            },
+            "official_paths_generated": false,
+            "operational_policy_approved": false,
+            "protocol_hash": "a3e35fcf23915e87823883ea8c1f09448b245ae7ea1fffa8c77482bab0433280",
+            "result_hash": "a04d8830ff370b3717dff144042abfcc9a4d6d882a4b10d60f415de851277ee7",
+            "status": "COMPLETE"
+          }
+        },
+        "result_hash": "a04d8830ff370b3717dff144042abfcc9a4d6d882a4b10d60f415de851277ee7",
+        "source_hash": "e713463d7d8037fac485f3def97da33af8b872ace6b07ea0089a9316af1d845c",
+        "status": "VERIFIED",
+        "usage": {
+          "GZIP_V2": {
+            "file_count": 9,
+            "physical_bytes": 3883780,
+            "shared_file_count": 0,
+            "unique_raw_storage_bytes": 50807057
+          },
+          "SHARED_V3": {
+            "file_count": 138,
+            "physical_bytes": 2136784,
+            "shared_file_count": 129,
+            "unique_raw_storage_bytes": 22780814
+          }
+        }
+      },
+      {
+        "assembly_hash": "62461078a19a6d78cd0a42a9f4508d4698c349099b9c0108b60c196f8f20879b",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 32,
+        "database_writes": false,
+        "expanded_original_input_header_leaf_bytes": 50789959,
+        "mode": "LEGACY_STYLE",
+        "official_paths_generated": false,
+        "performance_speed_claim": false,
+        "psi_row_count": 2080,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "receipts": {
+          "GZIP_V2": {
+            "automatic_order_allowed": false,
+            "automatic_publish_allowed": false,
+            "content_hash": "3b7b58c187a21619f86ebbcd61bdc395c6c9b2c45d55f49fde344c966ad76a20",
+            "contract_id": "inventory-robustness-durable-receipt",
+            "contract_version": "1.0.0",
+            "database_writes": false,
+            "durable_local_artifact": true,
+            "execution_id": "HAND",
+            "input_reference": {
+              "byte_count": 213998,
+              "codec_version": "RFC1952-DEFLATE-V1",
+              "compression_level": 1,
+              "content_hash": "179d10f68061b91eeb68b01875bb853ce391848f4aacbf05c39e39459a6cd044",
+              "contract_id": "inventory-robustness-durable-input",
+              "encoding": "GZIP",
+              "raw_sha256": "d0ace03b17fed74b7621a2b3971fa7d6474313eb53f1081991973d2487c0a658",
+              "storage_version": "2.0.0",
+              "stored_byte_count": 37673,
+              "stored_sha256": "3ea6536ef12b2cdc5f5167fad94455fa3d77bbde96e17a9c215cfaf6b1ca9608"
+            },
+            "manifest_reference": {
+              "byte_count": 10011,
+              "codec_version": "RFC1952-DEFLATE-V1",
+              "compression_level": 1,
+              "content_hash": "7492e0945814e66dfc28c1a35e4e7a9e3b5b09722a667d289092c4f85fda4641",
+              "contract_id": "inventory-robustness-durable-manifest",
+              "encoding": "GZIP",
+              "raw_sha256": "c18150d25463edff81d19a1cf82fc15c968fe410b881b36f98721393842032e6",
+              "storage_version": "2.0.0",
+              "stored_byte_count": 4193,
+              "stored_sha256": "ed045e31493e502bce5d5eb79c82b787422e2eaec064de3ff0aeb1b5c55428f4"
+            },
+            "official_paths_generated": false,
+            "operational_policy_approved": false,
+            "protocol_hash": "a3e35fcf23915e87823883ea8c1f09448b245ae7ea1fffa8c77482bab0433280",
+            "result_hash": "fbd77610f2019fb44b68dbf12a3667dbe6f31238e2d428909355bc7e7f1c67c6",
+            "status": "COMPLETE"
+          },
+          "SHARED_V3": {
+            "automatic_order_allowed": false,
+            "automatic_publish_allowed": false,
+            "content_hash": "4b5128ea21569ba152eda61a118d7909c65d2164b62d78ec0714557a803b5b09",
+            "contract_id": "inventory-robustness-durable-receipt",
+            "contract_version": "1.0.0",
+            "database_writes": false,
+            "durable_local_artifact": true,
+            "execution_id": "HAND",
+            "input_reference": {
+              "byte_count": 213998,
+              "codec_version": "RFC1952-DEFLATE-V1",
+              "compression_level": 1,
+              "content_hash": "179d10f68061b91eeb68b01875bb853ce391848f4aacbf05c39e39459a6cd044",
+              "contract_id": "inventory-robustness-durable-input",
+              "encoding": "GZIP",
+              "layout": "SHARED_INPUTS_V1",
+              "manifest_byte_count": 155093,
+              "raw_sha256": "d0ace03b17fed74b7621a2b3971fa7d6474313eb53f1081991973d2487c0a658",
+              "storage_version": "3.0.0",
+              "stored_byte_count": 31578,
+              "stored_sha256": "a4a2615e91f2fa1f449629dc68b6883ffbf1f00ce5e12b3310f31d7d97cf6e88"
+            },
+            "manifest_reference": {
+              "byte_count": 10242,
+              "codec_version": "RFC1952-DEFLATE-V1",
+              "compression_level": 1,
+              "content_hash": "11901105ded908c7d54efeefea57838005ad36a60a023c7c2104dcc96825dee2",
+              "contract_id": "inventory-robustness-durable-manifest",
+              "encoding": "GZIP",
+              "layout": "SHARED_INPUTS_V1",
+              "manifest_byte_count": 10354,
+              "raw_sha256": "90c4155be5fd7e1f501d64428a05ab4080aa7d60abb44b23fe837eee3e4c7188",
+              "storage_version": "3.0.0",
+              "stored_byte_count": 4285,
+              "stored_sha256": "67cdd27371ccb21518d463cf55210e35893e249e71e0ebcf0dfda9e60af3a4c1"
+            },
+            "official_paths_generated": false,
+            "operational_policy_approved": false,
+            "protocol_hash": "a3e35fcf23915e87823883ea8c1f09448b245ae7ea1fffa8c77482bab0433280",
+            "result_hash": "fbd77610f2019fb44b68dbf12a3667dbe6f31238e2d428909355bc7e7f1c67c6",
+            "status": "COMPLETE"
+          }
+        },
+        "result_hash": "fbd77610f2019fb44b68dbf12a3667dbe6f31238e2d428909355bc7e7f1c67c6",
+        "source_hash": "e713463d7d8037fac485f3def97da33af8b872ace6b07ea0089a9316af1d845c",
+        "status": "VERIFIED",
+        "usage": {
+          "GZIP_V2": {
+            "file_count": 9,
+            "physical_bytes": 3883906,
+            "shared_file_count": 0,
+            "unique_raw_storage_bytes": 50803432
+          },
+          "SHARED_V3": {
+            "file_count": 138,
+            "physical_bytes": 2150100,
+            "shared_file_count": 129,
+            "unique_raw_storage_bytes": 22777189
+          }
+        }
+      },
+      {
+        "assembly_hash": "6b7089606d182eaca0b7bc433058897171e68c7d64ab3b26b74061f86158af7c",
+        "automatic_order_allowed": false,
+        "automatic_publish_allowed": false,
+        "candidate_count": 88,
+        "database_writes": false,
+        "expanded_original_input_header_leaf_bytes": 139054075,
+        "mode": "WIDE_REFERENCE",
+        "official_paths_generated": false,
+        "performance_speed_claim": false,
+        "psi_row_count": 5720,
+        "realization_hash": "7a5b3b7c8ddeb08f6ac17a92e909ab5228191ff5d5786095d768c275991a8e0e",
+        "receipts": {
+          "GZIP_V2": {
+            "automatic_order_allowed": false,
+            "automatic_publish_allowed": false,
+            "content_hash": "eb7f6ddb378592c391641c6d51a7fd55f8a0004da9aaa07548ffc99a9d41548f",
+            "contract_id": "inventory-robustness-durable-receipt",
+            "contract_version": "1.0.0",
+            "database_writes": false,
+            "durable_local_artifact": true,
+            "execution_id": "HAND",
+            "input_reference": {
+              "byte_count": 306217,
+              "codec_version": "RFC1952-DEFLATE-V1",
+              "compression_level": 1,
+              "content_hash": "9c17622026f4653b5427d3b6b885dfb5224a64330b15ad42c00bb84f27350f7d",
+              "contract_id": "inventory-robustness-durable-input",
+              "encoding": "GZIP",
+              "raw_sha256": "43b49c5ba37e7e26b392f3a747eef4759708b2fea6f1f5c18954efb3a9934a2b",
+              "storage_version": "2.0.0",
+              "stored_byte_count": 58280,
+              "stored_sha256": "ee926ab38de8cbb59365b7393c7d9399696302bb7ec7a88b91d13bb1eb29ecfc"
+            },
+            "manifest_reference": {
+              "byte_count": 24247,
+              "codec_version": "RFC1952-DEFLATE-V1",
+              "compression_level": 1,
+              "content_hash": "cfb0d5e507f32a3e140ba0804780f66ed5b0a6ae067c0ac46ad0018bedcb49b7",
+              "contract_id": "inventory-robustness-durable-manifest",
+              "encoding": "GZIP",
+              "raw_sha256": "635c6bbcba0079cff16a387029751193c1015cfe7b98fe5aac87331bde697074",
+              "storage_version": "2.0.0",
+              "stored_byte_count": 9669,
+              "stored_sha256": "698c7b1cd72b80383f735f1ba72e4e142e97938b8d14803e3131f6688e6b3e7e"
+            },
+            "official_paths_generated": false,
+            "operational_policy_approved": false,
+            "protocol_hash": "a3e35fcf23915e87823883ea8c1f09448b245ae7ea1fffa8c77482bab0433280",
+            "result_hash": "0c2a92d7fdd6d835a665d3c2bf1a4865b0fe797e0851e0a9268750fbfa31759b",
+            "status": "COMPLETE"
+          },
+          "SHARED_V3": {
+            "automatic_order_allowed": false,
+            "automatic_publish_allowed": false,
+            "content_hash": "5d768aede1bf72cc2eddd35ec9b13359f0c9d8132200be783e85dcdc0901b425",
+            "contract_id": "inventory-robustness-durable-receipt",
+            "contract_version": "1.0.0",
+            "database_writes": false,
+            "durable_local_artifact": true,
+            "execution_id": "HAND",
+            "input_reference": {
+              "byte_count": 306217,
+              "codec_version": "RFC1952-DEFLATE-V1",
+              "compression_level": 1,
+              "content_hash": "9c17622026f4653b5427d3b6b885dfb5224a64330b15ad42c00bb84f27350f7d",
+              "contract_id": "inventory-robustness-durable-input",
+              "encoding": "GZIP",
+              "layout": "SHARED_INPUTS_V1",
+              "manifest_byte_count": 247312,
+              "raw_sha256": "43b49c5ba37e7e26b392f3a747eef4759708b2fea6f1f5c18954efb3a9934a2b",
+              "storage_version": "3.0.0",
+              "stored_byte_count": 52173,
+              "stored_sha256": "557ba975bca42d758b1230109f64efefe652651e792433bcff7294defb84d187"
+            },
+            "manifest_reference": {
+              "byte_count": 24710,
+              "codec_version": "RFC1952-DEFLATE-V1",
+              "compression_level": 1,
+              "content_hash": "3a44bfbdb5bde06abae108c3226a1afaa77f0e2090717d3e651f4bb3626c9d26",
+              "contract_id": "inventory-robustness-durable-manifest",
+              "encoding": "GZIP",
+              "layout": "SHARED_INPUTS_V1",
+              "manifest_byte_count": 24822,
+              "raw_sha256": "a77074febc708a5f2ccfc5fc740ea039a3850ce20a311139e57ebb899d296072",
+              "storage_version": "3.0.0",
+              "stored_byte_count": 9804,
+              "stored_sha256": "1aa7a06503ab76130fef790984c39ce7d381317772ba3fec75b67c0bcb75706e"
+            },
+            "official_paths_generated": false,
+            "operational_policy_approved": false,
+            "protocol_hash": "a3e35fcf23915e87823883ea8c1f09448b245ae7ea1fffa8c77482bab0433280",
+            "result_hash": "0c2a92d7fdd6d835a665d3c2bf1a4865b0fe797e0851e0a9268750fbfa31759b",
+            "status": "COMPLETE"
+          }
+        },
+        "result_hash": "0c2a92d7fdd6d835a665d3c2bf1a4865b0fe797e0851e0a9268750fbfa31759b",
+        "source_hash": "e713463d7d8037fac485f3def97da33af8b872ace6b07ea0089a9316af1d845c",
+        "status": "VERIFIED",
+        "usage": {
+          "GZIP_V2": {
+            "file_count": 17,
+            "physical_bytes": 10584227,
+            "shared_file_count": 0,
+            "unique_raw_storage_bytes": 139085243
+          },
+          "SHARED_V3": {
+            "file_count": 146,
+            "physical_bytes": 5674804,
+            "shared_file_count": 129,
+            "unique_raw_storage_bytes": 60454940
+          }
+        }
+      }
+    ],
+    "report_file_sha256": {
+      "ABC_XYZ_SHARED_BUDGET.json": "1e78a6c51dcdc269e5b5efd982b1da057536b35c127c5876eef51130e4855c40",
+      "LEGACY_STYLE.json": "1d939ba8fca61177fe4d6737e1ca0b0ef7e07bbc0b209da105cad5312325b73b",
+      "WIDE_REFERENCE.json": "9e31cc9ad673638f4c5702ea5d868dd9b4a410f45a00f3174e07f08f60a738b6",
+      "complete.json": "13151d8edc0faa8cdbbfbb55998548a84156c8851cc2a23977c337a27fa943d4",
+      "pinned-source.json": "f655d7d3dfa3aed38faa941c5b1a4de4ad0813569c44d213bcc8c071317645a8"
+    },
+    "raw_budget_including_metadata": 346861341,
+    "physical_bytes_including_metadata": 28466267,
+    "files_including_metadata": 462
+  },
+  "verification": {
+    "added_unit_tests": 48,
+    "added_contract_tests": 3,
+    "added_offline_integration_tests": 13,
+    "added_tests_total": 64,
+    "focused_storage_and_contract_and_block": {
+      "passed": 52,
+      "duration_seconds": 18.39
+    },
+    "focused_actual_catalog_and_compatibility_and_crash": {
+      "passed": 12,
+      "duration_seconds": 192.38
+    },
+    "ruff": "PASS",
+    "format_files": 337,
+    "existing_json_schemas_valid": 37,
+    "coverage_measured": false,
+    "bandit_executed": false,
+    "mypy_executed": false,
+    "independent_agent_review": false,
+    "unavailable_tools": [
+      "coverage",
+      "bandit",
+      "mypy"
+    ],
+    "doc_reference_verification": "Deterministic local Markdown link checks; no external URL check",
+    "local_doc_links_valid": 104,
+    "final_source_pin_revalidated": true,
+    "all_three_reports_and_file_hashes_revalidated": true,
+    "full_suite": {
+      "passed": 1591,
+      "skipped": 9,
+      "warnings": 3,
+      "subtests_passed": 669,
+      "duration_seconds": 761.16
+    },
+    "full_suite_command": "python -m pytest -q -p no:cacheprovider tests/unit tests/contract tests/integration/*offline.py",
+    "added_tests_status": "ALL_64_PASS_IN_FULL_SUITE"
+  },
+  "implementation_file_sha256": {
+    "src/dsio_inventory_engine/inventory_contracts/robustness_shared_inputs.py": "d5fb46989b8422ca2dc1f43668d0cd53f6891b1642685c5cf060ac6863001f0f",
+    "src/dsio_inventory_engine/infrastructure/robustness_shared_artifacts.py": "c336edb0f56b594fda53e5b36ffc46850af14ab88572f9578bf6f49b119f3b49",
+    "src/dsio_inventory_engine/infrastructure/robustness_shared_layout.py": "2b27a398c931953a83f385cf060af466fb3bf8a5c1773ef2dac6f45395f6d2fd",
+    "tests/unit/test_robustness_shared_inputs.py": "0263b1b8e125ad80b04a5020377f8840e81c242d379ee0e67705a094bbe08f69",
+    "tests/contract/test_robustness_shared_input_contract.py": "fd5d908a59ddf49728441a29ffcb71826ab3dca3368af19fd761a6197ec142fb",
+    "tests/integration/test_robustness_shared_storage_offline.py": "b5bec6445492f36abd158c9efe6719d4b6e6cc9bed76fde12bb0441890f5ae0a",
+    "scripts/verify_robustness_shared_storage.py": "9791feb82c81aca6d63a01fc4931faaf7ad0ac9355050b78eaa0e01e84e7727a"
+  },
+  "preservation": {
+    "original_count": 483,
+    "unchanged_count": 481,
+    "changed": [
+      "docs/architecture/IO_CATALOG_ROBUSTNESS_CONTRACT.md",
+      "docs/architecture/IO_DEVELOPMENT_BASELINE.md"
+    ],
+    "personal_report_hash": "3d0f5e9bb762b590beef00a65b39b2578b0b281f07fd1f5a2630261dfcb4835e"
+  }
+}

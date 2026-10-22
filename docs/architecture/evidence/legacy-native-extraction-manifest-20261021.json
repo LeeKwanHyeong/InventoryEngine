@@ -1,0 +1,223 @@
+{
+  "source_files": [
+    {
+      "path": "DataMart/BufferPSIObject.cs",
+      "sha256": "40148084fcf5ef3770714c8d01ccb348cafee34e1cdda085df09afc679762fa2"
+    },
+    {
+      "path": "DataMart/OptimizerProcess.cs",
+      "sha256": "f6bb8c931e52d4bd655bd99d54e99b0a924cc51e8d13f4142b59896bda60015e"
+    },
+    {
+      "path": "Entities/Definition.cs",
+      "sha256": "71412b073b3d9a26b900c16ae9768db1e79b4f2022a1734b5026e1f2d0223194"
+    },
+    {
+      "path": "Entities/InboundEntity.cs",
+      "sha256": "f1eefe3ede84dd22ac257b13a2807ee6d6430420458a6c26c1da66fa5b4a2166"
+    },
+    {
+      "path": "Entities/OptimizerEntity.cs",
+      "sha256": "fe38db6bb96879db69018e9624e78be6ce946161865cba44f3d093064cbd2939"
+    },
+    {
+      "path": "Entities/PlanEntity.cs",
+      "sha256": "92dccc29cbbf346baeb9fb812755776299658b9f3d04259c817c612f4b8ae2f3"
+    },
+    {
+      "path": "RootIO/Program.cs",
+      "sha256": "a12fd732ec162fd08dd195e13b35fa2cbe286d9879977a08d879f8cf8fd93b9b"
+    }
+  ],
+  "fragments": [
+    {
+      "name": "pipeline",
+      "source": "RootIO/Program.cs",
+      "start_line": 802,
+      "end_line": 955,
+      "normalized_fragment_sha256": "d7fb89abf5d7e04dddc6d9f8346f3208a4bffa61ccb08df17718c0c1650e5831"
+    },
+    {
+      "name": "advance",
+      "source": "RootIO/Program.cs",
+      "start_line": 809,
+      "end_line": 847,
+      "normalized_fragment_sha256": "7d5a97192427c87d25ca385702e6a77fc838452ac44c821b7290b2364d45b14b"
+    },
+    {
+      "name": "weekly_rate",
+      "source": "RootIO/Program.cs",
+      "start_line": 945,
+      "end_line": 949,
+      "normalized_fragment_sha256": "c8e7a083255cbca0861d7ff5ff7cbfa93f9a12463fd22462db2c2bf0e5155715"
+    },
+    {
+      "name": "base_month",
+      "source": "RootIO/Program.cs",
+      "start_line": 255,
+      "end_line": 258,
+      "normalized_fragment_sha256": "2bc502618d484ca8f787358ab904d131042a01b8e74e7daa4d562fd0577705b4"
+    },
+    {
+      "name": "bucket",
+      "source": "Entities/PlanEntity.cs",
+      "start_line": 134,
+      "end_line": 141,
+      "normalized_fragment_sha256": "204c9981e062c259d79ad815918c8d4fbf5c7481000da36527e99dde4aef784b"
+    },
+    {
+      "name": "plan_bucket",
+      "source": "Entities/PlanEntity.cs",
+      "start_line": 205,
+      "end_line": 226,
+      "normalized_fragment_sha256": "6eb1fcae2a1ac4cb0757a45cb7706cf767cb3932f208d09cde54eaf78dc0bead"
+    },
+    {
+      "name": "lot",
+      "source": "Entities/PlanEntity.cs",
+      "start_line": 260,
+      "end_line": 297,
+      "normalized_fragment_sha256": "e9468d2d16f7604822bdf77a46ff53b18cf76f41ac14aaf03630d0d1a0772277"
+    },
+    {
+      "name": "buffer_fields",
+      "source": "DataMart/BufferPSIObject.cs",
+      "start_line": 19,
+      "end_line": 28,
+      "normalized_fragment_sha256": "6c5207bb34b02927d7f1fa0accee7a006dee8b3b6a222b667b2d90d31d4f432b"
+    },
+    {
+      "name": "set_bucket",
+      "source": "DataMart/BufferPSIObject.cs",
+      "start_line": 32,
+      "end_line": 106,
+      "normalized_fragment_sha256": "7118aa05463846d3be396a7992fb591ecea87a93d762d83aa5d427ff0bcd8dc8"
+    },
+    {
+      "name": "set_due_in",
+      "source": "DataMart/BufferPSIObject.cs",
+      "start_line": 110,
+      "end_line": 120,
+      "normalized_fragment_sha256": "e8e930a2e2172464a062e92cfe49dc7c1ec6fae048f8a735d84acf7347e5112c"
+    },
+    {
+      "name": "time_uom",
+      "source": "Entities/Definition.cs",
+      "start_line": 32,
+      "end_line": 32,
+      "normalized_fragment_sha256": "2ca8a40c7bd47be241cdcf57b9d4a3f8addf2726bd1a81846d1ad84da0470f26"
+    },
+    {
+      "name": "lead_time",
+      "source": "Entities/Definition.cs",
+      "start_line": 189,
+      "end_line": 192,
+      "normalized_fragment_sha256": "1bc7fde352878a992047e5e82f18bb27bd9c4f0fae5575d81c347460b0c329f6"
+    },
+    {
+      "name": "eligibility",
+      "source": "DataMart/OptimizerProcess.cs",
+      "start_line": 531,
+      "end_line": 636,
+      "normalized_fragment_sha256": "16fd17e71f5e56aab973a2df879a041cb05f335c146b99dd3447920020855a27"
+    },
+    {
+      "name": "condition",
+      "source": "Entities/OptimizerEntity.cs",
+      "start_line": 9,
+      "end_line": 18,
+      "normalized_fragment_sha256": "067a97d25d667cf1a9109160d14701078fa59bc45a3e14c7ee81138358354a05"
+    },
+    {
+      "name": "fixed_condition",
+      "source": "Entities/OptimizerEntity.cs",
+      "start_line": 20,
+      "end_line": 33,
+      "normalized_fragment_sha256": "a82dfe422a76050ff77e76270b501f2700b9a193e2cf2891eb17275743eaeb80"
+    },
+    {
+      "name": "scenario",
+      "source": "Entities/OptimizerEntity.cs",
+      "start_line": 84,
+      "end_line": 150,
+      "normalized_fragment_sha256": "c8aeb8d0f5f8104b31e9324383495ece139db4f3a7476c694b68d5c4cf368edc"
+    },
+    {
+      "name": "buffer_dto",
+      "source": "Entities/InboundEntity.cs",
+      "start_line": 87,
+      "end_line": 117,
+      "normalized_fragment_sha256": "0fc2265ebca7dff79307c8d34099c69e49f1b106deb41474b0eb7a8c410eb1e9"
+    },
+    {
+      "name": "stock_dto",
+      "source": "Entities/InboundEntity.cs",
+      "start_line": 201,
+      "end_line": 218,
+      "normalized_fragment_sha256": "54bd5b3be3d47e7995dccf7f5171a3cd81b09906b62d10dab4fccb33fdc61868"
+    },
+    {
+      "name": "safety_stock_dto",
+      "source": "Entities/InboundEntity.cs",
+      "start_line": 219,
+      "end_line": 233,
+      "normalized_fragment_sha256": "ff783bd1672e217eb45ca0dd32084b870670b39d5b69659e61b8ddb361ca0ec1"
+    },
+    {
+      "name": "sales_order_dto",
+      "source": "Entities/InboundEntity.cs",
+      "start_line": 247,
+      "end_line": 272,
+      "normalized_fragment_sha256": "024d9ba0afc0c9b4aeee3bbb1e3e42a8cb59acde8eca1a883e5e2e93486c8310"
+    },
+    {
+      "name": "calendar_dto",
+      "source": "Entities/InboundEntity.cs",
+      "start_line": 301,
+      "end_line": 308,
+      "normalized_fragment_sha256": "9ec9f73c6cef65f191deef843d0fe1ecc1962e031f7755062e7c99aa387e1eac"
+    }
+  ],
+  "adaptations": [
+    "Normalize line endings only; extracted calculation tokens are unchanged",
+    "Wrap Program calculation blocks; no Main, DB pre/postprocess, source setup or single-buffer debug filter",
+    "Use original DTOs; list-only HorizonCalendar and silent debug log are non-calculation scaffolding",
+    "Allocation block for transition tests; full bucket loop for order/trigger tests",
+    "Set eligibility condition fields directly; do not execute full optimizer workflow"
+  ],
+  "golden_sha256": "309f86c8c035cde337160227cd6c93b895a023dead4d5995024c9afefdfa6046",
+  "staged_files": [
+    {
+      "path": "ExtractedBuffer.cs",
+      "sha256": "f8389c1f8a2a24598ada743fba484f74220a484a67ea503bb4a2f26e7c53004f"
+    },
+    {
+      "path": "ExtractedEligibility.cs",
+      "sha256": "3a5578552d125ac1f75e99c1b915fa49243f9c3509f7da82a4c609f740b1fe76"
+    },
+    {
+      "path": "ExtractedEntities.cs",
+      "sha256": "3361e2e8d619ea91ccf41265084304cd17354bd5bfa2116fe4edf9993f100969"
+    },
+    {
+      "path": "ExtractedKernel.cs",
+      "sha256": "ef403eeb81bf010ee580b24ab78e001c6402b12d901442eb38cdd4d24bcf56a7"
+    },
+    {
+      "path": "NuGet.Config",
+      "sha256": "2142cfb2dfa2c7feefbe40fabcc68b0dfecadafa99a1db9b70239d977cf2a7ef"
+    },
+    {
+      "path": "Reference.csproj",
+      "sha256": "9983476fccd2b4c7acc0e281923bc1a0bb5c130af9618376894d4dc157f63880"
+    },
+    {
+      "path": "ReferenceHarness.cs",
+      "sha256": "af3c31380ae9292795a44ae7d271d421ab73639426521b1a3fc20b4e9ba327bd"
+    },
+    {
+      "path": "golden.json",
+      "sha256": "309f86c8c035cde337160227cd6c93b895a023dead4d5995024c9afefdfa6046"
+    }
+  ]
+}

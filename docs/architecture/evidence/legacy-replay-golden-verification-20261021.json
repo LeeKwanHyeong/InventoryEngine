@@ -1,0 +1,124 @@
+{
+  "as_of_date": "2026-10-21",
+  "repository": "InventoryEngine",
+  "branch": "inventory_engine_dev",
+  "head_commit": "99f2f1286d90dfe0e26025e603786a813ea51dac",
+  "verification_scope": "MANUAL_GOLDEN_CONTRACT_AND_EXISTING_PYTHON_OFFLINE_ONLY",
+  "source_register": "legacy-csharp-reconciliation-20261020.json",
+  "new_contract": "../IO_LEGACY_REPLAY_GOLDEN_CONTRACT.md",
+  "native_csharp_verified": false,
+  "native_csharp_executed": false,
+  "deployed_legacy_identity_verified": false,
+  "dotnet_installed": false,
+  "legacy_expectation_origin": "HAND_CALCULATED_FROM_FROZEN_SOURCE_NOT_PYTHON_GENERATED",
+  "upstream_svc_lv_mapping_verified": false,
+  "full_legacy_optimizer_winner_verified": false,
+  "golden_case_counts": {
+    "transitions": 4,
+    "orders": 3,
+    "trigger": 1,
+    "lot": 4,
+    "arrival": 4,
+    "month_policy": 2,
+    "eligibility_and_selection_components": 3,
+    "total": 21
+  },
+  "golden_and_test_files": [
+    {
+      "path": "tests/fixtures/golden_legacy_python_semantics.json",
+      "sha256": "309f86c8c035cde337160227cd6c93b895a023dead4d5995024c9afefdfa6046"
+    },
+    {
+      "path": "tests/contract/test_legacy_python_semantics_contract.py",
+      "sha256": "296de728d5d524549679808b9ed79027b61a43e493e69c8388327bec124ac0eb"
+    },
+    {
+      "path": "tests/unit/test_legacy_python_semantics.py",
+      "sha256": "e9d53e402bc5ce864215e2f3a0b9b44ecf22fd618238bb48c467be623b7ec11d"
+    },
+    {
+      "path": "tests/integration/test_legacy_python_semantics_offline.py",
+      "sha256": "893970f5fb1454a12c53e2056812dd6df6dc5226ed041a3ac2b44f1e572275f4"
+    }
+  ],
+  "test_results": {
+    "new_tests": {
+      "passed": 39,
+      "seconds": 0.12
+    },
+    "targeted_regression_including_new_tests": {
+      "passed": 362,
+      "subtests_passed": 124,
+      "seconds": 22
+    },
+    "full_regression_rerun": false,
+    "test_invocation_prefix": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src:tests/support python -m pytest -q -p no:cacheprovider",
+    "targeted_test_modules": [
+      "tests/contract/test_legacy_python_semantics_contract.py",
+      "tests/unit/test_legacy_python_semantics.py",
+      "tests/integration/test_legacy_python_semantics_offline.py",
+      "tests/unit/test_baseline_psi.py",
+      "tests/unit/test_replenishment.py",
+      "tests/unit/test_mathematical_policy.py",
+      "tests/unit/test_policy_search.py",
+      "tests/unit/test_policy_selection.py",
+      "tests/unit/test_catalog_policy_selection.py",
+      "tests/unit/test_selected_order_plan.py",
+      "tests/unit/test_selected_policy_order_plan_binding.py",
+      "tests/contract/test_replenishment_contract.py",
+      "tests/contract/test_mathematical_contract.py",
+      "tests/contract/test_selected_policy_order_plan_contract.py",
+      "tests/contract/test_segmentation_compatibility_contract.py",
+      "tests/integration/test_policy_search_offline.py",
+      "tests/integration/test_policy_selection_offline.py",
+      "tests/integration/test_selected_order_plan_offline.py",
+      "tests/integration/test_legacy_style_offline.py",
+      "tests/integration/test_catalog_policy_selection_offline.py"
+    ]
+  },
+  "static_checks": {
+    "ruff_check": "PASS: src tests scripts --no-cache",
+    "ruff_format": "PASS: 376 Python files",
+    "diff_check": "PASS",
+    "source_hashes_verified": 19,
+    "source_anchors_verified": 45,
+    "initial_ruff_cache_write_error": "OPERATION_NOT_PERMITTED; rerun with --no-cache succeeded",
+    "oma_docs_cli_run": false,
+    "local_reference_checks": true,
+    "local_markdown_links_verified": 115,
+    "external_url_checks": false
+  },
+  "preservation": {
+    "existing_files_at_start": 568,
+    "approved_existing_document_changes": 2,
+    "other_existing_files_unchanged": 566,
+    "new_files": 6,
+    "calculation_code_unchanged": true,
+    "existing_goldens_unchanged": true,
+    "abc_xyz_results_and_hashes_unchanged": true,
+    "fsn_settings_unchanged": true,
+    "operational_gates_unchanged": true,
+    "schemas_unchanged": true,
+    "db_unchanged": true,
+    "platform_unchanged": true,
+    "runtime_unchanged": true,
+    "commit_or_push_performed": false
+  },
+  "manual_scope_limits": [
+    "Legacy arithmetic consistency tests are not a C# emulator or native equivalence test",
+    "Selection golden tests use supplied assessment-component inputs, not a new full optimizer result",
+    "Synthetic scalar eligibility values do not establish database SVC_LV units",
+    "Integer quantity/date exactness applies only to this pack; no global regression tolerance is approved"
+  ],
+  "not_performed": [
+    "Native C# build/run or package installation",
+    "Migration, DB writes, claims or real order publication",
+    "Public runtime deployment, ERP or Demand E2E",
+    "Full regression, coverage, independent-agent review or official large experiment"
+  ],
+  "next_work": [
+    "Prepare isolated DB-free native C# reference execution",
+    "Investigate SVC_LV aggregation and group-to-item expansion independently",
+    "Compare and decide approved target changes before resuming order-plan persistence"
+  ]
+}
